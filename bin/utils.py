@@ -129,7 +129,10 @@ def run_cmd(cmd: list[str], /, timeout, logger, **kwargs):
             end = None
 
         logger.debug(f"starting: {shlex.join(map(str, cmd))}")
-
+        # cmd = ['python'] + cmd
+        # cp = subprocess.Popen(
+        #     cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True,shell=False,      **kwargs
+        # ) # windows confuses this with running an exe, might need this version for Windows users
         cp = subprocess.Popen(
             cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, **kwargs
         )
