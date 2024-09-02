@@ -6,5 +6,18 @@ target
 .settings
 __pycache__
 
+# compiled C
 timer/sieve
 timer/sieve.exe
+
+# environments
+PAenv/
+
+# analyses results
+*.json
+
+*.py
+*.yaml
+sample.yaml
+
+tree-sitter-java/

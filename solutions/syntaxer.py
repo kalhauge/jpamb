@@ -12,6 +12,7 @@ l.basicConfig(level=logging.DEBUG)
 
 import re
 from pathlib import Path
+from tree_sitter_languages import get_language
 
 # Read the method_name
 RE = r"(?P<class_name>.+)\.(?P<method_name>.*)\:\((?P<params>.*)\)(?P<return>.*)"
@@ -26,7 +27,8 @@ TYPE_LOOKUP = {
 
 import tree_sitter
 
-JAVA_LANGUAGE = tree_sitter.Language(os.environ["TREE_SITTER_JAVA"], "java")
+# JAVA_LANGUAGE = tree_sitter.Language(os.environ["TREE_SITTER_JAVA"], "java")
+JAVA_LANGUAGE = get_language('java')
 
 
 parser = tree_sitter.Parser()

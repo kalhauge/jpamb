@@ -228,7 +228,14 @@ def evaluate(experiment, timeout, iterations, verbose, filter_methods, filter_to
             continue
         score = sum(r["score"] for r in t) / iterations
         time = sum(r["time"] for r in t) / len(t)
-        relative = math.exp(sum(math.log(r["relative"]) for r in t) / len(t))
+        # relative = math.exp(sum(math.log(r["relative"]) for r in t) / len(t))
+        relative_values = [r["relative"] for r in t if r["relative"] > 0]
+
+        if len(relative_values) == 0:
+            raise ValueError("No positive relative values to calculate logarithm.")
+
+        relative = math.exp(sum(math.log(val) for val in relative_values) / len(relative_values))
+
         tools[k]["results"] = t
         tools[k]["score"] = score
         tools[k]["time"] = time

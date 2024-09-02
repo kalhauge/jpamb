@@ -6,7 +6,9 @@
 int sieve_of_eratosthenes(int n) {
     if (n == 1) { return 2; }
     int limit = ceil(n * log(n) + n * log(log(n))); 
-    char *is_prime = calloc(limit + 1, sizeof(char)); 
+    // char *is_prime = calloc(limit + 1, sizeof(char)); 
+    char *is_prime = (char*) calloc(limit + 1, sizeof(char));
+
 
     if (is_prime == NULL) {
         fprintf(stderr, "limit = %d\n", limit);
