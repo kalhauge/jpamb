@@ -1,5 +1,6 @@
 import click
 from pathlib import Path
+import sys 
 import math
 
 from jpamb import model, logger
@@ -94,12 +95,14 @@ def test(ctx, program, report, filter, fail_fast):
 
     def run(arg):
         args = list(program + (arg,))
+        if args and str(args[0]).lower().endswith(".py"):
+            args = [sys.executable] + args
         output(f"Run {args}")
         report.flush()
 
         out = subprocess.run(
             args,
-            stderr=report,
+            # stderr=report,
             stdout=subprocess.PIPE,
             check=fail_fast,
             text=True,
@@ -120,7 +123,8 @@ def test(ctx, program, report, filter, fail_fast):
             continue
 
         with context(f"Case {methodid}"):
-            out = run(methodid.encode())
+            # out = run(methodid.encode())
+            out = run(str(methodid))
             response = model.Response.parse(out)
             for k, v in sorted(response.predictions.items()):
                 output(f"- {k}: {v} {v.wager:0.2f}")

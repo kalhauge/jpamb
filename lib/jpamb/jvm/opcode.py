@@ -177,13 +177,6 @@ class Dup(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.dup"
     ]
 
-    semantics = """
-    bc[i].opr = 'dup'
-    bc[i].words = 1
-    -------------------------[dup1]
-    (i, s + [v]) -> (i+1, s + [v, v])
-    """
-
     words: int
 
     @classmethod
@@ -306,12 +299,6 @@ class ArrayLength(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.arraylength"
     ]
 
-    semantics = """
-    bc[i].opr = 'arraylength'
-    -------------------------[arraylength]
-    bc |- (i, s + [arrayref]) -> (i+1, s + [length])
-    """
-
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
@@ -332,14 +319,6 @@ class InvokeVirtual(Opcode):
     docs = [
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokevirtual"
     ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'virtual'
-    bc[i].method = m
-    -------------------------[invokevirtual]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
 
     method: jvm.Absolute[jvm.MethodID]
 
@@ -366,14 +345,6 @@ class InvokeStatic(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokestatic"
     ]
 
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'static'
-    bc[i].method = m
-    -------------------------[invokestatic]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
-
     method: jvm.Absolute[jvm.MethodID]
 
     @classmethod
@@ -398,15 +369,6 @@ class InvokeInterface(Opcode):
     docs = [
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokeinterface"
     ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'interface'
-    bc[i].method = m
-    bc[i].stack_size = n
-    -------------------------[invokeinterface]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
 
     method: jvm.Absolute[jvm.MethodID]
     stack_size: int
@@ -445,14 +407,6 @@ class InvokeSpecial(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.invokespecial"
     ]
 
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'special'
-    bc[i].method = m
-    -------------------------[invokespecial]
-    bc |- (i, s + [objectref, args...]) -> (i+1, s + [result])
-    where objectref must be an instance of current class or subclass
-    """
 
     method: jvm.Absolute[jvm.MethodID]
     is_interface: bool  # Whether the method is from an interface
@@ -663,15 +617,6 @@ class If(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.if_acmpeq",
     ]
 
-    semantics = """
-    bc[i].opr = 'if'
-    bc[i].condition = cond
-    bc[i].target = t
-    -------------------------[if]
-    bc |- (i, s + [value1, value2]) -> (t, s) if condition is true
-    bc |- (i, s + [value1, value2]) -> (i+1, s) if condition is false
-    """
-
     condition: str  # One of the CmpOpr values
     target: int  # Jump target offset
 
@@ -727,19 +672,6 @@ class Get(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.getstatic",
     ]
 
-    semantics = """
-    bc[i].opr = 'get'
-    bc[i].static = false
-    bc[i].field = f
-    -------------------------[getfield]
-    bc |- (i, s + [objectref]) -> (i+1, s + [value])
-
-    bc[i].opr = 'get'
-    bc[i].static = true
-    bc[i].field = f
-    -------------------------[getstatic]
-    bc |- (i, s) -> (i+1, s + [value])
-    """
 
     static: bool
     field: jvm.Absolute[jvm.FieldID]  # We need to add FieldID to base.py
@@ -786,14 +718,6 @@ class Ifz(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.ifnull",
     ]
 
-    semantics = """
-    bc[i].opr = 'ifz'
-    bc[i].condition = cond
-    bc[i].target = t
-    -------------------------[ifz]
-    bc |- (i, s + [value]) -> (t, s) if condition against zero/null is true
-    bc |- (i, s + [value]) -> (i+1, s) if condition against zero/null is false
-    """
 
     condition: str  # One of the CmpOpr values
     target: int  # Jump target offset
@@ -849,13 +773,6 @@ class New(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.new"
     ]
 
-    semantics = """
-    bc[i].opr = 'new'
-    bc[i].class = c
-    -------------------------[new]
-    bc |- (i, s) -> (i+1, s + [objectref])
-    where objectref is a fresh instance of class c
-    """
 
     classname: jvm.ClassName  # The class to instantiate
 
@@ -886,13 +803,6 @@ class Throw(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.athrow"
     ]
 
-    semantics = """
-    bc[i].opr = 'throw'
-    -------------------------[throw]
-    bc |- (i, s + [objectref]) -> (handler_pc, [objectref]) if exception is caught
-    bc |- (i, s + [objectref]) -> (⊥, [objectref]) if exception is uncaught
-    where objectref must be an instance of Throwable or subclass
-    """
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
@@ -922,14 +832,6 @@ class Incr(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iinc"
     ]
 
-    semantics = """
-    bc[i].opr = 'incr'
-    bc[i].index = idx
-    bc[i].amount = const
-    -------------------------[iinc]
-    bc |- (i, s) -> (i+1, s)
-    where locals[idx] = locals[idx] + const
-    """
 
     index: int  # Index of the local variable
     amount: int  # Constant to add to the variable
@@ -960,14 +862,6 @@ class Goto(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.goto",
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.goto_w",
     ]
-
-    semantics = """
-    bc[i].opr = 'goto'
-    bc[i].target = t
-    -------------------------[goto]
-    bc |- (i, s) -> (t, s)
-    where t must be a valid instruction offset
-    """
 
     target: int  # Jump target offset
 
@@ -1001,17 +895,6 @@ class Return(Opcode):
         "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.return",
     ]
 
-    semantics = """
-    bc[i].opr = 'return'
-    bc[i].type = t where t != None
-    -------------------------[return_value]
-    bc |- (i, s + [value]) -> return value
-
-    bc[i].opr = 'return'
-    bc[i].type = None
-    -------------------------[return_void]
-    bc |- (i, s) -> return
-    """
 
     type: jvm.Type | None  # Return type (None for void return)
 
