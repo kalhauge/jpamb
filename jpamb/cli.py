@@ -208,7 +208,14 @@ def test(ctx, program, report, filter, fail_fast, with_python):
     def output_run(*args):
         program_ = program + args
         pp = list(program_)
-        pp[0] = str(Path(pp[0]).relative_to(Path.cwd()))
+        cwd = Path.cwd()
+        for i, a in enumerate(pp):
+            p = Path(a)
+            try:
+                pp[i] = str(p.relative_to(cwd))
+            except Exception:
+                pp[i] = str(p)
+        # pp[0] = str(Path(pp[0]).relative_to(Path.cwd()))
         with context(f"Run {shlex.join(pp)}"):
             with context("Stderr"):
                 out, time = run(program_, logerr=output)
