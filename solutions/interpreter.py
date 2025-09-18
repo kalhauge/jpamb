@@ -22,6 +22,9 @@ class PC:
 
     def __add__(self, delta):
         return PC(self.method, self.offset + delta)
+    
+    def replace(self, val):
+        self.offset = val
 
     def __str__(self):
         return f"{self.method}:{self.offset}"
@@ -90,7 +93,16 @@ class Frame:
 @dataclass
 class State:
     heap: dict[int, jvm.Value]
+    heap_items = 0
     frames: Stack[Frame]
+
+    # currently takes in classname as 'val' and pushes it directly into the heap - this might be the wrong datatype
+    # also don't know if we should use heap or locals
+    def heap_append(self, val):
+        self.heap[self.heap_items] = val
+        idx = self.heap_items
+        self.heap_items += 1
+        return idx
 
     def __str__(self):
         return f"{self.heap} {self.frames}"
@@ -130,6 +142,56 @@ def step(state: State) -> State | str:
                 return state
             else:
                 return "ok"
+        case jvm.Dup():
+            v1 = frame.stack.peek()
+            frame.stack.push(v1)
+            frame.pc += 1
+            return state
+        case jvm.Get(field=field, static=static):
+            if field.extension.name == "$assertionsDisabled":
+                frame.stack.push(False)
+                frame.pc += 1
+                return state
+            else:
+                raise NotImplementedError(f"Don't know how to handle get that is not $assertionsDisabled: {field!r}")
+        case jvm.Ifz(condition=condition, target=target):
+            v1 = frame.stack.pop() 
+            if isinstance(v1, int):  
+                if (condition == "ne" and v1 != 0) or (condition == "eq" and v1 == 0):
+                    frame.pc.replace(target)
+                else:
+                    frame.pc += 1
+            elif isinstance(v1, jvm.Value):
+                if isinstance(v1.type, jvm.Boolean):
+                    if (condition == "ne") != v1.value:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                else:
+                    raise NotImplementedError("Don't know how to handle jvm.Value of type: {v1.type}") 
+            else:
+
+                raise NotImplementedError(f"Don't know how to handle Ifz for references: condition: {condition!r}, v1: {v1!r}")
+            return state
+        case jvm.New(classname=cname):
+            # look at heap_append 
+            idx = state.heap_append(cname.name)
+            frame.stack.push(idx)
+            frame.pc += 1
+            logger.debug(cname)
+            return state
+        case jvm.InvokeSpecial(method=m, is_interface=is_interface):
+            if len(m.extension.params._elements) == 0:
+                v1 = frame.stack.pop()
+                frame.pc += 1
+                return state
+            raise NotImplementedError("Don't know how to handle special invocations with more than 0 elements")
+        case jvm.Throw():
+            v1 = frame.stack.pop()
+            if state.heap[v1] == "java/lang/AssertionError":
+                return 'assertion error'
+            else:
+                raise NotImplementedError(f"Don't know how to handle non-assertion error error: {state.heap[v1]!r}")
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
