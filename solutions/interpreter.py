@@ -132,8 +132,24 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(v1.value // v2.value))
             frame.pc += 1
             return state
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Sub):
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            frame.stack.push(jvm.Value.int(v1.value - v2.value))
+            frame.pc += 1
+            return state
         case jvm.Return(type=jvm.Int()):
             v1 = frame.stack.pop()
+            state.frames.pop()
+            if state.frames:
+                frame = state.frames.peek()
+                frame.stack.push(v1)
+                frame.pc += 1
+                return state
+            else:
+                return "ok"
+        case jvm.Return(type=None):
             state.frames.pop()
             if state.frames:
                 frame = state.frames.peek()
@@ -155,23 +171,59 @@ def step(state: State) -> State | str:
             else:
                 raise NotImplementedError(f"Don't know how to handle get that is not $assertionsDisabled: {field!r}")
         case jvm.Ifz(condition=condition, target=target):
-            v1 = frame.stack.pop() 
-            if isinstance(v1, int):  
-                if (condition == "ne" and v1 != 0) or (condition == "eq" and v1 == 0):
-                    frame.pc.replace(target)
-                else:
-                    frame.pc += 1
-            elif isinstance(v1, jvm.Value):
-                if isinstance(v1.type, jvm.Boolean):
-                    if (condition == "ne") != v1.value:
-                        frame.pc.replace(target)
-                    else:
-                        frame.pc += 1
-                else:
-                    raise NotImplementedError("Don't know how to handle jvm.Value of type: {v1.type}") 
-            else:
-
-                raise NotImplementedError(f"Don't know how to handle Ifz for references: condition: {condition!r}, v1: {v1!r}")
+            v1 = frame.stack.pop()
+            match v1:
+                case jvm.Value(jvm.Boolean()):
+                            match condition:
+                                case "ne":
+                                    if v1.value:
+                                        frame.pc.replace(target)
+                                    else:
+                                        frame.pc += 1
+                                case "eq":
+                                    if not v1.value:
+                                        frame.pc.replace(target)
+                                    else:
+                                        frame.pc += 1
+                                case _:
+                                    raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
+                case jvm.Value(jvm.Int()) | int():
+                    value = v1.value if isinstance(v1, jvm.Value) else v1
+                    match condition:
+                        case "ne":
+                            if value != 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "eq":
+                            if value == 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "gt":
+                            if value > 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "lt":
+                            if value < 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "ge":
+                            if value >= 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "le":
+                            if value <= 0:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case _:
+                            raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
+                case _:
+                    raise NotImplementedError(f"Don't know how to handle Ifz for v1: {v1!r}")
             return state
         case jvm.New(classname=cname):
             # look at heap_append 
@@ -192,6 +244,20 @@ def step(state: State) -> State | str:
                 return 'assertion error'
             else:
                 raise NotImplementedError(f"Don't know how to handle non-assertion error error: {state.heap[v1]!r}")
+        case jvm.If(condition=condition, target=target):
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            # v1 and v2 can also be references
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            match condition:
+                case "gt":
+                    if v1.value > v2.value:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case _:
+                    raise NotImplementedError(f"Don't know how to handle if-statement condition of type: {condition!r}")
+            return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
