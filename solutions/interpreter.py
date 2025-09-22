@@ -264,6 +264,13 @@ def step(state: State) -> State | str:
 
 frame = Frame.from_method(methodid)
 for i, v in enumerate(input.values):
+    match v:
+        case jvm.Value(type=jvm.Boolean(), value=value):
+            v = jvm.Value.int(1 if value else 0)
+        case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Reference(), value=value):
+            pass
+        case _:
+            raise NotImplementedError(f"Don't know how to handle {v}")
     frame.locals[i] = v
 
 state = State({}, Stack.empty().push(frame))
