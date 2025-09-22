@@ -97,7 +97,6 @@ class State:
     frames: Stack[Frame]
 
     # currently takes in classname as 'val' and pushes it directly into the heap - this might be the wrong datatype
-    # also don't know if we should use heap or locals
     def heap_append(self, val):
         self.heap[self.heap_items] = val
         idx = self.heap_items
