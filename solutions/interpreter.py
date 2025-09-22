@@ -248,7 +248,7 @@ for i, v in enumerate(input.values):
     match v:
         case jvm.Value(type=jvm.Boolean(), value=value):
             v = jvm.Value.int(1 if value else 0)
-        case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Reference(), value=value):
+        case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value) | jvm.Value(type=jvm.Byte(), value=value):
             pass
         case _:
             raise NotImplementedError(f"Don't know how to handle {v}")
