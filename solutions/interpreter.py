@@ -79,7 +79,6 @@ bc = Bytecode(suite, dict())
 @dataclass
 class Frame:
     locals: dict[int, jvm.Value]
-    locals_items = 0
     stack: Stack[jvm.Value]
     pc: PC
 
@@ -89,12 +88,6 @@ class Frame:
 
     def from_method(method: jvm.AbsMethodID) -> "Frame":
         return Frame({}, Stack.empty(), PC(method, 0))
-    
-    def locals_append(self, val):
-        self.locals[self.heap_items] = val
-        idx = self.locals_items
-        self.locals_items += 1
-        return idx
 
 
 @dataclass
@@ -150,6 +143,20 @@ def step(state: State) -> State | str:
             assert v1.type is jvm.Int(), f"expected int, but got {v1}"
             assert v2.type is jvm.Int(), f"expected int, but got {v2}"
             frame.stack.push(jvm.Value.int(v1.value % v2.value))
+            frame.pc += 1
+            return state
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Mul):
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            frame.stack.push(jvm.Value.int(v1.value * v2.value))
+            frame.pc += 1
+            return state
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Add):
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            frame.stack.push(jvm.Value.int(v1.value + v2.value))
             frame.pc += 1
             return state
         case jvm.Return(type=jvm.Int()):
@@ -239,6 +246,15 @@ def step(state: State) -> State | str:
                 return 'assertion error'
             else:
                 raise NotImplementedError(f"Don't know how to handle non-assertion error error: {state.heap[v1]!r}")
+        case jvm.Store(type=type, index=idx):
+            v = frame.stack.pop()
+            assert v.type == type, f"Expected type {type}, got {v.type}"
+            frame.locals[idx] = v
+            frame.pc += 1
+            return state
+        case jvm.Goto(target=target):
+            frame.pc.replace(target)
+            return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
