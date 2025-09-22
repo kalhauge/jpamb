@@ -3,6 +3,8 @@ import sys
 import re
 from interpreter import *
 import jpamb
+from jpamb import jvm
+import random
 
 # this example shows minimal working program without any imports.
 #  this is especially useful for people building it in other programming languages
@@ -16,6 +18,8 @@ if len(sys.argv) == 2 and sys.argv[1] == "info":
 else:
     # Get the method we need to analyze
     classname, methodname, args = re.match(r"(.*)\.(.*):(.*)", sys.argv[1]).groups()
+    java_max_int = 2**32-1
+    java_min_int = -2**32
 
     # Make predictions (improve these by looking at the Java code!)
     ok_chance = "50%"
@@ -26,31 +30,46 @@ else:
     infinite_loop_chance = "50%"
 
     if args.startswith("()"):
-        methodid = jpamb.parse_methodid(sys.argv[1])
-        frame = Frame.from_method(methodid)
+        input = jpamb.parse_input("()")
+    else:
+        arg_types = list(args)[1:-2]
+        arg_values = []
+        for a in arg_types:
+            match a:
+                case "I":
+                    arg_values.append(str(random.randint(java_min_int, java_max_int)))
+                case "Z":
+                    arg_values.append(random.choice(["true", "false"]))
+                case _:
+                    raise NotImplementedError(f"Don't know how to handle argument type {a}")
         
-        state = State({}, Stack.empty().push(frame))
+        input = jpamb.parse_input(f"({",".join(arg_values)})")
 
-        for x in range(1000):
-            state = step(state)
-            if isinstance(state, str):
-                break
-        else:
-            print("*")
+    methodid = jpamb.parse_methodid(sys.argv[1])
 
+    state = execute(methodid, input)
 
-        assertion_error_chance = "100%" if state == "assertion error" else "0%"
-        ok_chance = "100%" if state == "ok" else "0%"
-        divide_by_zero_chance = "100%" if state == "divide by zero" else "0%"
-        out_of_bounds_chance = "0%"
-        null_pointer_chance = "0%"
-        infinite_loop_chance = "0%"
+    states = [state]
 
+    # if no args then outcome=0 => chance=0
+    if "assertion error" in states:
+        assertion_error_chance = "100%"
+    else:
+        assertion_error_chance = "15%"
 
+    if "ok" in states:
+        ok_chance = "100%" 
+    else:
+        ok_chance = "15%"
 
+    if state == "divide by zero":
+        divide_by_zero_chance = "100%" 
+    else:
+        divide_by_zero_chance = "15%"
 
-
-
+    out_of_bounds_chance = "0%"
+    null_pointer_chance = "0%"
+    infinite_loop_chance = "0%"
 
     # Output predictions for all 6 possible outcomes
     print(f"ok;{ok_chance}")

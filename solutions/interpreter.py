@@ -230,7 +230,6 @@ def step(state: State) -> State | str:
             idx = state.heap_append(cname.name)
             frame.stack.push(idx)
             frame.pc += 1
-            logger.debug(cname)
             return state
         case jvm.InvokeSpecial(method=m, is_interface=is_interface):
             if len(m.extension.params._elements) == 0:
@@ -256,8 +255,7 @@ def step(state: State) -> State | str:
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
-if __name__ == "__main__":
-    methodid, input = jpamb.getcase()
+def execute(methodid, input):
     frame = Frame.from_method(methodid)
     for i, v in enumerate(input.values):
         match v:
@@ -274,7 +272,13 @@ if __name__ == "__main__":
     for x in range(1000):
         state = step(state)
         if isinstance(state, str):
-            print(state)
-            break
+            return state
     else:
         print("*")
+
+
+if __name__ == "__main__":
+    methodid, input = jpamb.getcase()
+    state = execute(methodid, input)
+    print(state)
+    
