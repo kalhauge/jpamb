@@ -165,7 +165,7 @@ def step(state: State) -> State | str:
             return state
         case jvm.Get(field=field, static=static):
             if field.extension.name == "$assertionsDisabled":
-                frame.stack.push(False)
+                frame.stack.push(jvm.Value.int(0))
                 frame.pc += 1
                 return state
             else:
@@ -174,19 +174,19 @@ def step(state: State) -> State | str:
             v1 = frame.stack.pop()
             match v1:
                 case jvm.Value(jvm.Boolean()):
-                            match condition:
-                                case "ne":
-                                    if v1.value:
-                                        frame.pc.replace(target)
-                                    else:
-                                        frame.pc += 1
-                                case "eq":
-                                    if not v1.value:
-                                        frame.pc.replace(target)
-                                    else:
-                                        frame.pc += 1
-                                case _:
-                                    raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
+                    match condition:
+                        case "ne":
+                            if v1.value:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case "eq":
+                            if not v1.value:
+                                frame.pc.replace(target)
+                            else:
+                                frame.pc += 1
+                        case _:
+                            raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
                 case jvm.Value(jvm.Int()) | int():
                     value = v1.value if isinstance(v1, jvm.Value) else v1
                     match condition:
