@@ -79,6 +79,7 @@ bc = Bytecode(suite, dict())
 @dataclass
 class Frame:
     locals: dict[int, jvm.Value]
+    locals_items = 0
     stack: Stack[jvm.Value]
     pc: PC
 
@@ -88,6 +89,12 @@ class Frame:
 
     def from_method(method: jvm.AbsMethodID) -> "Frame":
         return Frame({}, Stack.empty(), PC(method, 0))
+    
+    def locals_append(self, val):
+        self.locals[self.heap_items] = val
+        idx = self.locals_items
+        self.locals_items += 1
+        return idx
 
 
 @dataclass
@@ -138,6 +145,13 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(v1.value - v2.value))
             frame.pc += 1
             return state
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Rem):
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            frame.stack.push(jvm.Value.int(v1.value % v2.value))
+            frame.pc += 1
+            return state
         case jvm.Return(type=jvm.Int()):
             v1 = frame.stack.pop()
             state.frames.pop()
@@ -169,7 +183,8 @@ def step(state: State) -> State | str:
                 return state
             else:
                 raise NotImplementedError(f"Don't know how to handle get that is not $assertionsDisabled: {field!r}")
-        case jvm.Ifz(condition=condition, target=target):
+        case jvm.Ifz(condition=condition, target=target) | jvm.If(condition=condition, target=target):
+            v2 = 0 if isinstance(opr, jvm.Ifz) else frame.stack.pop().value
             v1 = frame.stack.pop()
             match v1:
                 case jvm.Value(jvm.Boolean()):
@@ -190,32 +205,32 @@ def step(state: State) -> State | str:
                     value = v1.value if isinstance(v1, jvm.Value) else v1
                     match condition:
                         case "ne":
-                            if value != 0:
+                            if value != v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
                         case "eq":
-                            if value == 0:
+                            if value == v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
                         case "gt":
-                            if value > 0:
+                            if value > v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
                         case "lt":
-                            if value < 0:
+                            if value < v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
                         case "ge":
-                            if value >= 0:
+                            if value >= v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
                         case "le":
-                            if value <= 0:
+                            if value <= v2:
                                 frame.pc.replace(target)
                             else:
                                 frame.pc += 1
@@ -243,20 +258,6 @@ def step(state: State) -> State | str:
                 return 'assertion error'
             else:
                 raise NotImplementedError(f"Don't know how to handle non-assertion error error: {state.heap[v1]!r}")
-        case jvm.If(condition=condition, target=target):
-            v2, v1 = frame.stack.pop(), frame.stack.pop()
-            # v1 and v2 can also be references
-            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
-            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
-            match condition:
-                case "gt":
-                    if v1.value > v2.value:
-                        frame.pc.replace(target)
-                    else:
-                        frame.pc += 1
-                case _:
-                    raise NotImplementedError(f"Don't know how to handle if-statement condition of type: {condition!r}")
-            return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
