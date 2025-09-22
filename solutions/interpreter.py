@@ -186,58 +186,39 @@ def step(state: State) -> State | str:
         case jvm.Ifz(condition=condition, target=target) | jvm.If(condition=condition, target=target):
             v2 = 0 if isinstance(opr, jvm.Ifz) else frame.stack.pop().value
             v1 = frame.stack.pop()
-            match v1:
-                case jvm.Value(jvm.Boolean()):
-                    match condition:
-                        case "ne":
-                            if v1.value:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "eq":
-                            if not v1.value:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case _:
-                            raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
-                case jvm.Value(jvm.Int()) | int():
-                    value = v1.value if isinstance(v1, jvm.Value) else v1
-                    match condition:
-                        case "ne":
-                            if value != v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "eq":
-                            if value == v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "gt":
-                            if value > v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "lt":
-                            if value < v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "ge":
-                            if value >= v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case "le":
-                            if value <= v2:
-                                frame.pc.replace(target)
-                            else:
-                                frame.pc += 1
-                        case _:
-                            raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
+            match condition:
+                case "ne":
+                    if v1.value != v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case "eq":
+                    if v1.value == v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case "gt":
+                    if v1.value > v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case "lt":
+                    if v1.value < v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case "ge":
+                    if v1.value >= v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
+                case "le":
+                    if v1.value <= v2:
+                        frame.pc.replace(target)
+                    else:
+                        frame.pc += 1
                 case _:
-                    raise NotImplementedError(f"Don't know how to handle Ifz for v1: {v1!r}")
+                    raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
             return state
         case jvm.New(classname=cname):
             # look at heap_append 
