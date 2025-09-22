@@ -8,8 +8,6 @@ from loguru import logger
 logger.remove()
 logger.add(sys.stderr, format="[{level}] {message}")
 
-methodid, input = jpamb.getcase()
-
 
 @dataclass
 class PC:
@@ -258,24 +256,25 @@ def step(state: State) -> State | str:
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
+if __name__ == "__main__":
+    methodid, input = jpamb.getcase()
+    frame = Frame.from_method(methodid)
+    for i, v in enumerate(input.values):
+        match v:
+            case jvm.Value(type=jvm.Boolean(), value=value):
+                v = jvm.Value.int(1 if value else 0)
+            case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value) | jvm.Value(type=jvm.Byte(), value=value):
+                pass
+            case _:
+                raise NotImplementedError(f"Don't know how to handle {v}")
+        frame.locals[i] = v
 
-frame = Frame.from_method(methodid)
-for i, v in enumerate(input.values):
-    match v:
-        case jvm.Value(type=jvm.Boolean(), value=value):
-            v = jvm.Value.int(1 if value else 0)
-        case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value) | jvm.Value(type=jvm.Byte(), value=value):
-            pass
-        case _:
-            raise NotImplementedError(f"Don't know how to handle {v}")
-    frame.locals[i] = v
+    state = State({}, Stack.empty().push(frame))
 
-state = State({}, Stack.empty().push(frame))
-
-for x in range(1000):
-    state = step(state)
-    if isinstance(state, str):
-        print(state)
-        break
-else:
-    print("*")
+    for x in range(1000):
+        state = step(state)
+        if isinstance(state, str):
+            print(state)
+            break
+    else:
+        print("*")
