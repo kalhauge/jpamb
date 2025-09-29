@@ -133,6 +133,20 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(v1.value - v2.value))
             frame.pc += 1
             return state
+        
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Add): # Binary addition
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            logger.debug(f"{v1} + {v2}")
+
+
+            try:
+                result = v1.value + v2.value
+            except Exception as e:
+                return "assertion error"
+
+            frame.stack.push(jvm.Value.int(result))
+            frame.pc += 1
+            return state
 
         case jvm.Return(type=jvm.Int()):
             v1 = frame.stack.pop()
@@ -224,6 +238,8 @@ def step(state: State) -> State | str:
                 return state
             
         case jvm.Throw():            
+            
+            
             # return f"Stack items: , {frame.stack.items}"
             assertionsDisabled = frame.locals[0]
             # logger.debug(f"Stack items: , {frame.stack.items}")
@@ -253,8 +269,33 @@ def step(state: State) -> State | str:
                     # logger.debug(f"Not jumping")
                     frame.pc += 1
             return state
+        
+        case jvm.Store(type=jvm.Int(), index=i):
+            v = frame.stack.pop()
+            frame.locals[i] = v
+            frame.pc += 1
+            return state
+
+        case jvm.Goto(target=val):
+            frame.pc = PC(frame.pc.method, val)
+            return state
+        
+        case jvm.NewArray(type=jvm.Int(), dim=dim):
+            array_ref = len(state.heap)
+            state.heap[array_ref] = [0] * dim
+            frame.stack.push(array_ref)
+            frame.pc += 1
+            return state
+        
+      #  case jvm.ArrayStore(type=jvm.Int()):
+            value, index, array_ref = frame.stack.pop(), frame.stack.pop(), frame.stack.pop()
+            
+            state.heap[array_ref][index.value] = value.value
+            frame.pc += 1
+            return state
 
         case a:
+            # a.help()
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
 
