@@ -3,8 +3,8 @@ import sys
 import re
 from interpreter import *
 import jpamb
-from jpamb import jvm
 import random
+from loguru import logger
 
 # this example shows minimal working program without any imports.
 #  this is especially useful for people building it in other programming languages
@@ -29,27 +29,31 @@ else:
     null_pointer_chance = "50%"
     infinite_loop_chance = "50%"
 
+    methodid = jpamb.parse_methodid(sys.argv[1])
+    states = set()
+    fuzzing_tests = 100
+
     if args.startswith("()"):
         input = jpamb.parse_input("()")
+        state = execute(methodid, input)
+        states.add(state)
     else:
         arg_types = list(args)[1:-2]
-        arg_values = []
-        for a in arg_types:
-            match a:
-                case "I":
-                    arg_values.append(str(random.randint(java_min_int, java_max_int)))
-                case "Z":
-                    arg_values.append(random.choice(["true", "false"]))
-                case _:
-                    raise NotImplementedError(f"Don't know how to handle argument type {a}")
-        
-        input = jpamb.parse_input(f"({",".join(arg_values)})")
-
-    methodid = jpamb.parse_methodid(sys.argv[1])
-
-    state = execute(methodid, input)
-
-    states = [state]
+        for _ in range(fuzzing_tests):
+            arg_values = []
+            for a in arg_types:
+                match a:
+                    case "I":
+                        arg_values.append(str(random.randint(java_min_int, java_max_int)))
+                    case "Z":
+                        arg_values.append(random.choice(["true", "false"]))
+                    case _:
+                        raise NotImplementedError(f"Don't know how to handle argument type {a}")
+                    
+            input = jpamb.parse_input(f"({",".join(arg_values)})")
+            state = execute(methodid, input)
+            states.add(state)
+    
 
     # if no args then outcome=0 => chance=0
     if "assertion error" in states:
@@ -62,7 +66,7 @@ else:
     else:
         ok_chance = "15%"
 
-    if state == "divide by zero":
+    if "divide by zero" in states:
         divide_by_zero_chance = "100%" 
     else:
         divide_by_zero_chance = "15%"
