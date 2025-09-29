@@ -7,13 +7,16 @@ each instruction.
 
 """
 
-from dataclasses import dataclass
-from abc import ABC
+from dataclasses import dataclass, fields
+from abc import ABC, abstractmethod
 from typing import Self
 
 import enum
-
+import sys
+from loguru import logger
 from jpamb.jvm import base as jvm
+
+logger.add(sys.stderr, format="[{level}] {message}")
 
 
 @dataclass(frozen=True, order=True)
@@ -21,6 +24,13 @@ class Opcode(ABC):
     """An opcode, as parsed from the jvm2json output."""
 
     offset: int
+
+    def __post_init__(self):
+        for f in fields(self):
+            v = getattr(self, f.name)
+            assert isinstance(
+                v, f.type
+            ), f"Expected {f.name!r} to be type {f.type}, but was {v!r}, in {self!r}"
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
@@ -79,27 +89,33 @@ class Opcode(ABC):
                 raise NotImplementedError(
                     f"Unhandled opcode {opr!r} (implement yourself)"
                 )
-        return opr.from_json(json)
+        try:
+            return opr.from_json(json)
+        except NotImplementedError as e:
+            raise NotImplementedError(f"Unhandled opcode {json!r}") from e
+
+    def help(self):
+        logger.warning("Instructions can be found at: " + self.url())
+        if self.semantics():
+            logger.debug(f"Semantics:\n {self.semantics()}")
 
     def real(self) -> str:
         """return the real opcode, as documented in the jvm spec."""
         raise NotImplementedError(f"Unhandled real {self!r}")
 
+    @abstractmethod
+    def mnemonic(self) -> str: ...
 
-@dataclass(frozen=True)
+    def url(self) -> str:
+        return (
+            "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5."
+            + self.mnemonic()
+        )
+
+
+@dataclass(frozen=True, order=True)
 class Push(Opcode):
     """The push opcode"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iconst_i"
-    ]
-
-    semantics = """
-    bc[i].opr = 'push'
-    bc[i].value = v
-    -------------------------[push]
-    bc |- (i, s) -> (i+1, s + [v])
-    """
 
     value: jvm.Value
 
@@ -135,18 +151,35 @@ class Push(Opcode):
 
         raise NotImplementedError(f"Unhandled {self!r}")
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'push'
+        bc[i].value = v
+        -------------------------[push]
+        bc |- (i, s) -> (i+1, s + [v])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        match self.value.type:
+            case jvm.Int():
+                if -2 < self.value.value and self.value.value < 5:
+                    return "iconst_i"
+                else:
+                    return "ldc"
+            case jvm.Reference():
+                return "aconst_null"
+
+        raise NotImplementedError(f"Unhandled {self!r}")
+
     def __str__(self):
         return f"push:{self.value.type} {self.value.value}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class NewArray(Opcode):
     """The new array opcode"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.newarray"
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.multianewarray"
-    ]
 
     type: jvm.Type
     dim: int
@@ -165,24 +198,27 @@ class NewArray(Opcode):
         else:
             return f"multianewarray {self.type} {self.dim}"
 
+    def semantics(self) -> str | None:
+        if self.dim == 1:
+            return "newarray"
+        else:
+            return "multianewarray"
+
+        return None
+
+    def mnemonic(self) -> str:
+        if self.dim == 1:
+            return "newarray"
+        else:
+            return "multianewarray"
+
     def __str__(self):
         return f"newarray[{self.dim}D] {self.type}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Dup(Opcode):
     """The dublicate the stack opcode"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.dup"
-    ]
-
-    semantics = """
-    bc[i].opr = 'dup'
-    bc[i].words = 1
-    -------------------------[dup1]
-    (i, s + [v]) -> (i+1, s + [v, v])
-    """
 
     words: int
 
@@ -198,18 +234,26 @@ class Dup(Opcode):
             return "dup"
         return super().real()
 
+    def semantics(self) -> str | None:
+        semantic = """
+        bc[i].opr = 'dup'
+        bc[i].words = 1
+        -------------------------[dup1]
+        (i, s + [v]) -> (i+1, s + [v, v])
+        """
+
+        return semantic
+
+    def mnemonic(self) -> str:
+        return self.real()
+
     def __str__(self):
         return f"dup {self.words}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class ArrayStore(Opcode):
     """The Array Store command that stores a value in the array."""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.aastore"
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iastore"
-    ]
 
     type: jvm.Type
 
@@ -229,11 +273,17 @@ class ArrayStore(Opcode):
 
         return super().real()
 
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
     def __str__(self):
         return f"array_store {self.type}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Cast(Opcode):
     """Cast one type to another"""
 
@@ -257,17 +307,19 @@ class Cast(Opcode):
 
         return super().real()
 
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
     def __str__(self):
         return f"cast {self.from_} {self.to_}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class ArrayLoad(Opcode):
     """The Array Load command that load a value from the array."""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se24/html/jvms-4.html#jvms-4.10.1.9.aaload"
-    ]
 
     type: jvm.Type
 
@@ -289,11 +341,17 @@ class ArrayLoad(Opcode):
 
         return super().real()
 
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
     def __str__(self):
         return f"array_load:{self.type}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class ArrayLength(Opcode):
     """
     arraylength:
@@ -302,16 +360,6 @@ class ArrayLength(Opcode):
      - Throws NullPointerException if the array reference is null
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.arraylength"
-    ]
-
-    semantics = """
-    bc[i].opr = 'arraylength'
-    -------------------------[arraylength]
-    bc |- (i, s + [arrayref]) -> (i+1, s + [length])
-    """
-
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
@@ -321,25 +369,25 @@ class ArrayLength(Opcode):
     def real(self) -> str:
         return "arraylength"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'arraylength'
+        -------------------------[arraylength]
+        bc |- (i, s + [arrayref]) -> (i+1, s + [length])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
     def __str__(self):
         return "arraylength"
 
 
-@dataclass(frozen=True)  # make it work for
+@dataclass(frozen=True, order=True)  # make it work for
 class InvokeVirtual(Opcode):
     """The invoke virtual opcode for calling instance methods"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokevirtual"
-    ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'virtual'
-    bc[i].method = m
-    -------------------------[invokevirtual]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
 
     method: jvm.AbsMethodID
 
@@ -348,31 +396,33 @@ class InvokeVirtual(Opcode):
         assert json["opr"] == "invoke" and json["access"] == "virtual"
         return cls(
             offset=json["offset"],
-            method=json["method"],
+            method=jvm.AbsMethodID.from_json(json["method"]),
         )
 
     def real(self) -> str:
-        return f"invokevirtual {self.method}"
+        return f"invokevirtual {self.method.dashed()}"
+
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'virtual'
+        bc[i].method = m
+        -------------------------[invokevirtual]
+        bc |- (i, s + args) -> (i+1, s + [result])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "invokevirtual"
 
     def __str__(self):
         return f"invoke virtual {self.method}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class InvokeStatic(Opcode):
     """The invoke static opcode for calling static methods"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokestatic"
-    ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'static'
-    bc[i].method = m
-    -------------------------[invokestatic]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
 
     method: jvm.AbsMethodID
 
@@ -381,32 +431,33 @@ class InvokeStatic(Opcode):
         assert json["opr"] == "invoke" and json["access"] == "static"
         return cls(
             offset=json["offset"],
-            method=json["method"],
+            method=jvm.AbsMethodID.from_json(json["method"]),
         )
 
     def real(self) -> str:
         return f"invokestatic {self.method}"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'static'
+        bc[i].method = m
+        -------------------------[invokestatic]
+        bc |- (i, s + args) -> (i+1, s + [result])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "invokestatic"
+
     def __str__(self):
         return f"invoke static {self.method}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class InvokeInterface(Opcode):
     """The invoke interface opcode for calling interface methods"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.invokeinterface"
-    ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'interface'
-    bc[i].method = m
-    bc[i].stack_size = n
-    -------------------------[invokeinterface]
-    bc |- (i, s + args) -> (i+1, s + [result])
-    """
 
     method: jvm.AbsMethodID
     stack_size: int
@@ -416,18 +467,33 @@ class InvokeInterface(Opcode):
         assert json["opr"] == "invoke" and json["access"] == "interface"
         return cls(
             offset=json["offset"],
-            method=json["method"],
+            method=jvm.AbsMethodID.from_json(json["method"]),
             stack_size=json["stack_size"],
         )
 
     def real(self) -> str:
         return f"invokeinterface {self.method} {self.stack_size}"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'interface'
+        bc[i].method = m
+        bc[i].stack_size = n
+        -------------------------[invokeinterface]
+        bc |- (i, s + args) -> (i+1, s + [result])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "invokeinterface"
+
     def __str__(self):
         return f"invoke interface {self.method} (stack_size={self.stack_size})"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class InvokeSpecial(Opcode):
     """The invoke special opcode for calling constructors, private methods,
     and superclass methods.
@@ -441,19 +507,6 @@ class InvokeSpecial(Opcode):
     - The first argument must be an instance of current class or a subclass
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.invokespecial"
-    ]
-
-    semantics = """
-    bc[i].opr = 'invoke'
-    bc[i].access = 'special'
-    bc[i].method = m
-    -------------------------[invokespecial]
-    bc |- (i, s + [objectref, args...]) -> (i+1, s + [result])
-    where objectref must be an instance of current class or subclass
-    """
-
     method: jvm.AbsMethodID
     is_interface: bool  # Whether the method is from an interface
 
@@ -461,67 +514,38 @@ class InvokeSpecial(Opcode):
     def from_json(cls, json: dict) -> "Opcode":
         assert json["opr"] == "invoke" and json["access"] == "special"
 
-        # Extract class name from SimpleReferenceType
-        ref = json["method"]["ref"]
-        assert ref["kind"] == "class"
-        class_name = ref["name"]
-
-        # Get method details
-        method_name = json["method"]["name"]
-
-        # Convert args array to proper JVM type encoding
-        args = ""
-        if "args" in json["method"]:
-            args_types = []
-            for arg in json["method"]["args"]:
-                if isinstance(arg, str):  # Basic type
-                    args_types.append(arg)
-                else:  # Complex type (like class or array)
-                    if arg["kind"] == "class":
-                        args_types.append(f"L{arg['name']};")
-                    elif arg["kind"] == "array":
-                        # Recursively handle array types if needed
-                        args_types.append("[" + arg["type"])
-            args = "".join(args_types)
-
-        # Handle return type - use 'V' for void when returns is None/not present
-        returns = json["method"].get("returns")
-        if returns is None:
-            return_type = "V"
-        else:
-            if isinstance(returns, str):  # Basic type
-                return_type = returns
-            else:  # Complex type
-                if returns["kind"] == "class":
-                    return_type = f"L{returns['name']};"
-                elif returns["kind"] == "array":
-                    return_type = "[" + returns["type"]
-
-        # Construct method string in format: className.methodName:(args)returnType
-        method_str = f"{class_name}.{method_name}:({args}){return_type}"
-
         return cls(
             offset=json["offset"],
-            method=jvm.AbsMethodID.decode(method_str),
+            method=jvm.AbsMethodID.from_json(json["method"]),
             is_interface=json["method"]["is_interface"],
         )
 
     def real(self) -> str:
         return f"invokespecial {self.method}"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'special'
+        bc[i].method = m
+        -------------------------[invokespecial]
+        bc |- (i, s + [objectref, args...]) -> (i+1, s + [result])
+        where objectref must be an instance of current class or subclass
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "invokespecial"
+
     def __str__(self):
         interface_str = " interface" if self.is_interface else ""
         return f"invoke special{interface_str} {self.method}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Store(Opcode):
     """The store opcode that stores values to local variables"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.istore",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.astore",
-    ]
 
     type: jvm.Type
     index: int  # Adding the index field from CODEC.txt
@@ -543,6 +567,19 @@ class Store(Opcode):
             return f"istore_{self.index}" if self.index < 4 else f"istore {self.index}"
         return super().real()
 
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        if isinstance(self.type, jvm.Reference):
+            return "astore_n" if self.index < 4 else "astore"
+        # Handle integer type
+        elif isinstance(self.type, jvm.Int):
+            return "istore_n" if self.index < 4 else "istore"
+        return ""
+
+        return self.real()
+
     def __str__(self):
         return f"store:{self.type} {self.index}"
 
@@ -555,7 +592,7 @@ class BinaryOpr(enum.Enum):
     Rem = enum.auto()
 
     @staticmethod
-    def from_json(json: str) -> Self:
+    def from_json(json: str) -> "BinaryOpr":
         match json:
             case "add":
                 return BinaryOpr.Add
@@ -574,15 +611,10 @@ class BinaryOpr(enum.Enum):
         return self.name.lower()
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Binary(Opcode):
-
     type: jvm.Type
     operant: BinaryOpr
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se24/html/jvms-4.html#jvms-4.10.1.9.dadd",
-    ]
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
@@ -609,15 +641,16 @@ class Binary(Opcode):
                 return "isub"
         raise NotImplementedError(f"Unhandled real {self!r}")
 
+    def semantics(self) -> str | None:
+        return None
 
-@dataclass(frozen=True)
+    def mnemonic(self) -> str:
+        return self.real()
+
+
+@dataclass(frozen=True, order=True)
 class Load(Opcode):
     """The load opcode that loads values from local variables"""
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iload",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.aload",
-    ]
 
     type: jvm.Type
     index: int
@@ -639,11 +672,22 @@ class Load(Opcode):
             return f"iload_{self.index}" if self.index < 4 else f"iload {self.index}"
         return super().real()
 
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        if isinstance(self.type, jvm.Reference):
+            return "aload_n" if self.index < 4 else "aload"
+        # Handle integer type
+        elif isinstance(self.type, jvm.Int):
+            return "iload_n" if self.index < 4 else "iload"
+        return ""
+
     def __str__(self):
         return f"load:{self.type} {self.index}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class If(Opcode):
     """The if opcode that performs conditional jumps based on comparison of two values.
 
@@ -656,20 +700,6 @@ class If(Opcode):
     There are two main categories:
     1. Integer comparisons (if_icmp*)
     2. Reference comparisons (if_acmp*)
-    """
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.if_icmpeq",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.if_acmpeq",
-    ]
-
-    semantics = """
-    bc[i].opr = 'if'
-    bc[i].condition = cond
-    bc[i].target = t
-    -------------------------[if]
-    bc |- (i, s + [value1, value2]) -> (t, s) if condition is true
-    bc |- (i, s + [value1, value2]) -> (i+1, s) if condition is false
     """
 
     condition: str  # One of the CmpOpr values
@@ -703,11 +733,26 @@ class If(Opcode):
         else:
             raise ValueError(f"Unknown comparison condition: {self.condition}")
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'if'
+        bc[i].condition = cond
+        bc[i].target = t
+        -------------------------[if]
+        bc |- (i, s + [value1, value2]) -> (t, s) if condition is true
+        bc |- (i, s + [value1, value2]) -> (i+1, s) if condition is false
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "if_icmp_cond"
+
     def __str__(self):
         return f"if {self.condition} {self.target}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Get(Opcode):
     """The get opcode that retrieves field values (static or instance).
 
@@ -720,25 +765,6 @@ class Get(Opcode):
     - For static fields (getstatic):
       * Pushes the value of the specified static field onto the stack
       * May trigger class initialization if not yet initialized
-    """
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.getfield",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.getstatic",
-    ]
-
-    semantics = """
-    bc[i].opr = 'get'
-    bc[i].static = false
-    bc[i].field = f
-    -------------------------[getfield]
-    bc |- (i, s + [objectref]) -> (i+1, s + [value])
-
-    bc[i].opr = 'get'
-    bc[i].static = true
-    bc[i].field = f
-    -------------------------[getstatic]
-    bc |- (i, s) -> (i+1, s + [value])
     """
 
     static: bool
@@ -761,12 +787,33 @@ class Get(Opcode):
         opcode = "getstatic" if self.static else "getfield"
         return f"{opcode} {self.field}"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'get'
+        bc[i].static = false
+        bc[i].field = f
+        -------------------------[getfield]
+        bc |- (i, s + [objectref]) -> (i+1, s + [value])
+
+        bc[i].opr = 'get'
+        bc[i].static = true
+        bc[i].field = f
+        -------------------------[getstatic]
+        bc |- (i, s) -> (i+1, s + [value])
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        mnemonic = "getstatic" if self.static else "getfield"
+        return mnemonic
+
     def __str__(self):
         kind = "static" if self.static else "field"
         return f"get {kind} {self.field}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Ifz(Opcode):
     """The ifz opcode that performs conditional jumps based on comparison with zero/null.
 
@@ -779,20 +826,6 @@ class Ifz(Opcode):
     There are two categories:
     1. Integer comparisons against zero (ifeq, ifne, etc.)
     2. Reference comparisons against null (ifnull, ifnonnull)
-    """
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.ifeq",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.5.ifnull",
-    ]
-
-    semantics = """
-    bc[i].opr = 'ifz'
-    bc[i].condition = cond
-    bc[i].target = t
-    -------------------------[ifz]
-    bc |- (i, s + [value]) -> (t, s) if condition against zero/null is true
-    bc |- (i, s + [value]) -> (i+1, s) if condition against zero/null is false
     """
 
     condition: str  # One of the CmpOpr values
@@ -829,11 +862,26 @@ class Ifz(Opcode):
         else:
             raise ValueError(f"Unknown comparison condition: {self.condition}")
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'ifz'
+        bc[i].condition = cond
+        bc[i].target = t
+        -------------------------[ifz]
+        bc |- (i, s + [value]) -> (t, s) if condition against zero/null is true
+        bc |- (i, s + [value]) -> (i+1, s) if condition against zero/null is false
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "if_cond"
+
     def __str__(self):
         return f"ifz {self.condition} {self.target}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class New(Opcode):
     """The new opcode that creates a new instance of a class.
 
@@ -845,18 +893,6 @@ class New(Opcode):
     - May trigger class initialization if the class is not yet initialized
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.new"
-    ]
-
-    semantics = """
-    bc[i].opr = 'new'
-    bc[i].class = c
-    -------------------------[new]
-    bc |- (i, s) -> (i+1, s + [objectref])
-    where objectref is a fresh instance of class c
-    """
-
     classname: jvm.ClassName  # The class to instantiate
 
     @classmethod
@@ -866,11 +902,25 @@ class New(Opcode):
     def real(self) -> str:
         return f"new {self.classname.slashed()}"
 
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'new'
+        bc[i].class = c
+        -------------------------[new]
+        bc |- (i, s) -> (i+1, s + [objectref])
+        where objectref is a fresh instance of class c
+        """
+
+        return None
+
+    def mnemonic(self) -> str:
+        return "new"
+
     def __str__(self):
         return f"new {self.classname}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Throw(Opcode):
     """The throw opcode that throws an exception object.
 
@@ -882,18 +932,6 @@ class Throw(Opcode):
       the operand stack of the exception handler if the exception is caught
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.athrow"
-    ]
-
-    semantics = """
-    bc[i].opr = 'throw'
-    -------------------------[throw]
-    bc |- (i, s + [objectref]) -> (handler_pc, [objectref]) if exception is caught
-    bc |- (i, s + [objectref]) -> (⊥, [objectref]) if exception is uncaught
-    where objectref must be an instance of Throwable or subclass
-    """
-
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(offset=json["offset"])
@@ -901,11 +939,25 @@ class Throw(Opcode):
     def real(self) -> str:
         return "athrow"
 
+    def semantics(self) -> str | None:
+        semantic = """
+        bc[i].opr = 'throw'
+        -------------------------[throw]
+        bc |- (i, s + [objectref]) -> (handler_pc, [objectref]) if exception is caught
+        bc |- (i, s + [objectref]) -> (⊥, [objectref]) if exception is uncaught
+        where objectref must be an instance of Throwable or subclass
+        """
+
+        return semantic
+
+    def mnemonic(self) -> str:
+        return "athrow"
+
     def __str__(self):
         return "throw"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Incr(Opcode):
     """The increment opcode that adds a constant value to a local variable.
 
@@ -918,19 +970,6 @@ class Incr(Opcode):
       (no stack operations involved)
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iinc"
-    ]
-
-    semantics = """
-    bc[i].opr = 'incr'
-    bc[i].index = idx
-    bc[i].amount = const
-    -------------------------[iinc]
-    bc |- (i, s) -> (i+1, s)
-    where locals[idx] = locals[idx] + const
-    """
-
     index: int  # Index of the local variable
     amount: int  # Constant to add to the variable
 
@@ -941,11 +980,26 @@ class Incr(Opcode):
     def real(self) -> str:
         return f"iinc {self.index} {self.amount}"
 
+    def semantics(self) -> str | None:
+        semantic = """
+        bc[i].opr = 'incr'
+        bc[i].index = idx
+        bc[i].amount = const
+        -------------------------[iinc]
+        bc |- (i, s) -> (i+1, s)
+        where locals[idx] = locals[idx] + const
+        """
+
+        return semantic
+
+    def mnemonic(self) -> str:
+        return "iinc"
+
     def __str__(self):
         return f"incr {self.index} by {self.amount}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Goto(Opcode):
     """The goto opcode that performs an unconditional jump.
 
@@ -954,19 +1008,6 @@ class Goto(Opcode):
     - Target address must be that of an opcode of an instruction within the method
     - No stack effects (doesn't change stack)
     - Has standard form (goto) and wide form (goto_w) for different offset ranges
-    """
-
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.goto",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.goto_w",
-    ]
-
-    semantics = """
-    bc[i].opr = 'goto'
-    bc[i].target = t
-    -------------------------[goto]
-    bc |- (i, s) -> (t, s)
-    where t must be a valid instruction offset
     """
 
     target: int  # Jump target offset
@@ -980,11 +1021,25 @@ class Goto(Opcode):
         # as that's typically determined by the bytecode assembler
         return f"goto {self.target}"
 
+    def semantics(self) -> str | None:
+        semantic = """
+        bc[i].opr = 'goto'
+        bc[i].target = t
+        -------------------------[goto]
+        bc |- (i, s) -> (t, s)
+        where t must be a valid instruction offset
+        """
+
+        return semantic
+
+    def mnemonic(self) -> str:
+        return "goto"
+
     def __str__(self):
         return f"goto {self.target}"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Return(Opcode):
     """The return opcode that returns (with optional value) from a method.
 
@@ -996,24 +1051,12 @@ class Return(Opcode):
     - Return value (if any) must be assignable to declared return type
     """
 
-    docs = [
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.ireturn",
-        "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.return",
-    ]
-
-    semantics = """
-    bc[i].opr = 'return'
-    bc[i].type = t where t != None
-    -------------------------[return_value]
-    bc |- (i, s + [value]) -> return value
-
-    bc[i].opr = 'return'
-    bc[i].type = None
-    -------------------------[return_void]
-    bc |- (i, s) -> return
-    """
-
     type: jvm.Type | None  # Return type (None for void return)
+
+    def __post_init__(self):
+        assert (
+            self.type is None or self.type.is_stacktype()
+        ), "return only handles stack types {self.type()}"
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
@@ -1039,10 +1082,27 @@ class Return(Opcode):
                 return "freturn"
             case jvm.Double():
                 return "dreturn"
-            case jvm.Reference() | jvm.Object(_):
+            case jvm.Reference():
                 return "areturn"
             case _:
                 raise ValueError(f"Unknown return type: {self.type}")
+
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'return'
+        bc[i].type = t where t != None
+        -------------------------[return_value]
+        bc |- (i, s + [value]) -> return value
+
+        bc[i].opr = 'return'
+        bc[i].type = None
+        -------------------------[return_void]
+        bc |- (i, s) -> return
+        """
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
 
     def __str__(self):
         type = str(self.type) if self.type is not None else "V"

@@ -1,6 +1,8 @@
 from jpamb import model, jvm
 from pathlib import Path
 
+import pytest
+
 
 def test_suite_singleton():
     path = Path("../").absolute()
@@ -29,6 +31,7 @@ def test_cases_roundtrip():
     assert sorted(cases) == sorted(sorted(cases))
 
 
+@pytest.mark.slow
 def test_checkhealth():
     model.Suite().checkhealth(failfast=True)
 

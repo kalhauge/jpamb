@@ -12,16 +12,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Found assertion
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;80%
+│││ assertion error;20%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertBoolean:(Z)V'
 │┌ Results
-││ - assertion error: 80.00% 1.50
+││ - assertion error: 20.00% -1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.assertBoolean:(Z)V
 ┌ Case jpamb.cases.Simple.assertFalse:()V
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertFalse:()V'
@@ -37,16 +39,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Found assertion
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;80%
+│││ assertion error;20%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertFalse:()V'
 │┌ Results
-││ - assertion error: 80.00% 1.50
+││ - assertion error: 20.00% -1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.assertFalse:()V
 ┌ Case jpamb.cases.Simple.assertInteger:(I)V
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertInteger:(I)V'
@@ -62,16 +66,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Found assertion
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;80%
+│││ assertion error;20%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertInteger:(I)V'
 │┌ Results
-││ - assertion error: 80.00% 1.50
+││ - assertion error: 20.00% -1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.assertInteger:(I)V
 ┌ Case jpamb.cases.Simple.assertPositive:(I)V
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertPositive:(I)V'
@@ -87,16 +93,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Found assertion
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;80%
+│││ assertion error;20%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.assertPositive:(I)V'
 │┌ Results
-││ - assertion error: 80.00% 1.50
+││ - assertion error: 20.00% -1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.assertPositive:(I)V
 ┌ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
@@ -115,6 +123,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
@@ -144,6 +154,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
@@ -170,6 +182,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
@@ -195,16 +209,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Did not find any assertions
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;20%
+│││ assertion error;80%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideByN:(I)I'
 │┌ Results
-││ - assertion error: 20.00% -1.50
+││ - assertion error: 80.00% 1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.divideByN:(I)I
 ┌ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
@@ -220,16 +236,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Did not find any assertions
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;20%
+│││ assertion error;80%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
 │┌ Results
-││ - assertion error: 20.00% -1.50
+││ - assertion error: 80.00% 1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
 ┌ Case jpamb.cases.Simple.divideByZero:()I
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideByZero:()I'
@@ -245,16 +263,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Did not find any assertions
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;20%
+│││ assertion error;80%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideByZero:()I'
 │┌ Results
-││ - assertion error: 20.00% -1.50
+││ - assertion error: 80.00% 1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.divideByZero:()I
 ┌ Case jpamb.cases.Simple.divideZeroByZero:(II)I
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
@@ -270,16 +290,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Did not find any assertions
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;20%
+│││ assertion error;80%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
 │┌ Results
-││ - assertion error: 20.00% -1.50
+││ - assertion error: 80.00% 1.50
 │└ Results
-│ Score 0.60
+│ Score -1.50
 └ Case jpamb.cases.Simple.divideZeroByZero:(II)I
 ┌ Case jpamb.cases.Simple.earlyReturn:()I
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.earlyReturn:()I'
@@ -299,16 +321,18 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
-│││ DEBUG:root:Found assertion
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+│││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
-│││ assertion error;80%
+│││ assertion error;20%
 ││└ Stdout
 │└ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.earlyReturn:()I'
 │┌ Results
-││ - assertion error: 80.00% 1.50
+││ - assertion error: 20.00% -1.50
 │└ Results
-│ Score -1.50
+│ Score 0.60
 └ Case jpamb.cases.Simple.earlyReturn:()I
 ┌ Case jpamb.cases.Simple.justReturn:()I
 │┌ Run .venv/bin/python3 solutions/syntaxer.py 'jpamb.cases.Simple.justReturn:()I'
@@ -324,6 +348,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
@@ -349,6 +375,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Did not find any assertions
 ││└ Stderr
 ││┌ Stdout
@@ -375,6 +403,8 @@
 │││ DEBUG:root:line:   }
 │││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:101: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
 │││   assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+│││ /Users/chrg/Develop/repos/jpamb/solutions/syntaxer.py:103: DeprecationWarning: query() is deprecated. Use the Query() constructor instead.
+│││   div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 │││ DEBUG:root:Found assertion
 ││└ Stderr
 ││┌ Stdout
@@ -386,4 +416,4 @@
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.multiError:(Z)I
-Total 4.80
+Total -9.90

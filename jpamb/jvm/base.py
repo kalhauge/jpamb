@@ -13,7 +13,7 @@ from jpamb import jvm
 from collections import namedtuple
 from functools import total_ordering
 import re
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Protocol, Self, Iterable, Optional, Iterator, NoReturn
 
@@ -56,6 +56,9 @@ class ClassName:
     def __str__(self) -> str:
         return self.dotted()
 
+    def __repr__(self) -> str:
+        return f"ClassName({self.dotted()!r})"
+
     @staticmethod
     def decode(input: str) -> "ClassName":
         return ClassName(input)
@@ -69,7 +72,14 @@ class ClassName:
 class Type(ABC):
     """A jvm type"""
 
+    @abstractmethod
     def encode(self) -> str: ...
+
+    @abstractmethod
+    def math(self) -> str: ...
+
+    def is_stacktype(self) -> bool:
+        return False
 
     @staticmethod
     def decode(input) -> tuple["Type", str]:
@@ -119,34 +129,42 @@ class Type(ABC):
 
     @staticmethod
     def from_json(json: str) -> "Type":
-        match json:
-            case "integer":
-                return Int()
-            case "int":
-                return Int()
-            case "char":
-                return Char()
-            case "short":
-                return Short()
-            case "ref":
-                return Reference()
-            case "boolean":
-                return Boolean()
-            case typestr:
-                raise NotImplementedError(f"Not yet implemented {typestr}")
-
-    @staticmethod
-    def from_json_type(json: dict) -> "Type":
+        if isinstance(json, str):
+            match json:
+                case "integer":
+                    return Int()
+                case "int":
+                    return Int()
+                case "char":
+                    return Char()
+                case "short":
+                    return Short()
+                case "ref":
+                    return Reference()
+                case "boolean":
+                    return Boolean()
         if "base" in json:
             return Type.from_json(json["base"])
-        match json["kind"]:
-            case "array":
-                return Array(Type.from_json_type(json["type"]))
+        if "kind" in json:
+            match json["kind"]:
+                case "array":
+                    return Array(Type.from_json(json["type"]))
+                case kind:
+                    raise NotImplementedError(
+                        f"Unknown kind {kind}, in Type.from_json: {json!r}"
+                    )
 
-        raise NotImplementedError(f"Not yet implemented {json}")
+        raise NotImplementedError(f"Type.from_json: {json!r}")
 
     def __str__(self) -> str:
         return self.encode()
+
+
+@dataclass(frozen=True)
+class StackType(Type):
+
+    def is_stacktype(self):
+        return True
 
 
 @dataclass(frozen=True)
@@ -170,7 +188,7 @@ class Boolean(Type):
 
 
 @dataclass(frozen=True)
-class Int(Type):
+class Int(StackType):
     """
     A 32bit signed integer
     """
@@ -250,7 +268,7 @@ class Short(Type):
 
 
 @dataclass(frozen=True, order=True)
-class Reference(Type):
+class Reference(StackType):
     """An unknown reference"""
 
     _instance = None
@@ -318,7 +336,7 @@ class Array(Type):
 
 
 @dataclass(frozen=True)
-class Long(Type):
+class Long(StackType):
     """
     A 64bit signed integer
     """
@@ -358,7 +376,7 @@ class Float(Type):
 
 
 @dataclass(frozen=True)
-class Double(Type):
+class Double(StackType):
     """
     A 64bit floating point number
     """
@@ -402,11 +420,14 @@ class ParameterType:
         return ParameterType(tuple(params))
 
     @staticmethod
-    def from_json(inputs: list[dict]) -> "ParameterType":
-        params = []
+    def from_json(inputs: list[dict], annotated=False) -> "ParameterType":
+        params: list[Type] = []
         for t in inputs:
-            tt = Type.from_json_type(t["type"])
-            params.append(tt)
+            if annotated:
+                assert "annotations" in t, f"parameters should be annotated was: {t}"
+                params.append(Type.from_json(t["type"]))
+            else:
+                params.append(Type.from_json(t))
 
         return ParameterType(tuple(params))
 
@@ -482,9 +503,14 @@ ABSOLUTE_RE = re.compile(r"(?P<class_name>.+)\.(?P<rest>.*)")
 
 
 @dataclass(frozen=True, order=True)
-class Absolute[T: Encodable]:
+class Absolute[T: Encodable](ABC):
     classname: ClassName
     extension: T
+
+    def __post_init__(self):
+        assert (
+            self.__class__ != Absolute
+        ), "Do not use absolute directly, use AbsMethodId or AbsFieldID"
 
     @classmethod
     def decode(cls, input, decode: Callable[[str], T]) -> "Self":
@@ -500,7 +526,6 @@ class Absolute[T: Encodable]:
         return self.encode()
 
 
-@dataclass(frozen=True, order=True)
 class AbsMethodID(Absolute[MethodID]):
 
     @classmethod
@@ -511,8 +536,22 @@ class AbsMethodID(Absolute[MethodID]):
     def methodid(self):
         return self.extension
 
+    @classmethod
+    def from_json(cls, json: dict) -> "Self":
+        return cls(
+            classname=ClassName.decode(json["ref"]["name"]),
+            extension=MethodID(
+                name=json["name"],
+                params=ParameterType.from_json(json["args"]),
+                return_type=(
+                    Type.from_json(json["returns"])
+                    if json["returns"] is not None
+                    else None
+                ),
+            ),
+        )
 
-@dataclass(frozen=True, order=True)
+
 class AbsFieldID(Absolute[FieldID]):
 
     @classmethod
@@ -552,6 +591,7 @@ class Value:
             case Char():
                 return f"'{self.value}'"
             case Array(content):
+                assert isinstance(self.value, Iterable)
                 match content:
                     case Int():
                         ints = ", ".join(map(str, self.value))
@@ -561,8 +601,8 @@ class Value:
                         return f"[C:{chars}]"
                     case _:
                         raise NotImplementedError()
-
-        return self.value
+            case _:
+                raise NotImplementedError(f"Cannot encode {self.type}")
 
     @classmethod
     def int(cls, n: int) -> Self:
@@ -585,7 +625,11 @@ class Value:
     def from_json(cls, json: dict | None) -> Self:
         if json is None:
             return cls(Reference(), None)
-        type = Type.from_json(json["type"])
+        try:
+            type = Type.from_json(json["type"])
+        except NotImplementedError as e:
+            raise NotImplementedError(f"Cannot handle {json!r}") from e
+
         return cls(type, json["value"])
 
     def __str__(self) -> str:

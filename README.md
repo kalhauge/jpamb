@@ -245,6 +245,18 @@ Now look at the Java code and try to make better predictions. For example:
 - If you see `assert false`, predict `assertion error;100%`
 - If you see `while(true)`, predict `*;100%` (infinite loop)
 
+A useful tool for seeing where you can improve your analyzer is by using the plot command.
+```bash 
+uv run jpamb plot --report <your-report.json> 
+```
+This will plot the score achieved and the relative time used on analyzing every test case. 
+
+If you have multiple reports you want to compare this can be done by using 
+```bash 
+uv run jpamb plot --directory <your-report-directory> 
+```
+This will scan the given directory for json files, and make a comparative plot.
+
 ## Using the JPAMB library
 
 When writing more complex analysed you might want to make use of the jpamb

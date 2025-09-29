@@ -61,7 +61,7 @@ class Case:
     def decode(line):
         m = Case.match(line)
         return Case(
-            jvm.Absolute.decode(m.group(1), jvm.MethodID.decode),
+            jvm.AbsMethodID.decode(m.group(1)),
             Input.decode(m.group(2)),
             m.group(3),
         )
@@ -98,8 +98,7 @@ def _check(reason, failfast=False):
         else:
             logger.error(f"{reason} FAILED")
         if failfast:
-            e.args = (reason, *e.args)
-            raise
+            raise AssertionError(f"{reason} {str(e.args)}") from e
     else:
         logger.success(f"{reason} ok")
 
@@ -295,14 +294,17 @@ class Suite:
     def findmethod(self, methodid: jvm.Absolute[jvm.MethodID]) -> jvm:
         methods = self.findclass(methodid.classname)["methods"]
         for method in methods:
-            if (
-                method["name"] == methodid.extension.name
-                and jvm.ParameterType.from_json(method["params"])
-                == methodid.extension.params
-            ):
-                break
+            if method["name"] != methodid.extension.name:
+                continue
+            params = jvm.ParameterType.from_json(method["params"], annotated=True)
+
+            assert params == methodid.extension.params, (
+                f"Mulitple methods with same name {method['name']!r}, "
+                f"but different params {params} from {method["params"]} and {methodid.extension.params}"
+            )
+            break
         else:
-            assert False, f"Could not find {methodid}"
+            raise IndexError(f"Could not find {methodid}")
         return method
 
     def method_opcodes(self, method: jvm.Absolute[jvm.MethodID]) -> list[jvm.Opcode]:
@@ -340,6 +342,10 @@ class Suite:
             methods[case.methodid].add(case.result)
 
         return methods.items()
+
+    def case_opcodes(self) -> list[jvm.Opcode]:
+        for m, _ in self.case_methods():
+            yield from self.method_opcodes(m)
 
     def checkhealth(self, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
@@ -382,14 +388,11 @@ class Suite:
             assert len(self.cases) > 0, "cases should be parsable and at least one"
             logger.info(f"Found {len(self.cases)} cases")
 
-        methods = set(case.methodid for case in self.cases)
-        for method in methods:
+        for method, _ in self.case_methods():
             with check(f"The method: [{method}]"):
                 try:
                     for opr in self.method_opcodes(method):
                         str(opr)
                         str(opr.real())
                 except NotImplementedError as e:
-                    assert (
-                        False
-                    ), f"All operations should be supported in {method}, but {e}"
+                    raise AssertionError("All operations should be supported") from e

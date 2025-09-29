@@ -8,7 +8,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(false)'
 │ Expected 'assertion error' and got 'failure'
@@ -23,7 +23,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(true)'
 │ Expected 'ok' and got 'failure'
@@ -38,7 +38,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertFalse:()V' '()'
 │ Expected 'assertion error' and got 'failure'
@@ -53,7 +53,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(0)'
 │ Expected 'assertion error' and got 'failure'
@@ -68,7 +68,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(1)'
 │ Expected 'ok' and got 'failure'
@@ -83,7 +83,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(-1)'
 │ Expected 'assertion error' and got 'failure'
@@ -98,7 +98,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(1)'
 │ Expected 'ok' and got 'failure'
@@ -181,7 +181,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(0)'
 │ Expected 'assertion error' and got 'failure'
@@ -196,7 +196,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(1)'
 │ Expected 'ok' and got 'failure'
@@ -380,7 +380,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(false)'
 │ Expected 'assertion error' and got 'failure'
@@ -395,7 +395,7 @@
 │││     state = step(state)
 │││   File "/Users/chrg/Develop/repos/jpamb/solutions/interpreter.py", line 134, in step
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
-│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName(_as_string='jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
+│││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
 │└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(true)'
 │ Expected 'divide by zero' and got 'failure'

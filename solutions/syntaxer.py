@@ -100,9 +100,19 @@ for t in body.text.splitlines():
 
 assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
 
+div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+  operator: "/"
+) @expr""")
+
+
 for node, t in tree_sitter.QueryCursor(assert_q).captures(body).items():
     if node == "assert":
         break
+    
+for node, t in tree_sitter.QueryCursor(div_by_0_q).captures(body).items():
+    if node == "expr":
+        break
+    
 else:
     log.debug("Did not find any assertions")
     print("assertion error;20%")

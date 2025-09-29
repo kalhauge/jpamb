@@ -11,7 +11,7 @@ __pycache__
 result.json
 .venv
 
-report/
+reports/
 
 jpamb.egg-info/
 dist/
@@ -22,3 +22,4 @@ build/
 
 .jpamb-stepwise
 .hypothesis
+leananalyzer
