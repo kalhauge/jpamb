@@ -51,25 +51,26 @@ else:
                         raise NotImplementedError(f"Don't know how to handle argument type {a}")
                     
             input = jpamb.parse_input(f"({",".join(arg_values)})")
+            logger.disable("interpreter")
             state = execute(methodid, input)
+            logger.enable("interpreter")
             states.add(state)
     
 
-    # if no args then outcome=0 => chance=0
     if "assertion error" in states:
         assertion_error_chance = "100%"
     else:
-        assertion_error_chance = "15%"
+        assertion_error_chance = "0%"
 
     if "ok" in states:
         ok_chance = "100%" 
     else:
-        ok_chance = "15%"
+        ok_chance = "0%"
 
     if "divide by zero" in states:
         divide_by_zero_chance = "100%" 
     else:
-        divide_by_zero_chance = "15%"
+        divide_by_zero_chance = "0%"
 
     out_of_bounds_chance = "0%"
     null_pointer_chance = "0%"
