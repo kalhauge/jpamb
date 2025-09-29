@@ -108,19 +108,21 @@ div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
 ) @expr""")
 
 
-for node, t in tree_sitter.QueryCursor(assert_q).captures(body).items():
-    if node == "assert":
-        break
-    
-for node, t in tree_sitter.QueryCursor(div_by_0_q).captures(body).items():
-    if node == "expr":
-        break
-    
-else:
-    log.debug("Did not find any assertions")
-    print("assertion error;20%")
-    sys.exit(0)
+assert_found = any(
+    capture_name == "assert"
+    for capture_name, _ in tree_sitter.QueryCursor(assert_q).captures(body).items()
+)
 
-log.debug("Found assertion")
-print("assertion error;80%")
+division_found = any(
+    capture_name == "expr"
+    for capture_name, _ in tree_sitter.QueryCursor(div_by_0_q).captures(body).items()
+)
+
+if assert_found or division_found:
+    log.debug("Found assertion or division expression")
+    print("assertion error;80%")
+else:
+    log.debug("No assertion or division found")
+    print("assertion error;20%")
+
 sys.exit(0)
