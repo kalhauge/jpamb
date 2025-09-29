@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """A very stupid syntatic analysis, that only checks for assertion errors."""
 
+import warnings
 import logging
 import tree_sitter
 import tree_sitter_java
 import jpamb
 import sys
+
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 
 methodid = jpamb.getmethodid(
