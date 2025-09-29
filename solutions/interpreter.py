@@ -115,8 +115,8 @@ def step(state: State) -> State | str:
             frame.stack.push(v)
             frame.pc += 1
             return state
-        case jvm.Load(type=type, index=i):
-            local = frame.locals[i]
+        case jvm.Load(type=type, index=idx):
+            local = frame.locals[idx]
             assert local.type == type, f"Expected type {type}, got {local.type}"
             frame.stack.push(local)
             frame.pc += 1
@@ -133,7 +133,6 @@ def step(state: State) -> State | str:
             if len(arr.value) <= idx.value:
                 return "out of bounds"
 
-            logger.debug(f"Loading Array Value: {arr.value[idx.value]}")
             frame.stack.push(jvm.Value.int(arr.value[idx.value]))
             frame.pc += 1
             return state
@@ -175,22 +174,19 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(v1.value + v2.value))
             frame.pc += 1
             return state
-        case jvm.Return(type=jvm.Int()):
+        case jvm.Return(type=None):
+            v1 = state.frames.pop()
+            if state.frames:
+                return state
+            else:
+                return "ok"
+        case jvm.Return(type=type):
             v1 = frame.stack.pop()
+            assert v1.type == type, f"Expected {type}, got {v1.type}"
             state.frames.pop()
             if state.frames:
                 frame = state.frames.peek()
                 frame.stack.push(v1)
-                frame.pc += 1
-                return state
-            else:
-                return "ok"
-        case jvm.Return(type=None):
-            v1 = state.frames.pop()
-            if state.frames:
-                frame = state.frames.peek()
-                frame.stack.push(v1)
-                frame.pc += 1
                 return state
             else:
                 return "ok"
@@ -255,6 +251,42 @@ def step(state: State) -> State | str:
                 frame.pc += 1
                 return state
             raise NotImplementedError("Don't know how to handle special invocations with more than 0 elements")
+        case jvm.InvokeStatic(method=m):
+            new_frame = Frame.from_method(m)
+            heap = {}
+            heap_items = 0
+            
+            args = [frame.stack.pop() for _ in range(len(m.extension.params))][-1:] # pop all arguments and reverse to get the right order
+
+            for i, v in enumerate(args):
+                match v:
+                    case jvm.Value(type=jvm.Boolean(), value=value):
+                        v = jvm.Value.int(1 if value else 0)
+                    case jvm.Value(type=jvm.Char(), value=value):
+                        v = jvm.Value.int(ord(value))
+                    case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value):
+                        pass
+                    case jvm.Value(type=jvm.Array(), value=value):
+                        
+                        match v.type.contains:
+                            case jvm.Char():
+                                value = [ord(x) for x in value]
+                            case jvm.Int():
+                                pass
+                            case _:
+                                raise NotImplementedError(f"Don't know how to handle arrays of type {v.type.contains} passed as input")
+
+                        heap[heap_items] = jvm.Value.array(v.type.contains, value)
+                        idx = heap_items
+                        heap_items += 1
+                        v = jvm.Value.reference(idx)
+                    case _:
+                        raise NotImplementedError(f"Don't know how to handle {v}")
+                new_frame.locals[i] = v
+
+            frame.pc += 1
+            state.frames.push(new_frame)
+            return state
         case jvm.Throw():
             v1 = frame.stack.pop()
             if state.heap[v1.value] == "java/lang/AssertionError":
@@ -364,11 +396,12 @@ def execute(methodid, input):
 
     state = State(heap, heap_items, Stack.empty().push(frame))
 
-    for x in range(1000):
+    for x in range(100000):
         state = step(state)
         if isinstance(state, str):
             return state
     else:
+        logger.debug("No more steps")
         return "*"
 
 if __name__ == "__main__":
