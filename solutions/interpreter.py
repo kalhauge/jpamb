@@ -1,6 +1,7 @@
 import jpamb
 from jpamb import jvm
 from dataclasses import dataclass
+import numpy
 
 import sys
 from loguru import logger
@@ -252,6 +253,16 @@ def step(state: State) -> State | str:
         case jvm.Goto(target=target):
             frame.pc.replace(target)
             return state
+        case jvm.Cast(from_=from_, to_=to_):
+            v = frame.stack.pop()
+            assert v.type == from_, f"Expected type {from_}, got {v.type}"
+            match to_:
+                case jvm.Short():
+                        frame.stack.push(jvm.Value.int(numpy.short(v.value))) 
+                case _:
+                    raise NotImplementedError(f"Don't know how to cast to: {to_}")
+            frame.pc += 1
+            return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
@@ -271,11 +282,11 @@ def execute(methodid, input):
 
     for x in range(1000):
         state = step(state)
+        logger.debug("------------" + str(state))
         if isinstance(state, str):
             return state
     else:
-        print("*")
-
+        return "*"
 
 if __name__ == "__main__":
     methodid, input = jpamb.getcase()
