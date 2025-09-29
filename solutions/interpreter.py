@@ -133,6 +133,7 @@ def step(state: State) -> State | str:
             if len(arr.value) <= idx.value:
                 return "out of bounds"
 
+            logger.debug(f"Loading Array Value: {arr.value[idx.value]}")
             frame.stack.push(jvm.Value.int(arr.value[idx.value]))
             frame.pc += 1
             return state
@@ -323,6 +324,11 @@ def step(state: State) -> State | str:
 
             frame.pc += 1
             return state
+        case jvm.Incr(index=idx, amount=amount):
+            assert frame.locals[idx].type == jvm.Int(), f"Expected {jvm.Int()}, got {frame.locals[idx].type}"
+            frame.locals[idx] = jvm.Value.int(frame.locals[idx].value + amount)
+            frame.pc += 1
+            return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
@@ -334,9 +340,20 @@ def execute(methodid, input):
         match v:
             case jvm.Value(type=jvm.Boolean(), value=value):
                 v = jvm.Value.int(1 if value else 0)
+            case jvm.Value(type=jvm.Char(), value=value):
+                v = jvm.Value.int(ord(value))
             case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value):
                 pass
             case jvm.Value(type=jvm.Array(), value=value):
+                
+                match v.type.contains:
+                    case jvm.Char():
+                        value = [ord(x) for x in value]
+                    case jvm.Int():
+                        pass
+                    case _:
+                        raise NotImplementedError(f"Don't know how to handle arrays of type {v.type.contains} passed as input")
+
                 heap[heap_items] = jvm.Value.array(v.type.contains, value)
                 idx = heap_items
                 heap_items += 1
@@ -349,7 +366,6 @@ def execute(methodid, input):
 
     for x in range(1000):
         state = step(state)
-        logger.debug("------------" + str(state))
         if isinstance(state, str):
             return state
     else:
