@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 """A very stupid syntatic analysis, that only checks for assertion errors."""
 
-import warnings
 import logging
 import tree_sitter
 import tree_sitter_java
 import jpamb
 import sys
-
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
 
 methodid = jpamb.getmethodid(
@@ -39,7 +36,7 @@ log.debug(f"{simple_classname}")
 
 # To figure out how to write these you can consult the
 # https://tree-sitter.github.io/tree-sitter/playground
-class_q = JAVA_LANGUAGE.query(
+class_q = tree_sitter.Query(JAVA_LANGUAGE, 
     f"""
     (class_declaration 
         name: ((identifier) @class-name 
@@ -58,7 +55,7 @@ else:
 
 method_name = methodid.extension.name
 
-method_q = JAVA_LANGUAGE.query(
+method_q = tree_sitter.Query(JAVA_LANGUAGE, 
     f"""
     (method_declaration name: 
       ((identifier) @method-name (#eq? @method-name "{method_name}"))
@@ -101,9 +98,9 @@ assert body and body.text
 for t in body.text.splitlines():
     log.debug("line: %s", t.decode())
 
-assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+assert_q = tree_sitter.Query(JAVA_LANGUAGE, f"""(assert_statement) @assert""")
 
-div_by_0_q = JAVA_LANGUAGE.query(f""" (binary_expression
+div_by_0_q = tree_sitter.Query(JAVA_LANGUAGE, f""" (binary_expression
   operator: "/"
 ) @expr""")
 
