@@ -240,7 +240,6 @@ def step(state: State) -> State | str:
                     raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
             return state
         case jvm.New(classname=cname):
-            # look at heap_append 
             idx = state.heap_append(cname.name)
             frame.stack.push(jvm.Value.reference(idx))
             frame.pc += 1
