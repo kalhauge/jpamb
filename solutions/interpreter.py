@@ -253,8 +253,6 @@ def step(state: State) -> State | str:
             raise NotImplementedError("Don't know how to handle special invocations with more than 0 elements")
         case jvm.InvokeStatic(method=m):
             new_frame = Frame.from_method(m)
-            heap = {}
-            heap_items = 0
             
             args = [frame.stack.pop() for _ in range(len(m.extension.params))][-1:] # pop all arguments and reverse to get the right order
 
@@ -276,9 +274,7 @@ def step(state: State) -> State | str:
                             case _:
                                 raise NotImplementedError(f"Don't know how to handle arrays of type {v.type.contains} passed as input")
 
-                        heap[heap_items] = jvm.Value.array(v.type.contains, value)
-                        idx = heap_items
-                        heap_items += 1
+                        state.heap_append(jvm.Value.array(v.type.contains, value))
                         v = jvm.Value.reference(idx)
                     case _:
                         raise NotImplementedError(f"Don't know how to handle {v}")
