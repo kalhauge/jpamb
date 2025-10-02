@@ -245,7 +245,7 @@ def step(state: State) -> State | str:
             frame.pc += 1
             return state
         case jvm.InvokeSpecial(method=m, is_interface=is_interface):
-            if len(m.extension.params._elements) == 0:
+            if len(m.extension.params) == 0:
                 v1 = frame.stack.pop()
                 frame.pc += 1
                 return state
