@@ -13,9 +13,9 @@ import tree_sitter_java
 if len(sys.argv) == 2 and sys.argv[1] == "info":
     # Output the 5 required info lines
     print("Dynamic Analysis")
-    print("1.1")
+    print("1.2")
     print("Kageklubben")
-    print("simple,python,dynamic")
+    print("simple,tricky,loops,python,dynamic")
     print("no")  # Use any other string to share system info
 else:
     # Get the method we need to analyze
@@ -78,7 +78,7 @@ else:
     out_of_bounds_chance = "50%"
     null_pointer_chance = "50%"
     infinite_loop_chance = "50%"
-    completed_interpreter_classes = ["jpamb.cases.Simple", "jpamb.cases.Tricky"]
+    completed_interpreter_classes = ["jpamb.cases.Simple", "jpamb.cases.Tricky", "jpamb.cases.Loops"]
 
     if classname in completed_interpreter_classes:
 
@@ -143,10 +143,22 @@ else:
             divide_by_zero_chance = "100%" 
         else:
             divide_by_zero_chance = "0%"
+            
+        if "out of bounds" in state:
+            out_of_bounds_chance = "100%"
+        else:
+            out_of_bounds_chance = "0%"
 
-        out_of_bounds_chance = "0%"
-        null_pointer_chance = "0%"
-        infinite_loop_chance = "0%"
+        if "null pointer" in states: 
+            null_pointer_chance = "100%"
+        else:
+            null_pointer_chance = "0%"
+
+        if "*" in states:
+            infinite_loop_chance = "100%"
+        else:
+            infinite_loop_chance = "0%"
+            
 
     # Output predictions for all 6 possible outcomes
     print(f"ok;{ok_chance}")
