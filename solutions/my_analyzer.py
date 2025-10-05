@@ -13,7 +13,7 @@ import tree_sitter_java
 if len(sys.argv) == 2 and sys.argv[1] == "info":
     # Output the 5 required info lines
     print("Dynamic Analysis")
-    print("1.0")
+    print("1.1")
     print("Kageklubben")
     print("simple,python,dynamic")
     print("no")  # Use any other string to share system info
@@ -71,7 +71,6 @@ else:
             int_test_vals.add(n)
             
 
-
     # Make predictions (improve these by looking at the Java code!)
     ok_chance = "50%"
     divide_by_zero_chance = "50%"
@@ -79,72 +78,75 @@ else:
     out_of_bounds_chance = "50%"
     null_pointer_chance = "50%"
     infinite_loop_chance = "50%"
+    completed_interpreter_classes = ["jpamb.cases.Simple", "jpamb.cases.Tricky"]
 
-    states = set()
-    int_test_vals = list(int_test_vals)
-    bool_test_vals = ["true", "false"]
+    if classname in completed_interpreter_classes:
 
-    fuzzing_tests = 100
+        states = set()
+        int_test_vals = list(int_test_vals)
+        bool_test_vals = ["true", "false"]
 
-    if args.startswith("()"):
-        input = jpamb.parse_input("()")
-        state = execute(methodid, input)
-        states.add(state)
-    else:
-        arg_types = list(args)[1:-2]
-        for index in range(len(int_test_vals)*len(bool_test_vals)):
-            arg_values = []
-            for a in arg_types:
-                match a:
-                    case "I":
-                        arg_values.append(str(int_test_vals[index % len(int_test_vals)]))
-                    case "Z":
-                        arg_values.append(str(bool_test_vals[index % len(bool_test_vals)]))
-                    case _:
-                        raise NotImplementedError(f"Don't know how to handle argument type {a}")
-                    
-            input = jpamb.parse_input(f"({",".join(arg_values)})")
-            logger.disable("interpreter")
+        fuzzing_tests = 100
+
+        if args.startswith("()"):
+            input = jpamb.parse_input("()")
             state = execute(methodid, input)
-            logger.enable("interpreter")
             states.add(state)
+        else:
+            arg_types = list(args)[1:-2]
+            for index in range(len(int_test_vals)*len(bool_test_vals)):
+                arg_values = []
+                for a in arg_types:
+                    match a:
+                        case "I":
+                            arg_values.append(str(int_test_vals[index % len(int_test_vals)]))
+                        case "Z":
+                            arg_values.append(str(bool_test_vals[index % len(bool_test_vals)]))
+                        case _:
+                            raise NotImplementedError(f"Don't know how to handle argument type {a}")
+                        
+                input = jpamb.parse_input(f"({",".join(arg_values)})")
+                logger.disable("interpreter")
+                state = execute(methodid, input)
+                logger.enable("interpreter")
+                states.add(state)
 
-        for _ in range(fuzzing_tests):
-            arg_values = []
-            for a in arg_types:
-                match a:
-                    case "I":
-                        arg_values.append(str(random.randint(java_min_int, java_max_int)))
-                    case "Z":
-                        arg_values.append(random.choice(["true", "false"]))
-                    case _:
-                        raise NotImplementedError(f"Don't know how to handle argument type {a}")
-                    
-            input = jpamb.parse_input(f"({",".join(arg_values)})")
-            logger.disable("interpreter")
-            state = execute(methodid, input)
-            logger.enable("interpreter")
-            states.add(state)
-    
+            for _ in range(fuzzing_tests):
+                arg_values = []
+                for a in arg_types:
+                    match a:
+                        case "I":
+                            arg_values.append(str(random.randint(java_min_int, java_max_int)))
+                        case "Z":
+                            arg_values.append(random.choice(["true", "false"]))
+                        case _:
+                            raise NotImplementedError(f"Don't know how to handle argument type {a}")
+                        
+                input = jpamb.parse_input(f"({",".join(arg_values)})")
+                logger.disable("interpreter")
+                state = execute(methodid, input)
+                logger.enable("interpreter")
+                states.add(state)
+        
 
-    if "assertion error" in states:
-        assertion_error_chance = "100%"
-    else:
-        assertion_error_chance = "0%"
+        if "assertion error" in states:
+            assertion_error_chance = "100%"
+        else:
+            assertion_error_chance = "0%"
 
-    if "ok" in states:
-        ok_chance = "100%" 
-    else:
-        ok_chance = "0%"
+        if "ok" in states:
+            ok_chance = "100%" 
+        else:
+            ok_chance = "0%"
 
-    if "divide by zero" in states:
-        divide_by_zero_chance = "100%" 
-    else:
-        divide_by_zero_chance = "0%"
+        if "divide by zero" in states:
+            divide_by_zero_chance = "100%" 
+        else:
+            divide_by_zero_chance = "0%"
 
-    out_of_bounds_chance = "0%"
-    null_pointer_chance = "0%"
-    infinite_loop_chance = "0%"
+        out_of_bounds_chance = "0%"
+        null_pointer_chance = "0%"
+        infinite_loop_chance = "0%"
 
     # Output predictions for all 6 possible outcomes
     print(f"ok;{ok_chance}")
