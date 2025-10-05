@@ -620,6 +620,10 @@ class Value:
     @classmethod
     def array(cls, type: Type, content: Iterable) -> Self:
         return cls(Array(type), tuple(content))
+    
+    @classmethod
+    def reference(cls, index: int) -> Self:
+        return cls(Reference(), index)
 
     @classmethod
     def from_json(cls, json: dict | None) -> Self:

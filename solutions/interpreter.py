@@ -1,6 +1,7 @@
 import jpamb
 from jpamb import jvm
 from dataclasses import dataclass
+import numpy
 
 import sys
 from loguru import logger
@@ -91,10 +92,9 @@ class Frame:
 @dataclass
 class State:
     heap: dict[int, jvm.Value]
-    heap_items = 0
+    heap_items: int
     frames: Stack[Frame]
 
-    # currently takes in classname as 'val' and pushes it directly into the heap - this might be the wrong datatype
     def heap_append(self, val):
         self.heap[self.heap_items] = val
         idx = self.heap_items
@@ -115,8 +115,25 @@ def step(state: State) -> State | str:
             frame.stack.push(v)
             frame.pc += 1
             return state
-        case jvm.Load(type=jvm.Int(), index=i):
-            frame.stack.push(frame.locals[i])
+        case jvm.Load(type=type, index=idx):
+            local = frame.locals[idx]
+            assert local.type == type, f"Expected type {type}, got {local.type}"
+            frame.stack.push(local)
+            frame.pc += 1
+            return state
+        case jvm.ArrayLoad(type=type):
+            idx, ref = frame.stack.pop(), frame.stack.pop()
+            arr = state.heap[ref.value]
+
+            if arr == None:
+                return "null pointer"
+
+            assert arr.type.contains == type, f"Expected type {type}, got {local.type}"
+
+            if len(arr.value) <= idx.value:
+                return "out of bounds"
+
+            frame.stack.push(jvm.Value.int(arr.value[idx.value]))
             frame.pc += 1
             return state
         case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Div):
@@ -157,22 +174,19 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(v1.value + v2.value))
             frame.pc += 1
             return state
-        case jvm.Return(type=jvm.Int()):
-            v1 = frame.stack.pop()
-            state.frames.pop()
+        case jvm.Return(type=None):
+            v1 = state.frames.pop()
             if state.frames:
-                frame = state.frames.peek()
-                frame.stack.push(v1)
-                frame.pc += 1
                 return state
             else:
                 return "ok"
-        case jvm.Return(type=None):
+        case jvm.Return(type=type):
+            v1 = frame.stack.pop()
+            assert v1.type == type, f"Expected {type}, got {v1.type}"
             state.frames.pop()
             if state.frames:
                 frame = state.frames.peek()
                 frame.stack.push(v1)
-                frame.pc += 1
                 return state
             else:
                 return "ok"
@@ -226,20 +240,51 @@ def step(state: State) -> State | str:
                     raise NotImplementedError(f"Don't know how to handle condition of type: {condition!r}")
             return state
         case jvm.New(classname=cname):
-            # look at heap_append 
             idx = state.heap_append(cname.name)
-            frame.stack.push(idx)
+            frame.stack.push(jvm.Value.reference(idx))
             frame.pc += 1
             return state
         case jvm.InvokeSpecial(method=m, is_interface=is_interface):
-            if len(m.extension.params._elements) == 0:
+            if len(m.extension.params) == 0:
                 v1 = frame.stack.pop()
                 frame.pc += 1
                 return state
             raise NotImplementedError("Don't know how to handle special invocations with more than 0 elements")
+        case jvm.InvokeStatic(method=m):
+            new_frame = Frame.from_method(m)
+            
+            args = [frame.stack.pop() for _ in range(len(m.extension.params))][-1:] # pop all arguments and reverse to get the right order
+
+            for i, v in enumerate(args):
+                match v:
+                    case jvm.Value(type=jvm.Boolean(), value=value):
+                        v = jvm.Value.int(1 if value else 0)
+                    case jvm.Value(type=jvm.Char(), value=value):
+                        v = jvm.Value.int(ord(value))
+                    case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value):
+                        pass
+                    case jvm.Value(type=jvm.Array(), value=value):
+                        
+                        match v.type.contains:
+                            case jvm.Char():
+                                value = [ord(x) for x in value]
+                            case jvm.Int():
+                                pass
+                            case _:
+                                raise NotImplementedError(f"Don't know how to handle arrays of type {v.type.contains} passed as input")
+
+                        state.heap_append(jvm.Value.array(v.type.contains, value))
+                        v = jvm.Value.reference(idx)
+                    case _:
+                        raise NotImplementedError(f"Don't know how to handle {v}")
+                new_frame.locals[i] = v
+
+            frame.pc += 1
+            state.frames.push(new_frame)
+            return state
         case jvm.Throw():
             v1 = frame.stack.pop()
-            if state.heap[v1] == "java/lang/AssertionError":
+            if state.heap[v1.value] == "java/lang/AssertionError":
                 return 'assertion error'
             else:
                 raise NotImplementedError(f"Don't know how to handle non-assertion error error: {state.heap[v1]!r}")
@@ -249,33 +294,110 @@ def step(state: State) -> State | str:
             frame.locals[idx] = v
             frame.pc += 1
             return state
+        case jvm.ArrayStore(type=jvm.Int()):
+            v, idx, ref = frame.stack.pop(), frame.stack.pop(), frame.stack.pop()
+            assert ref.type == jvm.Reference(), f"Expected reference, got {ref.type}"
+            assert idx.type == jvm.Int(), f"Expected integer, got {idx.type}"
+
+            if ref.value == None:
+                return "null pointer"
+
+            arr = state.heap[ref.value]
+            assert v.type == arr.type.contains, f"Expected {arr.type}, got {v.type}"
+            if len(arr.value) <= idx.value:
+                return "out of bounds"
+
+            # Array content is stored as tuple (immutable) and array.value is frozen (immutable)
+            # so we need to overwrite the whole content in the heap
+            new_content = list(arr.value)
+            new_content[idx.value] = v.value
+            state.heap[ref.value] = jvm.Value.array(v.type, new_content)
+
+            frame.pc += 1
+            return state
         case jvm.Goto(target=target):
             frame.pc.replace(target)
+            return state
+        case jvm.Cast(from_=from_, to_=to_):
+            v = frame.stack.pop()
+            assert v.type == from_, f"Expected type {from_}, got {v.type}"
+            match to_:
+                case jvm.Short():
+                        frame.stack.push(jvm.Value.int(numpy.short(v.value))) 
+                case _:
+                    raise NotImplementedError(f"Don't know how to cast to: {to_}")
+            frame.pc += 1
+            return state
+        case jvm.NewArray(type=type, dim=dim):
+            v = frame.stack.pop()
+            assert v.type == jvm.Int(), f"Expected operand to be of type int, got {v.type}"
+            match type:
+                case jvm.Int():
+                    heap_pos = state.heap_append(jvm.Value.array(type, [0 for _ in range(v.value)]))
+                    frame.stack.push(jvm.Value.reference(heap_pos))
+                case t:
+                    raise NotImplementedError(f"Don't know how to handle arrays of type {t}")
+            frame.pc += 1
+            return state
+        case jvm.ArrayLength():
+            ref = frame.stack.pop()
+
+            assert ref.type == jvm.Reference(), f"Expected reference got {ref.type}"
+            
+            if ref.value == None:
+                return "null pointer"
+
+            frame.stack.push(jvm.Value.int(len(state.heap[ref.value].value)))
+
+            frame.pc += 1
+            return state
+        case jvm.Incr(index=idx, amount=amount):
+            assert frame.locals[idx].type == jvm.Int(), f"Expected {jvm.Int()}, got {frame.locals[idx].type}"
+            frame.locals[idx] = jvm.Value.int(frame.locals[idx].value + amount)
+            frame.pc += 1
             return state
         case a:
             raise NotImplementedError(f"Don't know how to handle: {a!r}")
 
 def execute(methodid, input):
     frame = Frame.from_method(methodid)
+    heap = {}
+    heap_items = 0
     for i, v in enumerate(input.values):
         match v:
             case jvm.Value(type=jvm.Boolean(), value=value):
                 v = jvm.Value.int(1 if value else 0)
-            case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value) | jvm.Value(type=jvm.Byte(), value=value):
+            case jvm.Value(type=jvm.Char(), value=value):
+                v = jvm.Value.int(ord(value))
+            case jvm.Value(type=jvm.Int(), value=value) | jvm.Value(jvm.Float(), value=value) | jvm.Value(jvm.Double(), value=value):
                 pass
+            case jvm.Value(type=jvm.Array(), value=value):
+                
+                match v.type.contains:
+                    case jvm.Char():
+                        value = [ord(x) for x in value]
+                    case jvm.Int():
+                        pass
+                    case _:
+                        raise NotImplementedError(f"Don't know how to handle arrays of type {v.type.contains} passed as input")
+
+                heap[heap_items] = jvm.Value.array(v.type.contains, value)
+                idx = heap_items
+                heap_items += 1
+                v = jvm.Value.reference(idx)
             case _:
                 raise NotImplementedError(f"Don't know how to handle {v}")
         frame.locals[i] = v
 
-    state = State({}, Stack.empty().push(frame))
+    state = State(heap, heap_items, Stack.empty().push(frame))
 
-    for x in range(1000):
+    for x in range(100000):
         state = step(state)
         if isinstance(state, str):
             return state
     else:
-        print("*")
-
+        logger.debug("No more steps")
+        return "*"
 
 if __name__ == "__main__":
     methodid, input = jpamb.getcase()
