@@ -18,18 +18,45 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+        jvm2jsonPkg = jvm2json.packages.${system}.default;
+        basePackages = with pkgs; [
+          jdt-language-server
+          jdk
+          maven
+          uv
+        ];
+        allPackages = basePackages ++ [ jvm2jsonPkg ];
       in
       {
         devShells = {
           default = pkgs.mkShell {
             name = "jpamb";
-            packages = with pkgs; [
-              jdt-language-server
-              jdk
-              maven
-              jvm2json.packages.${system}.default
-              uv
-            ];
+            packages = allPackages;
+          };
+        };
+
+        packages = {
+          default = pkgs.dockerTools.buildImage {
+            name = "jpamb";
+            tag = "latest";
+
+            copyToRoot = pkgs.buildEnv {
+              name = "jpamb-env";
+              paths = allPackages ++ (with pkgs; [
+                python3
+                bash
+                coreutils
+              ]);
+            };
+
+            config = {
+              Cmd = [ "${pkgs.bash}/bin/bash" ];
+              WorkingDir = "/workspace";
+              Env = [
+                "PATH=${pkgs.jdk}/bin:${pkgs.maven}/bin:${jvm2jsonPkg}/bin:${pkgs.uv}/bin:${pkgs.python3}/bin:${pkgs.bash}/bin:${pkgs.coreutils}/bin"
+                "JAVA_HOME=${pkgs.jdk}"
+              ];
+            };
           };
         };
       }
