@@ -406,6 +406,9 @@ class ParameterType:
 
     def __len__(self):
         return self._elements.__len__()
+    
+    def __iter__(self):
+        return self._elements.__iter__()
 
     def encode(self):
         return "".join(e.encode() for e in self._elements)
