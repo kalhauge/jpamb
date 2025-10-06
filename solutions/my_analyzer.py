@@ -15,7 +15,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "info":
     print("Dynamic Analysis")
     print("1.2")
     print("Kageklubben")
-    print("simple,tricky,loops,python,dynamic")
+    print("simple,tricky,loops,calls,arrays,python,dynamic")
     print("no")  # Use any other string to share system info
 else:
     # Get the method we need to analyze
@@ -39,7 +39,7 @@ else:
 
     simple_classname = str(methodid.classname.name)
     
-    class_q = JAVA_LANGUAGE.query(
+    class_q = tree_sitter.Query(JAVA_LANGUAGE,
         f"""
         (class_declaration 
             name: ((identifier) @class-name 
@@ -55,7 +55,7 @@ else:
 
     method_name = methodid.extension.name
 
-    method_q = JAVA_LANGUAGE.query(
+    method_q = tree_sitter.Query(JAVA_LANGUAGE,
         f"""
         (method_declaration name: 
         ((identifier) @method-name (#eq? @method-name "{method_name}"))
@@ -78,19 +78,22 @@ else:
     out_of_bounds_chance = "50%"
     null_pointer_chance = "50%"
     infinite_loop_chance = "50%"
-    completed_interpreter_classes = ["jpamb.cases.Simple", "jpamb.cases.Tricky", "jpamb.cases.Loops"]
+    completed_interpreter_classes = ["jpamb.cases.Simple", "jpamb.cases.Tricky", "jpamb.cases.Loops", "jpamb.cases.Calls", "jpamb.cases.Arrays"]
 
     if classname in completed_interpreter_classes:
 
         states = set()
         int_test_vals = list(int_test_vals)
         bool_test_vals = ["true", "false"]
+        array_input = False
 
-        fuzzing_tests = 100
+        fuzzing_tests = 0
 
         if args.startswith("()"):
             input = jpamb.parse_input("()")
+            logger.disable("interpreter")
             state = execute(methodid, input)
+            logger.enable("interpreter")
             states.add(state)
         else:
             arg_types = list(args)[1:-2]
@@ -103,13 +106,19 @@ else:
                         case "Z":
                             arg_values.append(str(bool_test_vals[index % len(bool_test_vals)]))
                         case _:
+                            array_input = True
+                            break
                             raise NotImplementedError(f"Don't know how to handle argument type {a}")
-                        
+                if array_input:
+                    break        
+                #logger.debug(f"{methodid}, {input}")
                 input = jpamb.parse_input(f"({",".join(arg_values)})")
                 logger.disable("interpreter")
                 state = execute(methodid, input)
                 logger.enable("interpreter")
                 states.add(state)
+                #logger.debug(f"{state}")
+
 
             for _ in range(fuzzing_tests):
                 arg_values = []
@@ -126,8 +135,7 @@ else:
                 logger.disable("interpreter")
                 state = execute(methodid, input)
                 logger.enable("interpreter")
-                states.add(state)
-        
+                states.add(state)      
 
         if "assertion error" in states:
             assertion_error_chance = "100%"
@@ -137,14 +145,14 @@ else:
         if "ok" in states:
             ok_chance = "100%" 
         else:
-            ok_chance = "0%"
+            ok_chance = "5%"
 
         if "divide by zero" in states:
             divide_by_zero_chance = "100%" 
         else:
             divide_by_zero_chance = "0%"
             
-        if "out of bounds" in state:
+        if "out of bounds" in states:
             out_of_bounds_chance = "100%"
         else:
             out_of_bounds_chance = "0%"
@@ -154,10 +162,18 @@ else:
         else:
             null_pointer_chance = "0%"
 
-        if "*" in states:
-            infinite_loop_chance = "100%"
+        if "*" in states: #how to deal with recursive functions?
+            infinite_loop_chance = "90%"
         else:
             infinite_loop_chance = "0%"
+
+        if array_input:
+            ok_chance = "50%"
+            divide_by_zero_chance = "50%"
+            assertion_error_chance = "50%"
+            out_of_bounds_chance = "50%"
+            null_pointer_chance = "50%"
+            infinite_loop_chance = "50%"
             
 
     # Output predictions for all 6 possible outcomes
