@@ -1,0 +1,147 @@
+name: Build and Distribute with Nix
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      push_to_registry:
+        description: 'Push to registry (yes/no)'
+        required: false
+        default: 'no'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-nix-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix with flakes
+      uses: DeterminateSystems/nix-installer-action@v9
+      with:
+        extra-conf: |
+          experimental-features = nix-command flakes
+          trusted-users = root runner
+
+    - name: Setup Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@v3
+
+    - name: Build Docker image with Nix
+      run: |
+        echo "Building Docker image using Nix flake..."
+        nix build .#packages.x86_64-linux.default --print-build-logs
+    - name: Load and test image locally
+      run: |
+        # Load the image
+        nix run .#image.load
+        # Run basic tests
+        echo "=== Testing Java ==="
+        nix run .#image.run -- java -version
+        echo "=== Testing Maven ==="
+        nix run .#image.run -- mvn --version
+        echo "=== Testing UV ==="
+        nix run .#image.run -- uv --version
+        echo "=== Testing JPAMB ==="
+        nix run .#image.jpamb --help
+
+    - name: Push to GitHub Container Registry
+      if: |
+        github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      run: |
+        # Login to GitHub Container Registry
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+        # Determine tags based on the trigger
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+          TAGS="ghcr.io/${{ env.IMAGE_NAME }}:$VERSION ghcr.io/${{ env.IMAGE_NAME }}:latest"
+        else
+          BRANCH=${GITHUB_REF#refs/heads/}
+          TAGS="ghcr.io/${{ env.IMAGE_NAME }}:$BRANCH"
+        fi
+
+        # Tag and push
+        for TAG in $TAGS; do
+          echo "Pushing $TAG..."
+          docker tag "$LOCAL_IMAGE" "$TAG"
+          docker push "$TAG"
+        done
+
+    - name: Upload Docker tarball as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jpamb-docker-${{ github.sha }}
+        path: result
+        retention-days: 7
+
+    - name: Create release with Docker tarball
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: result
+        body: |
+          Docker image for JPAMB ${{ github.ref_name }}
+
+          ## Usage
+
+          ### Load from tarball:
+          ```bash
+          docker load < jpamb-docker.tar.gz
+          ```
+
+          ### Pull from registry:
+          ```bash
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+
+          ### Run:
+          ```bash
+          docker run -it --rm -v $(pwd):/workspace ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+
+#  build-multi-arch:
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    strategy:
+#      matrix:
+#        system: [x86_64-linux, aarch64-linux]
+#
+#    steps:
+#    - name: Checkout repository
+#      uses: actions/checkout@v4
+#
+#    - name: Install Nix with flakes
+#      uses: DeterminateSystems/nix-installer-action@v9
+#      with:
+#        extra-conf: |
+#          experimental-features = nix-command flakes
+#          trusted-users = root runner
+#          extra-platforms = aarch64-linux
+#
+#    - name: Setup QEMU for cross-compilation
+#      if: matrix.system == 'aarch64-linux'
+#      uses: docker/setup-qemu-action@v3
+#
+#    - name: Build for ${{ matrix.system }}
+#      run: |
+#        nix build .#packages.${{ matrix.system }}.default --print-build-logs
+#
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: jpamb-docker-${{ matrix.system }}-${{ github.sha }}
+#        path: result
+#        retention-days: 7
