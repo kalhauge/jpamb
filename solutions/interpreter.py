@@ -287,10 +287,10 @@ def step(state: State) -> State | str:
             frame.pc += 1
             return state
         
-      #  case jvm.ArrayStore(type=jvm.Int()):
+        case jvm.ArrayStore(type=jvm.Int()):
             value, index, array_ref = frame.stack.pop(), frame.stack.pop(), frame.stack.pop()
             
-            state.heap[array_ref][index.value] = value.value
+            state.heap[array_ref.value][index.value] = value.value
             frame.pc += 1
             return state
 
