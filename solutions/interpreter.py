@@ -391,7 +391,7 @@ def execute(methodid, input):
 
     state = State(heap, heap_items, Stack.empty().push(frame))
 
-    for x in range(100000):
+    for x in range(1000000):
         state = step(state)
         if isinstance(state, str):
             return state
