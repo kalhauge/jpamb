@@ -1,0 +1,1 @@
+To add new class to the cases: create new file in cases, compile is using jpamb build --compile, then decompile with jpamb build--decompile

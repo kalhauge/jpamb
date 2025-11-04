@@ -468,6 +468,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
 
     logger.info(f"Bytecode[{frame.pc}]: {bytecode[frame.pc]}")
     logger.info(f"Op Stack[{frame.stack}]")
+    logger.info(f"State heap[{state.heap}]")
     match bytecode[frame.pc]:
         case jvm.Push(value=v): return _push(value=v)
         case jvm.Load(type=jvm.Int(), index=n): return _load(index=n)

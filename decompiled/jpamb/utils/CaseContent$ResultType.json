@@ -204,30 +204,11 @@
       "access": [
         "private",
         "static",
-        "volatile",
-        "synthetic"
-      ],
-      "annotations": [],
-      "name": "$SWITCH_TABLE$jpamb$utils$CaseContent$ResultType",
-      "type": {
-        "annotations": [],
-        "kind": "array",
-        "type": {
-          "annotations": [],
-          "base": "int"
-        }
-      },
-      "value": null
-    },
-    {
-      "access": [
-        "private",
-        "static",
         "final",
         "synthetic"
       ],
       "annotations": [],
-      "name": "ENUM$VALUES",
+      "name": "$VALUES",
       "type": {
         "annotations": [],
         "kind": "array",
@@ -252,28 +233,29 @@
       "access": [
         "public",
         "static",
-        "final"
-      ],
-      "class": "java/lang/invoke/MethodHandles$Lookup",
-      "name": "Lookup",
-      "outer": "java/lang/invoke/MethodHandles"
-    },
-    {
-      "access": [
-        "public",
-        "static",
         "final",
         "enum"
       ],
       "class": "jpamb/utils/CaseContent$ResultType",
       "name": "ResultType",
       "outer": "jpamb/utils/CaseContent"
+    },
+    {
+      "access": [
+        "public",
+        "static",
+        "final"
+      ],
+      "class": "java/lang/invoke/MethodHandles$Lookup",
+      "name": "Lookup",
+      "outer": "java/lang/invoke/MethodHandles"
     }
   ],
   "interfaces": [],
   "methods": [
     {
       "access": [
+        "public",
         "static"
       ],
       "annotations": [],
@@ -281,572 +263,9 @@
         "annotations": [],
         "bytecode": [
           {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 0,
-            "opr": "new"
-          },
-          {
-            "offset": 3,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 4,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "DIVIDE_BY_ZERO"
-            }
-          },
-          {
-            "offset": 6,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 0
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 7,
-            "opr": "invoke"
-          },
-          {
             "field": {
               "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "DIVIDE_BY_ZERO",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 10,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 13,
-            "opr": "new"
-          },
-          {
-            "offset": 16,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 17,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "ASSERTION_ERROR"
-            }
-          },
-          {
-            "offset": 19,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 1
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 20,
-            "opr": "invoke"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "ASSERTION_ERROR",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 23,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 26,
-            "opr": "new"
-          },
-          {
-            "offset": 29,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 30,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "SUCCESS"
-            }
-          },
-          {
-            "offset": 32,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 2
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 33,
-            "opr": "invoke"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "SUCCESS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 36,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 39,
-            "opr": "new"
-          },
-          {
-            "offset": 42,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 43,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "NON_TERMINATION"
-            }
-          },
-          {
-            "offset": 45,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 3
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 46,
-            "opr": "invoke"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NON_TERMINATION",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 49,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 52,
-            "opr": "new"
-          },
-          {
-            "offset": 55,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 56,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "NULL_POINTER"
-            }
-          },
-          {
-            "offset": 58,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 4
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 59,
-            "opr": "invoke"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NULL_POINTER",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 62,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "class": "jpamb/utils/CaseContent$ResultType",
-            "offset": 65,
-            "opr": "new"
-          },
-          {
-            "offset": 68,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 69,
-            "opr": "push",
-            "value": {
-              "type": "string",
-              "value": "OUT_OF_BOUNDS"
-            }
-          },
-          {
-            "offset": 71,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 5
-            }
-          },
-          {
-            "access": "special",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                },
-                "int"
-              ],
-              "is_interface": false,
-              "name": "<init>",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": null
-            },
-            "offset": 72,
-            "opr": "invoke"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "OUT_OF_BOUNDS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 75,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "offset": 78,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 6
-            }
-          },
-          {
-            "dim": 1,
-            "offset": 80,
-            "opr": "newarray",
-            "type": {
-              "kind": "class",
-              "name": "jpamb/utils/CaseContent$ResultType"
-            }
-          },
-          {
-            "offset": 83,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 84,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 0
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "DIVIDE_BY_ZERO",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 85,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 88,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "offset": 89,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 90,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 1
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "ASSERTION_ERROR",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 91,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 94,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "offset": 95,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 96,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 2
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "SUCCESS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 97,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 100,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "offset": 101,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 102,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 3
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NON_TERMINATION",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 103,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 106,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "offset": 107,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 108,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 4
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NULL_POINTER",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 109,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 112,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "offset": 113,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "offset": 114,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 5
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "OUT_OF_BOUNDS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 115,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 118,
-            "opr": "array_store",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "ENUM$VALUES",
+              "name": "$VALUES",
               "type": {
                 "kind": "array",
                 "type": {
@@ -855,58 +274,193 @@
                 }
               }
             },
-            "offset": 119,
-            "opr": "put",
+            "offset": 0,
+            "opr": "get",
             "static": true
           },
           {
-            "offset": 122,
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "clone",
+              "ref": {
+                "kind": "array",
+                "type": {
+                  "kind": "class",
+                  "name": "jpamb/utils/CaseContent$ResultType"
+                }
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              }
+            },
+            "offset": 3,
+            "opr": "invoke"
+          },
+          {
+            "offset": 6,
+            "opr": "checkcast",
+            "type": {
+              "kind": "array",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            }
+          },
+          {
+            "offset": 9,
             "opr": "return",
-            "type": null
+            "type": "ref"
           }
         ],
         "exceptions": [],
         "lines": [
           {
-            "line": 48,
-            "offset": 0
-          },
-          {
-            "line": 49,
-            "offset": 6
-          },
-          {
-            "line": 50,
-            "offset": 12
-          },
-          {
-            "line": 51,
-            "offset": 18
-          },
-          {
-            "line": 52,
-            "offset": 24
-          },
-          {
-            "line": 53,
-            "offset": 30
-          },
-          {
             "line": 47,
-            "offset": 36
+            "offset": 0
           }
         ],
         "max_locals": 0,
-        "max_stack": 4,
+        "max_stack": 1,
         "stack_map": null
       },
       "default": null,
       "exceptions": [],
-      "name": "<clinit>",
+      "name": "values",
       "params": [],
       "returns": {
         "annotations": [],
-        "type": null
+        "type": {
+          "kind": "array",
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": {
+              "annotations": [],
+              "args": [],
+              "inner": null,
+              "name": "ResultType"
+            },
+            "kind": "class",
+            "name": "jpamb/utils/CaseContent"
+          }
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            }
+          },
+          {
+            "index": 0,
+            "offset": 2,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "static",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/Class"
+                },
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "is_interface": false,
+              "name": "valueOf",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Enum"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Enum"
+              }
+            },
+            "offset": 3,
+            "opr": "invoke"
+          },
+          {
+            "offset": 6,
+            "opr": "checkcast",
+            "type": {
+              "kind": "class",
+              "name": "jpamb/utils/CaseContent$ResultType"
+            }
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": "ref"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 47,
+            "offset": 0
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 2,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "valueOf",
+      "params": [
+        {
+          "access": [
+            "mandated"
+          ],
+          "annotations": [],
+          "name": null,
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "java/lang/String"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "args": [],
+          "inner": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "name": "ResultType"
+          },
+          "kind": "class",
+          "name": "jpamb/utils/CaseContent"
+        }
       },
       "typeparams": []
     },
@@ -979,7 +533,11 @@
       "name": "<init>",
       "params": [
         {
+          "access": [
+            "synthetic"
+          ],
           "annotations": [],
+          "name": null,
           "type": {
             "annotations": [],
             "args": [],
@@ -987,15 +545,19 @@
             "kind": "class",
             "name": "java/lang/String"
           },
-          "visible": true
+          "visible": false
         },
         {
+          "access": [
+            "synthetic"
+          ],
           "annotations": [],
+          "name": null,
           "type": {
             "annotations": [],
             "base": "int"
           },
-          "visible": true
+          "visible": false
         }
       ],
       "returns": {
@@ -1540,26 +1102,8 @@
         "annotations": [],
         "bytecode": [
           {
-            "access": "static",
-            "method": {
-              "args": [],
-              "is_interface": false,
-              "name": "$SWITCH_TABLE$jpamb$utils$CaseContent$ResultType",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": {
-                "kind": "array",
-                "type": "int"
-              }
-            },
-            "offset": 0,
-            "opr": "invoke"
-          },
-          {
             "index": 0,
-            "offset": 3,
+            "offset": 0,
             "opr": "load",
             "type": "ref"
           },
@@ -1574,30 +1118,25 @@
               },
               "returns": "int"
             },
-            "offset": 4,
+            "offset": 1,
             "opr": "invoke"
           },
           {
-            "offset": 7,
-            "opr": "array_load",
-            "type": "int"
-          },
-          {
-            "default": 17,
-            "low": 1,
-            "offset": 8,
+            "default": 15,
+            "low": 0,
+            "offset": 4,
             "opr": "tableswitch",
             "targets": [
+              3,
               5,
-              7,
-              15,
               13,
               11,
-              9
+              9,
+              7
             ]
           },
           {
-            "offset": 48,
+            "offset": 44,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1605,12 +1144,12 @@
             }
           },
           {
-            "offset": 50,
+            "offset": 46,
             "opr": "return",
             "type": "ref"
           },
           {
-            "offset": 51,
+            "offset": 47,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1618,12 +1157,12 @@
             }
           },
           {
-            "offset": 53,
+            "offset": 49,
             "opr": "return",
             "type": "ref"
           },
           {
-            "offset": 54,
+            "offset": 50,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1631,12 +1170,12 @@
             }
           },
           {
-            "offset": 56,
+            "offset": 52,
             "opr": "return",
             "type": "ref"
           },
           {
-            "offset": 57,
+            "offset": 53,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1644,12 +1183,12 @@
             }
           },
           {
-            "offset": 59,
+            "offset": 55,
             "opr": "return",
             "type": "ref"
           },
           {
-            "offset": 60,
+            "offset": 56,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1657,12 +1196,12 @@
             }
           },
           {
-            "offset": 62,
+            "offset": 58,
             "opr": "return",
             "type": "ref"
           },
           {
-            "offset": 63,
+            "offset": 59,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1670,22 +1209,22 @@
             }
           },
           {
-            "offset": 65,
+            "offset": 61,
             "opr": "return",
             "type": "ref"
           },
           {
             "class": "java/lang/RuntimeException",
-            "offset": 66,
+            "offset": 62,
             "opr": "new"
           },
           {
-            "offset": 69,
+            "offset": 65,
             "opr": "dup",
             "words": 1
           },
           {
-            "offset": 70,
+            "offset": 66,
             "opr": "push",
             "value": {
               "type": "string",
@@ -1709,11 +1248,11 @@
               },
               "returns": null
             },
-            "offset": 72,
+            "offset": 68,
             "opr": "invoke"
           },
           {
-            "offset": 75,
+            "offset": 71,
             "opr": "throw"
           }
         ],
@@ -1725,36 +1264,40 @@
           },
           {
             "line": 76,
-            "offset": 5
+            "offset": 3
           },
           {
             "line": 78,
-            "offset": 7
+            "offset": 5
           },
           {
             "line": 80,
-            "offset": 9
+            "offset": 7
           },
           {
             "line": 82,
-            "offset": 11
+            "offset": 9
           },
           {
             "line": 84,
-            "offset": 13
+            "offset": 11
           },
           {
             "line": 86,
-            "offset": 15
+            "offset": 13
           },
           {
             "line": 88,
-            "offset": 17
+            "offset": 15
           }
         ],
         "max_locals": 1,
         "max_stack": 3,
         "stack_map": [
+          {
+            "index": 3,
+            "type": "same"
+          },
           {
             "index": 5,
             "type": "same"
@@ -1777,10 +1320,6 @@
           },
           {
             "index": 15,
-            "type": "same"
-          },
-          {
-            "index": 17,
             "type": "same"
           }
         ]
@@ -2148,72 +1687,25 @@
     },
     {
       "access": [
-        "public",
-        "static"
+        "private",
+        "static",
+        "synthetic"
       ],
       "annotations": [],
       "code": {
         "annotations": [],
         "bytecode": [
           {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "ENUM$VALUES",
-              "type": {
-                "kind": "array",
-                "type": {
-                  "kind": "class",
-                  "name": "jpamb/utils/CaseContent$ResultType"
-                }
-              }
-            },
             "offset": 0,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "offset": 3,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 4,
-            "opr": "store",
-            "type": "ref"
-          },
-          {
-            "offset": 5,
             "opr": "push",
             "value": {
               "type": "integer",
-              "value": 0
+              "value": 6
             }
           },
           {
-            "index": 0,
-            "offset": 6,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "offset": 7,
-            "opr": "arraylength"
-          },
-          {
-            "offset": 8,
-            "opr": "dup",
-            "words": 1
-          },
-          {
-            "index": 1,
-            "offset": 9,
-            "opr": "store",
-            "type": "int"
-          },
-          {
             "dim": 1,
-            "offset": 10,
+            "offset": 2,
             "opr": "newarray",
             "type": {
               "kind": "class",
@@ -2221,18 +1713,12 @@
             }
           },
           {
-            "offset": 13,
+            "offset": 5,
             "opr": "dup",
             "words": 1
           },
           {
-            "index": 2,
-            "offset": 14,
-            "opr": "store",
-            "type": "ref"
-          },
-          {
-            "offset": 15,
+            "offset": 6,
             "opr": "push",
             "value": {
               "type": "integer",
@@ -2240,46 +1726,180 @@
             }
           },
           {
-            "index": 1,
-            "offset": 16,
-            "opr": "load",
-            "type": "int"
-          },
-          {
-            "access": "static",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/Object"
-                },
-                "int",
-                {
-                  "kind": "class",
-                  "name": "java/lang/Object"
-                },
-                "int",
-                "int"
-              ],
-              "is_interface": false,
-              "name": "arraycopy",
-              "ref": {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "DIVIDE_BY_ZERO",
+              "type": {
                 "kind": "class",
-                "name": "java/lang/System"
-              },
-              "returns": null
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
             },
-            "offset": 17,
-            "opr": "invoke"
+            "offset": 7,
+            "opr": "get",
+            "static": true
           },
           {
-            "index": 2,
-            "offset": 20,
-            "opr": "load",
+            "offset": 10,
+            "opr": "array_store",
             "type": "ref"
           },
           {
-            "offset": 21,
+            "offset": 11,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 12,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "ASSERTION_ERROR",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 13,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 16,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 17,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 18,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "SUCCESS",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 19,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 22,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 23,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 24,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 3
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "NON_TERMINATION",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 25,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 28,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 29,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 30,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "NULL_POINTER",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 31,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 34,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 35,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 36,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 5
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "OUT_OF_BOUNDS",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 37,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 40,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 41,
             "opr": "return",
             "type": "ref"
           }
@@ -2287,17 +1907,17 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 1,
+            "line": 47,
             "offset": 0
           }
         ],
-        "max_locals": 3,
-        "max_stack": 5,
+        "max_locals": 0,
+        "max_stack": 4,
         "stack_map": null
       },
       "default": null,
       "exceptions": [],
-      "name": "values",
+      "name": "$values",
       "params": [],
       "returns": {
         "annotations": [],
@@ -2321,7 +1941,6 @@
     },
     {
       "access": [
-        "public",
         "static"
       ],
       "annotations": [],
@@ -2329,127 +1948,9 @@
         "annotations": [],
         "bytecode": [
           {
+            "class": "jpamb/utils/CaseContent$ResultType",
             "offset": 0,
-            "opr": "push",
-            "value": {
-              "type": "class",
-              "value": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            }
-          },
-          {
-            "index": 0,
-            "offset": 2,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "access": "static",
-            "method": {
-              "args": [
-                {
-                  "kind": "class",
-                  "name": "java/lang/Class"
-                },
-                {
-                  "kind": "class",
-                  "name": "java/lang/String"
-                }
-              ],
-              "is_interface": false,
-              "name": "valueOf",
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/Enum"
-              },
-              "returns": {
-                "kind": "class",
-                "name": "java/lang/Enum"
-              }
-            },
-            "offset": 3,
-            "opr": "invoke"
-          },
-          {
-            "offset": 6,
-            "opr": "checkcast",
-            "type": {
-              "kind": "class",
-              "name": "jpamb/utils/CaseContent$ResultType"
-            }
-          },
-          {
-            "offset": 9,
-            "opr": "return",
-            "type": "ref"
-          }
-        ],
-        "exceptions": [],
-        "lines": [
-          {
-            "line": 1,
-            "offset": 0
-          }
-        ],
-        "max_locals": 1,
-        "max_stack": 2,
-        "stack_map": null
-      },
-      "default": null,
-      "exceptions": [],
-      "name": "valueOf",
-      "params": [
-        {
-          "annotations": [],
-          "type": {
-            "annotations": [],
-            "args": [],
-            "inner": null,
-            "kind": "class",
-            "name": "java/lang/String"
-          },
-          "visible": true
-        }
-      ],
-      "returns": {
-        "annotations": [],
-        "type": {
-          "args": [],
-          "inner": {
-            "annotations": [],
-            "args": [],
-            "inner": null,
-            "name": "ResultType"
-          },
-          "kind": "class",
-          "name": "jpamb/utils/CaseContent"
-        }
-      },
-      "typeparams": []
-    },
-    {
-      "access": [
-        "static",
-        "synthetic"
-      ],
-      "annotations": [],
-      "code": {
-        "annotations": [],
-        "bytecode": [
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "$SWITCH_TABLE$jpamb$utils$CaseContent$ResultType",
-              "type": {
-                "kind": "array",
-                "type": "int"
-              }
-            },
-            "offset": 0,
-            "opr": "get",
-            "static": true
+            "opr": "new"
           },
           {
             "offset": 3,
@@ -2457,27 +1958,361 @@
             "words": 1
           },
           {
-            "condition": "is",
             "offset": 4,
-            "opr": "ifz",
-            "target": 4
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "DIVIDE_BY_ZERO"
+            }
           },
           {
+            "offset": 6,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
             "offset": 7,
-            "opr": "return",
-            "type": "ref"
+            "opr": "invoke"
           },
           {
-            "offset": 8,
-            "opr": "pop",
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "DIVIDE_BY_ZERO",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 10,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "class": "jpamb/utils/CaseContent$ResultType",
+            "offset": 13,
+            "opr": "new"
+          },
+          {
+            "offset": 16,
+            "opr": "dup",
             "words": 1
+          },
+          {
+            "offset": 17,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "ASSERTION_ERROR"
+            }
+          },
+          {
+            "offset": 19,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
+            "offset": 20,
+            "opr": "invoke"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "ASSERTION_ERROR",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 23,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "class": "jpamb/utils/CaseContent$ResultType",
+            "offset": 26,
+            "opr": "new"
+          },
+          {
+            "offset": 29,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 30,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "SUCCESS"
+            }
+          },
+          {
+            "offset": 32,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
+            "offset": 33,
+            "opr": "invoke"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "SUCCESS",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 36,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "class": "jpamb/utils/CaseContent$ResultType",
+            "offset": 39,
+            "opr": "new"
+          },
+          {
+            "offset": 42,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 43,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "NON_TERMINATION"
+            }
+          },
+          {
+            "offset": 45,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 3
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
+            "offset": 46,
+            "opr": "invoke"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "NON_TERMINATION",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 49,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "class": "jpamb/utils/CaseContent$ResultType",
+            "offset": 52,
+            "opr": "new"
+          },
+          {
+            "offset": 55,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 56,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "NULL_POINTER"
+            }
+          },
+          {
+            "offset": 58,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
+            "offset": 59,
+            "opr": "invoke"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "NULL_POINTER",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 62,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "class": "jpamb/utils/CaseContent$ResultType",
+            "offset": 65,
+            "opr": "new"
+          },
+          {
+            "offset": 68,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 69,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "OUT_OF_BOUNDS"
+            }
+          },
+          {
+            "offset": 71,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 5
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              },
+              "returns": null
+            },
+            "offset": 72,
+            "opr": "invoke"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/CaseContent$ResultType",
+              "name": "OUT_OF_BOUNDS",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/utils/CaseContent$ResultType"
+              }
+            },
+            "offset": 75,
+            "opr": "put",
+            "static": true
           },
           {
             "access": "static",
             "method": {
               "args": [],
               "is_interface": false,
-              "name": "values",
+              "name": "$values",
               "ref": {
                 "kind": "class",
                 "name": "jpamb/utils/CaseContent$ResultType"
@@ -2490,565 +2325,73 @@
                 }
               }
             },
-            "offset": 9,
-            "opr": "invoke"
-          },
-          {
-            "offset": 12,
-            "opr": "arraylength"
-          },
-          {
-            "dim": 1,
-            "offset": 13,
-            "opr": "newarray",
-            "type": "int"
-          },
-          {
-            "index": 0,
-            "offset": 15,
-            "opr": "store",
-            "type": "ref"
-          },
-          {
-            "index": 0,
-            "offset": 16,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "ASSERTION_ERROR",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 17,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 20,
-            "opr": "invoke"
-          },
-          {
-            "offset": 23,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 2
-            }
-          },
-          {
-            "offset": 24,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
-            "offset": 25,
-            "opr": "goto",
-            "target": 16
-          },
-          {
-            "offset": 28,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 29,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "DIVIDE_BY_ZERO",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 30,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 33,
-            "opr": "invoke"
-          },
-          {
-            "offset": 36,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 1
-            }
-          },
-          {
-            "offset": 37,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
-            "offset": 38,
-            "opr": "goto",
-            "target": 23
-          },
-          {
-            "offset": 41,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 42,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NON_TERMINATION",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 43,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 46,
-            "opr": "invoke"
-          },
-          {
-            "offset": 49,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 4
-            }
-          },
-          {
-            "offset": 50,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
-            "offset": 51,
-            "opr": "goto",
-            "target": 30
-          },
-          {
-            "offset": 54,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 55,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "NULL_POINTER",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 56,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 59,
-            "opr": "invoke"
-          },
-          {
-            "offset": 62,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 5
-            }
-          },
-          {
-            "offset": 63,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
-            "offset": 64,
-            "opr": "goto",
-            "target": 37
-          },
-          {
-            "offset": 67,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 68,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "OUT_OF_BOUNDS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 69,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 72,
-            "opr": "invoke"
-          },
-          {
-            "offset": 75,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 6
-            }
-          },
-          {
-            "offset": 77,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
             "offset": 78,
-            "opr": "goto",
-            "target": 44
-          },
-          {
-            "offset": 81,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 82,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "field": {
-              "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "SUCCESS",
-              "type": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              }
-            },
-            "offset": 83,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "ordinal",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/utils/CaseContent$ResultType"
-              },
-              "returns": "int"
-            },
-            "offset": 86,
             "opr": "invoke"
           },
           {
-            "offset": 89,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 3
-            }
-          },
-          {
-            "offset": 90,
-            "opr": "array_store",
-            "type": "int"
-          },
-          {
-            "offset": 91,
-            "opr": "goto",
-            "target": 51
-          },
-          {
-            "offset": 94,
-            "opr": "pop",
-            "words": 1
-          },
-          {
-            "index": 0,
-            "offset": 95,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "offset": 96,
-            "opr": "dup",
-            "words": 1
-          },
-          {
             "field": {
               "class": "jpamb/utils/CaseContent$ResultType",
-              "name": "$SWITCH_TABLE$jpamb$utils$CaseContent$ResultType",
+              "name": "$VALUES",
               "type": {
                 "kind": "array",
-                "type": "int"
+                "type": {
+                  "kind": "class",
+                  "name": "jpamb/utils/CaseContent$ResultType"
+                }
               }
             },
-            "offset": 97,
+            "offset": 81,
             "opr": "put",
             "static": true
           },
           {
-            "offset": 100,
+            "offset": 84,
             "opr": "return",
-            "type": "ref"
+            "type": null
           }
         ],
-        "exceptions": [
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 14,
-            "handler": 15,
-            "start": 9
-          },
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 21,
-            "handler": 22,
-            "start": 16
-          },
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 28,
-            "handler": 29,
-            "start": 23
-          },
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 35,
-            "handler": 36,
-            "start": 30
-          },
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 42,
-            "handler": 43,
-            "start": 37
-          },
-          {
-            "catchType": "java/lang/NoSuchFieldError",
-            "end": 49,
-            "handler": 50,
-            "start": 44
-          }
-        ],
+        "exceptions": [],
         "lines": [
           {
-            "line": 47,
+            "line": 48,
             "offset": 0
+          },
+          {
+            "line": 49,
+            "offset": 6
+          },
+          {
+            "line": 50,
+            "offset": 12
+          },
+          {
+            "line": 51,
+            "offset": 18
+          },
+          {
+            "line": 52,
+            "offset": 24
+          },
+          {
+            "line": 53,
+            "offset": 30
+          },
+          {
+            "line": 47,
+            "offset": 36
           }
         ],
-        "max_locals": 1,
-        "max_stack": 3,
-        "stack_map": [
-          {
-            "index": 4,
-            "info": {
-              "ref": {
-                "kind": "array",
-                "type": "int"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 15,
-            "locals": [
-              {
-                "ref": {
-                  "kind": "array",
-                  "type": "int"
-                },
-                "type": "object"
-              }
-            ],
-            "stack": [
-              {
-                "ref": {
-                  "kind": "class",
-                  "name": "java/lang/NoSuchFieldError"
-                },
-                "type": "object"
-              }
-            ],
-            "type": "full_frame"
-          },
-          {
-            "index": 16,
-            "type": "same"
-          },
-          {
-            "index": 22,
-            "info": {
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/NoSuchFieldError"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 23,
-            "type": "same"
-          },
-          {
-            "index": 29,
-            "info": {
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/NoSuchFieldError"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 30,
-            "type": "same"
-          },
-          {
-            "index": 36,
-            "info": {
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/NoSuchFieldError"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 37,
-            "type": "same"
-          },
-          {
-            "index": 43,
-            "info": {
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/NoSuchFieldError"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 44,
-            "type": "same"
-          },
-          {
-            "index": 50,
-            "info": {
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/NoSuchFieldError"
-              },
-              "type": "object"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          },
-          {
-            "index": 51,
-            "type": "same"
-          }
-        ]
+        "max_locals": 0,
+        "max_stack": 4,
+        "stack_map": null
       },
       "default": null,
       "exceptions": [],
-      "name": "$SWITCH_TABLE$jpamb$utils$CaseContent$ResultType",
+      "name": "<clinit>",
       "params": [],
       "returns": {
         "annotations": [],
-        "type": {
-          "kind": "array",
-          "type": {
-            "annotations": [],
-            "base": "int"
-          }
-        }
+        "type": null
       },
       "typeparams": []
     }
