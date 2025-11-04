@@ -1,0 +1,307 @@
+{
+  "access": [
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [
+    {
+      "access": [
+        "private"
+      ],
+      "annotations": [],
+      "name": "value",
+      "type": {
+        "annotations": [],
+        "base": "int"
+      },
+      "value": null
+    }
+  ],
+  "innerclasses": [
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$PositiveInteger",
+      "name": "PositiveInteger",
+      "outer": "jpamb/cases/CustomClasses"
+    }
+  ],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 5,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [
+                "int"
+              ],
+              "name": "set",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+              },
+              "returns": null
+            },
+            "offset": 6,
+            "opr": "invoke"
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 15,
+            "offset": 0
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 1,
+            "offset": 0,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 1,
+            "opr": "ifz",
+            "target": 6
+          },
+          {
+            "class": "java/lang/IllegalArgumentException",
+            "offset": 4,
+            "opr": "new"
+          },
+          {
+            "offset": 7,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/IllegalArgumentException"
+              },
+              "returns": null
+            },
+            "offset": 8,
+            "opr": "invoke"
+          },
+          {
+            "offset": 11,
+            "opr": "throw"
+          },
+          {
+            "index": 0,
+            "offset": 12,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 13,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/CustomClasses$PositiveInteger",
+              "name": "value",
+              "type": "int"
+            },
+            "offset": 14,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "offset": 17,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 18,
+            "offset": 0
+          },
+          {
+            "line": 19,
+            "offset": 6
+          },
+          {
+            "line": 20,
+            "offset": 9
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 6,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "set",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/CustomClasses$PositiveInteger",
+              "name": "value",
+              "type": "int"
+            },
+            "offset": 1,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "offset": 4,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 22,
+            "offset": 0
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 1,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "get",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/cases/CustomClasses$PositiveInteger",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    63,
+    0
+  ]
+}

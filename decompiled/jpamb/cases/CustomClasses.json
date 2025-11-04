@@ -22,7 +22,16 @@
       "value": null
     }
   ],
-  "innerclasses": [],
+  "innerclasses": [
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$PositiveInteger",
+      "name": "PositiveInteger",
+      "outer": "jpamb/cases/CustomClasses"
+    }
+  ],
   "interfaces": [],
   "methods": [
     {
@@ -175,6 +184,98 @@
       "default": null,
       "exceptions": [],
       "name": "assertFalse",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Case",
+          "values": {
+            "value": {
+              "type": "string",
+              "value": "() -> ok"
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "class": "jpamb/cases/CustomClasses$PositiveInteger",
+            "offset": 0,
+            "opr": "new"
+          },
+          {
+            "offset": 3,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 4,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1000
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                "int"
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+              },
+              "returns": null
+            },
+            "offset": 7,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 10,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "offset": 11,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 28,
+            "offset": 0
+          },
+          {
+            "line": 38,
+            "offset": 5
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 3,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "Withdraw",
       "params": [],
       "returns": {
         "annotations": [],
