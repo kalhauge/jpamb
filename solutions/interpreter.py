@@ -319,6 +319,28 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         state.frames.push(new_frame)
         return state
 
+    def _invoke_special(method: jvm.AbsMethodID, is_interface: bool):
+        new_frame = Frame.from_method(method)
+        new_frame.pc = PC(method, 0)
+
+        #technically, we shoudl also determine whether our method is static or not - if it is, we should get our variables from the stack
+        #if it is not, we should get it from the heap
+        #but let's not overcomplicate it for now
+
+        for index, param in enumerate(method.extension.params):
+            local = frame.stack.pop()
+
+            # assert isinstance(local.type, type(param)), f'''
+            # Inappropriate argument type: {local.type!r}
+            # (expected {param!r})
+            # '''
+
+            new_frame.locals[index] = local
+
+        state.frames.push(new_frame)
+        #important: we don't have frame.pc += 1, because return instruction later would do it for us
+        return state
+
     def _return(return_type: jvm.Type | None):
         """
         bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
@@ -347,6 +369,16 @@ def step(state: State, bytecode: Bytecode) -> State | str:
             case 'java/lang/AssertionError':
                 return 'assertion error'
             case _:
+                suite = jpamb.Suite()
+                class_info = suite.findclass(classname)
+                #we need to push an reference of this class onto the stack
+                #dict -> jvm.AbsMethodID?
+                methodId = jvm.AbsMethodID.from_json(class_info)
+                #because then Frame.from_method would be able to find it
+                #to finish ....
+
+                logger.debug(methodId)
+
                 raise NotImplementedError(f"Unknown classname: {classname!r}")
 
     def _new_array(array_type: jvm.Type):
@@ -490,6 +522,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         case jvm.ArrayLoad(type=t): return _array_load(array_type=t)
         case jvm.ArrayLength(): return _array_length()
         case jvm.InvokeStatic(method=m): return _invoke_static(method=m)
+        case jvm.InvokeSpecial(method=m, is_interface=is_interface): return _invoke_special(method=m, is_interface=is_interface)
         case jvm.Goto(target=t): return _goto(target=t)
         case jvm.Load(type=jvm.Reference(), index=i): return _load(index=i)
         case jvm.Cast(from_=f, to_=t): return _cast(from_=f, to_=t)
