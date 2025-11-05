@@ -306,6 +306,8 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         new_frame = Frame.from_method(method)
         new_frame.pc = PC(method, 0)
 
+        #Note: this loop should technically be reversed, argumennts on the stack itself are put as arg1, arg2, arg3...
+        #But it doesn't matter for our calls
         for index, param in enumerate(method.extension.params):
             local = frame.stack.pop()
 
@@ -320,6 +322,11 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         return state
 
     def _invoke_special(method: jvm.AbsMethodID, is_interface: bool):
+
+        if m.classname.name == "java/lang/Object" and m.methodid.name == "<init>":
+            frame.pc += 1
+            return state
+        
         new_frame = Frame.from_method(method)
         new_frame.pc = PC(method, 0)
 
@@ -327,15 +334,16 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         #if it is not, we should get it from the heap
         #but let's not overcomplicate it for now
 
-        for index, param in enumerate(method.extension.params):
-            local = frame.stack.pop()
-
-            # assert isinstance(local.type, type(param)), f'''
-            # Inappropriate argument type: {local.type!r}
-            # (expected {param!r})
-            # '''
-
-            new_frame.locals[index] = local
+        #params + reference - important especially for new classes
+        param_count = len(method.methodid.params) + 1
+        
+        args = []
+        for _ in range(param_count):
+            args.insert(0, frame.stack.pop())
+        
+        for i, arg in enumerate(args):
+            new_frame.locals[i] = arg
+        
 
         state.frames.push(new_frame)
         #important: we don't have frame.pc += 1, because return instruction later would do it for us
@@ -373,13 +381,33 @@ def step(state: State, bytecode: Bytecode) -> State | str:
                 class_info = suite.findclass(classname)
                 #we need to push an reference of this class onto the stack
                 #dict -> jvm.AbsMethodID?
-                methodId = jvm.AbsMethodID.from_json(class_info)
-                #because then Frame.from_method would be able to find it
-                #to finish ....
+                #I don't know exactly how methodID is read later from the stack ....
 
-                logger.debug(methodId)
+                instance_fields: dict[str, jvm.Value] = {}
+                for f in class_info.get("fields", []):
+                    if f.get("static", False):
+                        continue
+                    
+                    field_name = f["name"]
+                    field_type = f["type"]["base"]
+                    
+                    match field_type:
+                        case "int":
+                            instance_fields[field_name] = jvm.Value.int(0)
+                        case "boolean":
+                            instance_fields[field_name] = jvm.Value.boolean(False)
+                        case _:
+                            instance_fields[field_name] = jvm.Value(jvm.Reference(), None)
 
-                raise NotImplementedError(f"Unknown classname: {classname!r}")
+                ref = max(state.heap.keys()) + 1 if state.heap else 0
+                
+                obj_value = jvm.Value(jvm.Object(classname), instance_fields)
+                state.heap[ref] = obj_value
+
+                frame.stack.push(jvm.Value.int(ref))
+                frame.pc += 1
+
+                return state
 
     def _new_array(array_type: jvm.Type):
         assert array_type is jvm.Int(), f'NewArray {array_type} not handled'
@@ -498,7 +526,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         frame.pc += 1
         return state
 
-    logger.info(f"Bytecode[{frame.pc}]: {bytecode[frame.pc]}")
+    logger.info(f"-- Bytecode[{frame.pc}]: {bytecode[frame.pc]}")
     logger.info(f"Op Stack[{frame.stack}]")
     logger.info(f"State heap[{state.heap}]")
     match bytecode[frame.pc]:
