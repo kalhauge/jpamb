@@ -264,6 +264,30 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         frame.stack.push(value)
         frame.pc += 1
         return state
+    
+    def _get_field(field):
+        """
+        Pops an object reference from the stack.
+        Pushes the value of the specified field onto the stack
+        Throws NullPointerException if object reference is null
+
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩
+        """
+
+        objref = frame.stack.pop()
+
+        if objref.value is None:
+            return "NullPointerException"
+        obj = state.heap.get(objref.value)
+        if obj is None:
+            raise RuntimeError(f"Invalid object reference {objref}")
+        v = obj.value[field.fieldid.name]
+        if v is None:
+            raise RuntimeError(f"Field {field} not found in object {objref}")
+        frame.stack.push(v)
+
+        frame.pc += 1
+        return state
 
     def _if(condition: str, target: int, ifz: bool = False):
         """
@@ -303,6 +327,9 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         return state
 
     def _invoke_static(method: jvm.AbsMethodID):
+        """The invoke static opcode for calling static methods
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
         new_frame = Frame.from_method(method)
         new_frame.pc = PC(method, 0)
 
@@ -322,6 +349,10 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         return state
 
     def _invoke_special(method: jvm.AbsMethodID, is_interface: bool):
+        """
+        The invoke special opcode for calling constructors, private methods, and superclass methods.
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
 
         if m.classname.name == "java/lang/Object" and m.methodid.name == "<init>":
             frame.pc += 1
@@ -350,6 +381,10 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         return state
     
     def _invoke_virtual(method: jvm.AbsMethodID):
+        """
+        The invoke virtual opcode for calling instance methods
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
         
         new_frame = Frame.from_method(method)
         new_frame.pc = PC(method, 0)
@@ -391,6 +426,11 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         return "ok"
 
     def _new(classname: jvm.ClassName):
+        """
+        The new opcode that creates a new instance of a class.
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ', ι'⟩
+        """
+
         match classname.name:
             case 'java/lang/AssertionError':
                 return 'assertion error'
@@ -574,6 +614,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         case jvm.Incr(index=i, amount=a): return _incr(index=i, amount=a)
         case jvm.Dup(words=1): return _dup()
         case jvm.Get(static=True, field=f): return _get_static(field=f)
+        case jvm.Get(static=False, field=f): return _get_field(field=f)
         case jvm.Return(type=t): return _return(return_type=t)
         case jvm.If(condition=c, target=t): return _if(condition=c, target=t)
         case jvm.Ifz(condition=c, target=t): return _if(condition=c, target=t, ifz=True)

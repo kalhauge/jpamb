@@ -376,7 +376,7 @@ Original README: After any changes to the source files you should run:
 $ nix develop --command uv run build --test --decompile
 ```
 
-Note from Ksawery: Just running the command from original README doesn't work. Run this command first:
+**Note from Ksawery: Just running the command from original README doesn't work. Run this command first:
 ```shell
 $ nix develop --command uv run build --compile
 ```
@@ -391,6 +391,15 @@ Alternatively, after updating the cases, just run the script that combine comman
 ```shell
 $ ./update_cases.sh
 ```
+
+## Problems with extended benchmark
+If there are some issues during the compilation, run the following command:
+
+```shell
+$ nix develop --command uv run mvn -e compile
+```
+It essentially skips the run made my jpamb build and manually runs maven to compile the java code and will display any errors that may have occurred during compilation.
+
 
 
 

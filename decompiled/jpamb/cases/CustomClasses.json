@@ -247,13 +247,110 @@
             "opr": "invoke"
           },
           {
-            "index": 0,
+            "index": 1,
             "offset": 10,
             "opr": "store",
             "type": "ref"
           },
           {
+            "field": {
+              "class": "jpamb/cases/CustomClasses",
+              "name": "$assertionsDisabled",
+              "type": "boolean"
+            },
             "offset": 11,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "condition": "ne",
+            "offset": 14,
+            "opr": "ifz",
+            "target": 17
+          },
+          {
+            "index": 1,
+            "offset": 17,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "get",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+              },
+              "returns": "int"
+            },
+            "offset": 18,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 21,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "get",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+              },
+              "returns": "int"
+            },
+            "offset": 22,
+            "opr": "invoke"
+          },
+          {
+            "offset": 25,
+            "operant": "sub",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 26,
+            "opr": "ifz",
+            "target": 17
+          },
+          {
+            "class": "java/lang/AssertionError",
+            "offset": 29,
+            "opr": "new"
+          },
+          {
+            "offset": 32,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/AssertionError"
+              },
+              "returns": null
+            },
+            "offset": 33,
+            "opr": "invoke"
+          },
+          {
+            "offset": 36,
+            "opr": "throw"
+          },
+          {
+            "offset": 37,
             "opr": "return",
             "type": null
           }
@@ -265,18 +362,53 @@
             "offset": 0
           },
           {
-            "line": 38,
+            "line": 31,
             "offset": 5
+          },
+          {
+            "line": 38,
+            "offset": 17
           }
         ],
-        "max_locals": 1,
+        "max_locals": 2,
         "max_stack": 3,
-        "stack_map": null
+        "stack_map": [
+          {
+            "index": 17,
+            "info": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "jpamb/cases/CustomClasses$PositiveInteger"
+                },
+                "type": "object"
+              }
+            ],
+            "type": "append_frame"
+          }
+        ]
       },
       "default": null,
       "exceptions": [],
       "name": "Withdraw",
-      "params": [],
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": {
+              "annotations": [],
+              "args": [],
+              "inner": null,
+              "name": "PositiveInteger"
+            },
+            "kind": "class",
+            "name": "jpamb/cases/CustomClasses"
+          },
+          "visible": true
+        }
+      ],
       "returns": {
         "annotations": [],
         "type": null

@@ -23,12 +23,12 @@ public class CustomClasses {
     }   
 
     @Case("() -> ok")
-    public static void Withdraw() {
+    public static void Withdraw(PositiveInteger amount) {
 
         PositiveInteger balance = new PositiveInteger(1000);
 
-        //assert balance.get() != 0;                  // suggested assertion
-        // assert balance.get() - amount.get() >= 0;   // useful assertion
+        // assert balance.get() != 0;                  // suggested assertion
+        assert balance.get() - amount.get() >= 0;   // useful assertion
         // assert balance.get() > 10;                  // useless assertion
         // assert amount.get() + 10 > amount.get();    // tautology
         // assert balance.set(0) >= -1;                // wrong (side effect)
