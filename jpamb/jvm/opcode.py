@@ -35,6 +35,8 @@ class Opcode(ABC):
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         match json["opr"]:
+            case "put":
+                opr = Put
             case "push":
                 opr = Push
             case "newarray":
@@ -112,6 +114,35 @@ class Opcode(ABC):
             + self.mnemonic()
         )
 
+@dataclass(frozen=True, order=True)
+class Put(Opcode):
+    """The put opcode for setting instance fields"""
+    static: bool
+    field: jvm.AbsFieldID
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        # Construct field object from the json data
+        field = jvm.AbsFieldID(
+            classname=jvm.ClassName.decode(json["field"]["class"]),
+            extension=jvm.FieldID(
+                name=json["field"]["name"],
+                type=jvm.Type.from_json(json["field"]["type"]),
+            ),
+        )
+
+        return cls(offset=json["offset"], static=json["static"], field=field)
+
+
+    def real(self) -> str:
+        access = "static" if self.static else "field"
+        return f"put{access} {self.field}"
+
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return "putfield" if not self.static else "putstatic"
 
 @dataclass(frozen=True, order=True)
 class Push(Opcode):

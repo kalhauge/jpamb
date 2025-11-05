@@ -27,7 +27,7 @@ public class CustomClasses {
 
         PositiveInteger balance = new PositiveInteger(1000);
 
-        // assert balance.get() != 0;                  // suggested assertion
+        //assert balance.get() != 0;                  // suggested assertion
         // assert balance.get() - amount.get() >= 0;   // useful assertion
         // assert balance.get() > 10;                  // useless assertion
         // assert amount.get() + 10 > amount.get();    // tautology

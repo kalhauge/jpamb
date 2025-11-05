@@ -307,7 +307,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         new_frame.pc = PC(method, 0)
 
         #Note: this loop should technically be reversed, argumennts on the stack itself are put as arg1, arg2, arg3...
-        #But it doesn't matter for our calls
+        #But it doesn't matter for our "simple" calls
         for index, param in enumerate(method.extension.params):
             local = frame.stack.pop()
 
@@ -347,6 +347,24 @@ def step(state: State, bytecode: Bytecode) -> State | str:
 
         state.frames.push(new_frame)
         #important: we don't have frame.pc += 1, because return instruction later would do it for us
+        return state
+    
+    def _invoke_virtual(method: jvm.AbsMethodID):
+        
+        new_frame = Frame.from_method(method)
+        new_frame.pc = PC(method, 0)
+
+        param_count = len(method.methodid.params) + 1
+        
+        args = []
+        for _ in range(param_count):
+            args.insert(0, frame.stack.pop())
+        
+        for i, arg in enumerate(args):
+            new_frame.locals[i] = arg        
+
+        state.frames.push(new_frame)
+        
         return state
 
     def _return(return_type: jvm.Type | None):
@@ -526,6 +544,22 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         frame.pc += 1
         return state
 
+    def _put_field(field: jvm.AbsFieldID):
+        """Store value into an instance field"""
+        value = frame.stack.pop() 
+        obj_ref = frame.stack.pop()  
+
+        if obj_ref.value is None:
+            return 'null pointer'
+            
+        heap_obj = state.heap[obj_ref.value]
+        
+        if isinstance(heap_obj.value, dict):
+            heap_obj.value[field.fieldid.name] = value
+        
+        frame.pc += 1
+        return state
+
     logger.info(f"-- Bytecode[{frame.pc}]: {bytecode[frame.pc]}")
     logger.info(f"Op Stack[{frame.stack}]")
     logger.info(f"State heap[{state.heap}]")
@@ -551,9 +585,13 @@ def step(state: State, bytecode: Bytecode) -> State | str:
         case jvm.ArrayLength(): return _array_length()
         case jvm.InvokeStatic(method=m): return _invoke_static(method=m)
         case jvm.InvokeSpecial(method=m, is_interface=is_interface): return _invoke_special(method=m, is_interface=is_interface)
+        case jvm.InvokeVirtual(method=m): return _invoke_virtual(method=m)
         case jvm.Goto(target=t): return _goto(target=t)
         case jvm.Load(type=jvm.Reference(), index=i): return _load(index=i)
         case jvm.Cast(from_=f, to_=t): return _cast(from_=f, to_=t)
+        case jvm.Put(static=False, field=f): return _put_field(field=f)
+        case jvm.Put(static=True, field=f): 
+            raise NotImplementedError("putstatic not implemented")
 
         case unknown:
             raise NotImplementedError(f"Don't know how to handle: {unknown!r}")
