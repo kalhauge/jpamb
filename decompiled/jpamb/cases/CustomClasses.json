@@ -30,6 +30,22 @@
       "class": "jpamb/cases/CustomClasses$PositiveInteger",
       "name": "PositiveInteger",
       "outer": "jpamb/cases/CustomClasses"
+    },
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$ClassInputTest",
+      "name": "ClassInputTest",
+      "outer": "jpamb/cases/CustomClasses"
+    },
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$BooleanTrue",
+      "name": "BooleanTrue",
+      "outer": "jpamb/cases/CustomClasses"
     }
   ],
   "interfaces": [],
@@ -253,104 +269,49 @@
             "type": "ref"
           },
           {
-            "field": {
-              "class": "jpamb/cases/CustomClasses",
-              "name": "$assertionsDisabled",
-              "type": "boolean"
-            },
+            "class": "jpamb/cases/CustomClasses$ClassInputTest",
             "offset": 11,
-            "opr": "get",
-            "static": true
-          },
-          {
-            "condition": "ne",
-            "offset": 14,
-            "opr": "ifz",
-            "target": 17
-          },
-          {
-            "index": 1,
-            "offset": 17,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "get",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/cases/CustomClasses$PositiveInteger"
-              },
-              "returns": "int"
-            },
-            "offset": 18,
-            "opr": "invoke"
-          },
-          {
-            "index": 0,
-            "offset": 21,
-            "opr": "load",
-            "type": "ref"
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "get",
-              "ref": {
-                "kind": "class",
-                "name": "jpamb/cases/CustomClasses$PositiveInteger"
-              },
-              "returns": "int"
-            },
-            "offset": 22,
-            "opr": "invoke"
-          },
-          {
-            "offset": 25,
-            "operant": "sub",
-            "opr": "binary",
-            "type": "int"
-          },
-          {
-            "condition": "ge",
-            "offset": 26,
-            "opr": "ifz",
-            "target": 17
-          },
-          {
-            "class": "java/lang/AssertionError",
-            "offset": 29,
             "opr": "new"
           },
           {
-            "offset": 32,
+            "offset": 14,
             "opr": "dup",
             "words": 1
           },
           {
+            "index": 1,
+            "offset": 15,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
             "access": "special",
             "method": {
-              "args": [],
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "jpamb/cases/CustomClasses$PositiveInteger"
+                }
+              ],
               "is_interface": false,
               "name": "<init>",
               "ref": {
                 "kind": "class",
-                "name": "java/lang/AssertionError"
+                "name": "jpamb/cases/CustomClasses$ClassInputTest"
               },
               "returns": null
             },
-            "offset": 33,
+            "offset": 16,
             "opr": "invoke"
           },
           {
-            "offset": 36,
-            "opr": "throw"
+            "index": 2,
+            "offset": 19,
+            "opr": "store",
+            "type": "ref"
           },
           {
-            "offset": 37,
+            "offset": 20,
             "opr": "return",
             "type": null
           }
@@ -358,35 +319,21 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 28,
+            "line": 48,
             "offset": 0
           },
           {
-            "line": 31,
+            "line": 50,
             "offset": 5
           },
           {
-            "line": 38,
-            "offset": 17
+            "line": 60,
+            "offset": 10
           }
         ],
-        "max_locals": 2,
+        "max_locals": 3,
         "max_stack": 3,
-        "stack_map": [
-          {
-            "index": 17,
-            "info": [
-              {
-                "ref": {
-                  "kind": "class",
-                  "name": "jpamb/cases/CustomClasses$PositiveInteger"
-                },
-                "type": "object"
-              }
-            ],
-            "type": "append_frame"
-          }
-        ]
+        "stack_map": null
       },
       "default": null,
       "exceptions": [],
@@ -396,15 +343,7 @@
           "annotations": [],
           "type": {
             "annotations": [],
-            "args": [],
-            "inner": {
-              "annotations": [],
-              "args": [],
-              "inner": null,
-              "name": "PositiveInteger"
-            },
-            "kind": "class",
-            "name": "jpamb/cases/CustomClasses"
+            "base": "boolean"
           },
           "visible": true
         }

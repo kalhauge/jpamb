@@ -22,13 +22,35 @@ public class CustomClasses {
         int get() { return value; }
     }   
 
+    static class BooleanTrue {
+        private boolean value;
+
+        BooleanTrue(boolean value) { set(value); }
+
+        void set(boolean newValue) {
+            if (newValue != true) throw new IllegalArgumentException();
+            this.value = newValue;
+        }
+
+        boolean get() { return value; }
+    }   
+
+    static class ClassInputTest{
+
+        private PositiveInteger pi;
+
+        ClassInputTest(PositiveInteger new_pi) {this.pi = new_pi;}
+    }
+
     @Case("() -> ok")
-    public static void Withdraw(PositiveInteger amount) {
+    public static void Withdraw(boolean a) {
 
         PositiveInteger balance = new PositiveInteger(1000);
+        // BooleanTrue b_test = new BooleanTrue(true);
+        ClassInputTest class_test = new ClassInputTest(balance);
 
         // assert balance.get() != 0;                  // suggested assertion
-        assert balance.get() - amount.get() >= 0;   // useful assertion
+        //assert balance.get() - amount.get() >= 0;   // useful assertion
         // assert balance.get() > 10;                  // useless assertion
         // assert amount.get() + 10 > amount.get();    // tautology
         // assert balance.set(0) >= -1;                // wrong (side effect)

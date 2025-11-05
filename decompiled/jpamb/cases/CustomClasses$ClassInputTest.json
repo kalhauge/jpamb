@@ -1,0 +1,159 @@
+{
+  "access": [
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [
+    {
+      "access": [
+        "private"
+      ],
+      "annotations": [],
+      "name": "pi",
+      "type": {
+        "annotations": [],
+        "args": [],
+        "inner": {
+          "annotations": [],
+          "args": [],
+          "inner": null,
+          "name": "PositiveInteger"
+        },
+        "kind": "class",
+        "name": "jpamb/cases/CustomClasses"
+      },
+      "value": null
+    }
+  ],
+  "innerclasses": [
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$ClassInputTest",
+      "name": "ClassInputTest",
+      "outer": "jpamb/cases/CustomClasses"
+    },
+    {
+      "access": [
+        "static"
+      ],
+      "class": "jpamb/cases/CustomClasses$PositiveInteger",
+      "name": "PositiveInteger",
+      "outer": "jpamb/cases/CustomClasses"
+    }
+  ],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 5,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/CustomClasses$ClassInputTest",
+              "name": "pi",
+              "type": {
+                "kind": "class",
+                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+              }
+            },
+            "offset": 6,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 42,
+            "offset": 0
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": {
+              "annotations": [],
+              "args": [],
+              "inner": null,
+              "name": "PositiveInteger"
+            },
+            "kind": "class",
+            "name": "jpamb/cases/CustomClasses"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/cases/CustomClasses$ClassInputTest",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    63,
+    0
+  ]
+}
