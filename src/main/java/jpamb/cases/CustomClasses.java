@@ -42,12 +42,20 @@ public class CustomClasses {
         ClassInputTest(PositiveInteger new_pi) {this.pi = new_pi;}
     }
 
-    @Case("() -> ok")
-    public static void Withdraw(boolean a) {
+    @Case("(5) -> ok")
+    public static void WithdrawInt(int i) {
+        PositiveInteger balance = new PositiveInteger(i);
+
+    }
+
+    @Case("(new PositiveInteger(5)) -> ok")
+    public static void Withdraw(PositiveInteger amount) {
 
         PositiveInteger balance = new PositiveInteger(1000);
+
+        int a = 2;
         // BooleanTrue b_test = new BooleanTrue(true);
-        ClassInputTest class_test = new ClassInputTest(balance);
+        // ClassInputTest class_test = new ClassInputTest(balance);     -> overkill
 
         // assert balance.get() != 0;                  // suggested assertion
         //assert balance.get() - amount.get() >= 0;   // useful assertion

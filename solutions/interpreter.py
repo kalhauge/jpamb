@@ -9,6 +9,7 @@ Sample execution:
 - `uv run jpamb interpret --stepwise --filter Simple.divideByN: solutions/interpreter.py`
 """
 import sys
+import re
 
 from dataclasses import dataclass
 
@@ -168,6 +169,488 @@ class State:
     """
     heap: dict[int, jvm.Value]
     frames: Stack[Frame]
+
+class Step_class:
+
+    def __init__(self): 
+        self.bytecode = None
+        self.frame = None
+        self.state = None
+
+    def update_state(self, state: State):
+        self.state = state
+        self.frame = self.state.frames.peek()
+
+    def update_frame(self):
+        self.frame = self.state.frames.peek()
+ 
+    def _push(self, value):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        self.frame.stack.push(value)
+        self.frame.pc += 1
+        return self.state
+
+    def _load(self, index):
+        """
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩
+        """
+        value = self.frame.locals[index]
+        assert value.type is jvm.Int() or jvm.Boolean()
+        self.frame.stack.push(value)
+        self.frame.pc += 1
+        return self.state
+
+    def _binary_add(self):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        v2, v1 = self.frame.stack.pop(), self.frame.stack.pop()
+        assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+        assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+        self.frame.stack.push(jvm.Value.int(v1.value + v2.value))
+        self.frame.pc += 1
+        return self.state
+
+    def _binary_sub(self):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        v2, v1 = self.frame.stack.pop(), self.frame.stack.pop()
+        assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+        assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+        self.frame.stack.push(jvm.Value.int(v1.value - v2.value))
+        self.frame.pc += 1
+        return self.state
+
+    def _binary_div(self ):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        v2, v1 = self.frame.stack.pop(), self.frame.stack.pop()
+        assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+        assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+        if v2.value == 0:
+            return "divide by zero"
+        self.frame.stack.push(jvm.Value.int(v1.value // v2.value))
+        self.frame.pc += 1
+        return self.state
+
+    def _binary_rem(self ):
+        """
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩
+        rem = value1 - (value1 / value2) * value2
+        """
+        v2, v1 = self.frame.stack.pop(), self.frame.stack.pop()
+        assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+        assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+        if v2.value == 0:
+            return "divide by zero"
+        vv1, vv2 = v1.value, v2.value
+        self.frame.stack.push(jvm.Value.int(vv1 - (vv1 // vv2) * vv2))
+        self.frame.pc += 1
+        return self.state
+
+    def _binary_mul(self):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        v2, v1 = self.frame.stack.pop(), self.frame.stack.pop()
+        assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+        assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+
+        self.frame.stack.push(self, jvm.Value.int(v1.value * v2.value))
+        self.frame.pc += 1
+        return self.state
+
+    def _dup(self):
+        """bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩"""
+        value = self.frame.stack.peek()
+        self.frame.stack.push(value)
+        self.frame.pc += 1
+        return self.state
+
+    def _get_static(self, field):
+        """
+        Pushes the value of the specified static field onto the operand stack.
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩
+        """
+        value = self.bytecode.get_static_field(self.frame.pc, field)
+        self.frame.stack.push(value)
+        self.frame.pc += 1
+        return self.state
+    
+    def _get_field(self, field):
+        """
+        Pops an object reference from the stack.
+        Pushes the value of the specified field onto the stack
+        Throws NullPointerException if object reference is null
+
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ‾, ι‾⟩
+        """
+
+        objref = self.frame.stack.pop()
+
+        if objref.value is None:
+            return "NullPointerException"
+        obj = state.heap.get(objref.value)
+        if obj is None:
+            raise RuntimeError(f"Invalid object reference {objref}")
+        v = obj.value[field.fieldid.name]
+        if v is None:
+            raise RuntimeError(f"Field {field} not found in object {objref}")
+        self.frame.stack.push(v)
+
+        self.frame.pc += 1
+        return self.state
+
+    def _if(self, condition: str, target: int, ifz: bool = False):
+        """
+        1. Pops two values from the operand stack (one in case of [ifz == True]).
+        2. Compares them according to the condition (with 0 in case of [ifz == True]).
+        3. Jumps to target instruction if condition is true.
+        4. Continues to next instruction if condition is false.
+        """
+        if ifz:
+            value = self.frame.stack.pop()
+            if value.type is jvm.Boolean():
+                v1 = 1 if value.value else 0
+            else:
+                v1 = value.value
+            v2 = 0
+        else:
+            v2, v1 = self.frame.stack.pop().value, self.frame.stack.pop().value
+        match condition:
+            case 'ne':
+                jump = v1 != v2
+            case 'eq':
+                jump = v1 == v2
+            case 'ne':
+                jump = v1 != v2
+            case 'ge':
+                jump = v1 >= v2
+            case 'gt':
+                jump = v1 > v2
+            case 'lt':
+                jump = v1 < v2
+            case 'le':
+                jump = v1 <= v2
+            case unknown:
+                raise NotImplementedError(f"Unknown condition: {unknown!r}")
+
+        self.frame.pc.offset = target if jump else self.frame.pc.offset + 1
+        return self.state
+
+    def _invoke_static(self, method: jvm.AbsMethodID):
+        """The invoke static opcode for calling static methods
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
+        new_frame = self.frame.from_method(method)
+        new_frame.pc = PC(method, 0)
+
+        #Note: this loop should technically be reversed, argumennts on the stack itself are put as arg1, arg2, arg3...
+        #But it doesn't matter for our "simple" calls
+        for index, param in enumerate(method.extension.params):
+            local = self.frame.stack.pop()
+
+            # assert isinstance(local.type, type(param)), f'''
+            # Inappropriate argument type: {local.type!r}
+            # (expected {param!r})
+            # '''
+
+            new_frame.locals[index] = local
+
+        state.self.frames.push(new_frame)
+        return self.state
+
+    def _invoke_special(self, method: jvm.AbsMethodID, is_interface: bool):
+        """
+        The invoke special opcode for calling constructors, private methods, and superclass methods.
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
+
+        if method.classname.name == "java/lang/Object" and method.methodid.name == "<init>":
+            self.frame.pc += 1
+            return self.state
+        
+        new_frame = self.frame.from_method(method)
+        new_frame.pc = PC(method, 0)
+
+        #technically, we shoudl also determine whether our method is static or not - if it is, we should get our variables from the stack
+        #if it is not, we should get it from the heap
+        #but let's not overcomplicate it for now
+
+        #params + reference - important especially for new classes
+        param_count = len(method.methodid.params) + 1
+        
+        args = []
+        for _ in range(param_count):
+            args.insert(0, self.frame.stack.pop())
+        
+        for i, arg in enumerate(args):
+            new_frame.locals[i] = arg
+        
+
+        state.self.frames.push(new_frame)
+        #important: we don't have self.frame.pc += 1, because return instruction later would do it for us
+        return self.state
+    
+    def _invoke_virtual(self, method: jvm.AbsMethodID):
+        """
+        The invoke virtual opcode for calling instance methods
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+        """
+        
+        new_frame = self.frame.from_method(method)
+        new_frame.pc = PC(method, 0)
+
+        param_count = len(method.methodid.params) + 1
+        
+        args = []
+        for _ in range(param_count):
+            args.insert(0, self.frame.stack.pop())
+        
+        for i, arg in enumerate(args):
+            new_frame.locals[i] = arg        
+
+        state.self.frames.push(new_frame)
+        
+        return self.state
+
+    def _return(self, return_type: jvm.Type | None):
+        """
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ', σ', ι'⟩
+
+        1. Returns control to the invoker of the current method, if present.
+        2. If type is present, returns a value of that type to invoker.
+        3. If type is None (void return), returns no value.
+        """
+        state.self.frames.pop()
+        if state.self.frames:
+            new_frame = state.self.frames.peek()
+
+            if return_type is not None:
+                value = self.frame.stack.pop()
+
+                # assert value.type is return_type, f'Return type mismatch {return_type} {value.type}'
+
+                new_frame.stack.push(value)
+
+            new_frame.pc += 1
+            return self.state
+        return "ok"
+
+    def _new(self, classname: jvm.ClassName):
+        """
+        The new opcode that creates a new instance of a class.
+        bc ⊢ ⟨λ, σ, ι⟩ → ⟨λ, σ', ι'⟩
+        """
+
+        match classname.name:
+            case 'java/lang/AssertionError':
+                return 'assertion error'
+            case _:
+                suite = jpamb.Suite()
+                class_info = suite.findclass(classname)
+                #we need to push an reference of this class onto the stack
+                #dict -> jvm.AbsMethodID?
+                #I don't know exactly how methodID is read later from the stack ....
+
+                instance_fields: dict[str, jvm.Value] = {}
+                for f in class_info.get("fields", []):
+                    if f.get("static", False):
+                        continue
+                    
+                    field_name = f["name"]
+                    field_type = f["type"]["base"]
+                    
+                    match field_type:
+                        case "int":
+                            instance_fields[field_name] = jvm.Value.int(0)
+                        case "boolean":
+                            instance_fields[field_name] = jvm.Value.boolean(False)
+                        case _:
+                            instance_fields[field_name] = jvm.Value(jvm.Reference(), None)
+
+                ref = max(self.state.heap.keys()) + 1 if self.state.heap else 0
+                
+                obj_value = jvm.Value(jvm.Object(classname), instance_fields)
+                self.state.heap[ref] = obj_value
+
+                self.frame.stack.push(jvm.Value.int(ref))
+                self.frame.pc += 1
+
+                return self.state
+
+    def _new_array(self, array_type: jvm.Type):
+        assert array_type is jvm.Int(), f'NewArray {array_type} not handled'
+
+        size = self.frame.stack.pop()
+        assert size.type is jvm.Int(), 'Size must be of type Int'
+
+        array = [0 for _ in range(size.value)]
+
+        # TODO extract
+        ref = max(state.heap.keys()) + 1 if len(state.heap.keys()) > 0 else 0
+        state.heap[ref] = jvm.Value.array(array_type, array)
+
+        self.frame.stack.push(jvm.Value.int(ref))
+        self.frame.pc += 1
+        return self.state
+
+    def _store(self, index: int):
+        value = self.frame.stack.pop()
+        self.frame.locals[index] = value
+
+        self.frame.pc += 1
+        return self.state
+
+    def _array_store(self, array_type: jvm.Type):
+        value, index, ref = self.frame.stack.pop(), self.frame.stack.pop(), self.frame.stack.pop()
+
+        if ref.value is None:
+            return 'null pointer'
+
+        assert ref.type is jvm.Int(), f'Array ref type mismatch {ref!r}'
+        assert index.type is jvm.Int(), f'Index type mismatch {index.type}'
+        assert value.type is array_type, f'Value type mismatch {value.type}'
+
+        old_array = state.heap[ref.value]
+
+        if index.value >= len(old_array.value):
+            return 'out of bounds'
+
+        new_array = list(old_array.value)
+        new_array[index.value] = value.value
+
+        state.heap[ref.value] = jvm.Value.array(array_type, new_array)
+
+        self.frame.pc += 1
+        return self.state
+
+    def _array_load(self, array_type: jvm.Type):
+        index, ref = self.frame.stack.pop(), self.frame.stack.pop()
+
+        assert ref.type is jvm.Int(), f'Array ref type mismatch {ref!r}'
+        assert index.type is jvm.Int(), f'Index type mismatch {index.type}'
+
+        array = list(state.heap[ref.value].value)
+        if index.value >= len(array):
+            return 'out of bounds'
+
+        value = array[index.value]
+
+        match array_type:
+            case jvm.Int():
+                self.frame.stack.push(jvm.Value.int(value))
+            case jvm.Char():
+                self.frame.stack.push(jvm.Value.int(ord(value)))
+            case _:
+                raise NotImplementedError(f"Unknown array type: {array_type}")
+
+        self.frame.pc += 1
+        return self.state
+
+    def _goto(self, target: int):
+        self.frame.pc.offset = target
+        return self.state
+
+    def _load(self, index: int):
+        value = self.frame.locals[index]
+        self.frame.stack.push(value)
+
+        self.frame.pc += 1
+        return self.state
+
+    def _array_length(self, ):
+        ref = self.frame.stack.pop()
+
+        if ref.value is None:
+            return 'null pointer'
+
+        array = state.heap[ref.value]
+        length = len(array.value)
+
+        self.frame.stack.push(jvm.Value.int(length))
+
+        self.frame.pc += 1
+        return self.state
+
+    def _incr(self, index: int, amount: int):
+        assert self.frame.locals[index].type is jvm.Int(), 'Incr type mismatch'
+
+        old_value = self.frame.locals[index].value
+        new_value = old_value + amount
+
+        self.frame.locals[index] = jvm.Value.int(new_value)
+
+        self.frame.pc += 1
+        return self.state
+
+    def _cast(self, from_: jvm.Type, to_: jvm.Type):
+        match from_, to_:
+            case jvm.Int(), jvm.Short():
+                value = self.frame.stack.pop()
+                casted = jvm.Value(jvm.Short(), value.value)
+                self.frame.stack.push(casted)
+            case _:
+                raise NotImplementedError(f'From {from_} To {to_} not handled')
+
+        self.frame.pc += 1
+        return self.state
+
+    def _put_field(self, field: jvm.AbsFieldID):
+            """Store value into an instance field"""
+            value = self.frame.stack.pop() 
+            obj_ref = self.frame.stack.pop()  
+
+            if obj_ref.value is None:
+                return 'null pointer'
+                
+            heap_obj = state.heap[obj_ref.value]
+            
+            if isinstance(heap_obj.value, dict):
+                heap_obj.value[field.fieldid.name] = value
+            
+            self.frame.pc += 1
+            return self.state
+
+    def step(self, state: State, bytecode: Bytecode) -> State | str:
+        """
+        Stepping function:
+        bc ⊢ ⟨η,μ⟩ → ⟨η‾,μ‾⟩
+        """
+
+        self.frame = state.frames.peek()
+        self.bytecode = bytecode
+    
+        logger.info(f"-- Bytecode[{self.frame.pc}]: {self.bytecode[self.frame.pc]}")
+        logger.info(f"Op Stack[{self.frame.stack}]")
+        logger.info(f"State heap[{state.heap}]")
+        match self.bytecode[self.frame.pc]:
+            case jvm.Push(value=v): return self._push(value=v)
+            case jvm.Load(type=jvm.Int(), index=n): return self._load(index=n)
+            case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Add): return self._binary_add()
+            case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Sub): return self._binary_sub()
+            case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Div): return self._binary_div()
+            case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Rem): return self._binary_rem()
+            case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Mul): return self._binary_mul()
+            case jvm.Incr(index=i, amount=a): return self._incr(index=i, amount=a)
+            case jvm.Dup(words=1): return self._dup()
+            case jvm.Get(static=True, field=f): return self._get_static(field=f)
+            case jvm.Get(static=False, field=f): return self._get_field(field=f)
+            case jvm.Return(type=t): return self._return(return_type=t)
+            case jvm.If(condition=c, target=t): return self._if(condition=c, target=t)
+            case jvm.Ifz(condition=c, target=t): return self._if(condition=c, target=t, ifz=True)
+            case jvm.New(classname=cn): return self._new(classname=cn)
+            case jvm.Store(type=_, index=i): return self._store(index=i)
+            case jvm.NewArray(type=t, dim=1): return self._new_array(array_type=t)
+            case jvm.ArrayStore(type=t): return self._array_store(array_type=t)
+            case jvm.ArrayLoad(type=t): return self._array_load(array_type=t)
+            case jvm.ArrayLength(): return self._array_length()
+            case jvm.InvokeStatic(method=m): return self._invoke_static(method=m)
+            case jvm.InvokeSpecial(method=m, is_interface=is_interface): return self._invoke_special(method=m, is_interface=is_interface)
+            case jvm.InvokeVirtual(method=m): return self._invoke_virtual(method=m)
+            case jvm.Goto(target=t): return self._goto(target=t)
+            case jvm.Load(type=jvm.Reference(), index=i): return self._load(index=i)
+            case jvm.Cast(from_=f, to_=t): return self._cast(from_=f, to_=t)
+            case jvm.Put(static=False, field=f): return self._put_field(field=f)
+            case jvm.Put(static=True, field=f): 
+                raise NotImplementedError("putstatic not implemented")
+
+            case unknown:
+                raise NotImplementedError(f"Don't know how to handle: {unknown!r}")
 
 
 def step(state: State, bytecode: Bytecode) -> State | str:
@@ -669,14 +1152,80 @@ def generate_initial_frame(method_id: jvm.AbsMethodID, method_input: Input) -> t
     logger.debug(f"Heap {heap}")
     return initial_frame, heap
 
+def input_is_an_object() -> bool:
+    input = sys.argv[2]
+    class_input = re.search(r"\(new\s+([A-Za-z_]\w*)\(([^)]*)\)\)", input)
+
+    if class_input is not None:
+        return True
+    return False
+
+def do_first_step_with_object_input(bc: Bytecode):
+    """This function manually goes through first step, given object as an input"""
+    mid, not_relevant_minput = jpamb.getcase()
+    minput = re.search(r"\(new\s+([A-Za-z_]\w*)\(([^)]*)\)\)", sys.argv[2])
+
+    initial_frame = Frame.from_method(mid)
+    heap = {}
+    state = State(heap, Stack.empty().push(initial_frame))
+
+    #logger.debug(bc.methods) we can also add things to the bytecode, but idk how to do it
+
+    #or manually execute the instructions
+        # 000 | new jpamb/cases/CustomClasses$PositiveInteger
+        # 001 | dup 1
+        # 002 | load:I 0 or 002 | push:I 1000
+        # 003 | invoke special jpamb/cases/CustomClasses$PositiveInteger.<init>:(I)V
+        # 004 | store:A 1
+    step_class = Step_class()
+    step_class.update_state(state)
+
+    calling_class = sys.argv[1]
+    input_class = minput.group(1)
+    class_constructor_input_str = minput.group(2)
+
+    def get_class_path(input_string: str, class_name: str) -> str:
+        class_path = input_string.split(':')[0]
+        path_parts = class_path.rsplit('.', 1)[0]
+        return f"{path_parts.replace('.', '/')}${class_name}"
+
+    classname_str = get_class_path(calling_class, input_class)
+    classname = jvm.ClassName.decode(classname_str)
+
+    step_class._new(classname)
+    step_class.update_frame()
+    step_class._dup()
+    step_class.update_frame()
+
+
+    assert re.search(r"-?\d+", class_constructor_input_str), "Class constructor input is not an integer!!!"
+    class_constructor_input = jvm.Value.decode(class_constructor_input_str)
+    step_class._push(class_constructor_input)
+    step_class.update_frame()
+
+    full_classname_str = classname_str + "<init>:(I)V"
+    #full_classname = jvm.AbsMethodID.decode(full_classname_str)        #issues here
+    #step_class._invoke_special(full_classname, False)
+    #an now it stop working since we cannot really predict what is gonna be in the class constructor....
+
+    logger.debug(f"Op Stack[{step_class.frame.stack}]")
+    logger.debug(f"Op heap[{step_class.state.heap}]")
+    
+
+    return state
+
 
 if __name__ == "__main__":
     configure_logger()
 
-    mid, minput = jpamb.getcase()
     bc = Bytecode(jpamb.Suite(), {})
-    initial_frame, heap = generate_initial_frame(mid, minput)
-    state = State(heap, Stack.empty().push(initial_frame))
+    
+    if input_is_an_object():
+        state = do_first_step_with_object_input(bc)
+    else:
+        mid, minput = jpamb.getcase()
+        initial_frame, heap = generate_initial_frame(mid, minput)
+        state = State(heap, Stack.empty().push(initial_frame))
 
     for x in range(100000):
         state = step(state, bc)
