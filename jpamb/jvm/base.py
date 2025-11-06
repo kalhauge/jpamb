@@ -104,6 +104,18 @@ class Type(ABC):
                     r = Float()
                 case "D":
                     r = Double()
+                case "A":
+                    # opaque reference / unknown object
+                    r = Reference()
+                case "L":
+                    # object of a (specific) class: Lslash/separated/classname;
+                    semi = input.find(";", i + 1)
+                    if semi == -1:
+                        raise ValueError(f"Unterminated object type in {input!r}")
+                    slashed = input[i + 1 : semi]
+                    classname = slashed.replace("/", ".")
+                    r = Object(ClassName.decode(classname))
+                    i = semi
                 case "[":  # ]
                     stack.append(Array)
                     i += 1
@@ -149,6 +161,13 @@ class Type(ABC):
             match json["kind"]:
                 case "array":
                     return Array(Type.from_json(json["type"]))
+                case "class":
+                    top = json["name"].replace("/", ".")
+                    inner = json.get("inner")
+                    while inner:
+                        top = top + "$" + inner["name"]
+                        inner = inner.get("inner")
+                    return Object(ClassName.decode(top))
                 case kind:
                     raise NotImplementedError(
                         f"Unknown kind {kind}, in Type.from_json: {json!r}"
@@ -623,6 +642,10 @@ class Value:
     @classmethod
     def array(cls, type: Type, content: Iterable) -> Self:
         return cls(Array(type), tuple(content))
+    
+    @classmethod
+    def object(cls, n: object, classname: ClassName) -> Self:
+        return cls(Object(classname), n)
 
     @classmethod
     def from_json(cls, json: dict | None) -> Self:
@@ -661,6 +684,7 @@ class ValueParser:
             ("OPEN_ARRAY", r"\[[IC]:"),
             ("CLOSE_ARRAY", r"\]"),
             ("INT", r"-?\d+"),
+            ("OBJECT", r"new [A-Za-z_./\$]+\(-?[0-9]*\)"), 
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
             ("COMMA", r","),
@@ -712,6 +736,10 @@ class ValueParser:
                 return Value.boolean(self.parse_bool())
             case "OPEN_ARRAY":
                 return self.parse_array()
+            case "OBJECT":
+                inst, classname = self.parse_object()
+                v = Value.object(inst, classname)
+                return v
         self.expected("char")
 
     def parse_int(self):
@@ -742,6 +770,20 @@ class ValueParser:
         self.expect("CLOSE_ARRAY")
 
         return Value(type, tuple(inputs))
+
+    def parse_object(self):
+        obj = self.expect("OBJECT")
+        
+        match = re.match(r"^new\s+([A-Za-z0-9_./\$]+)\(([^\)]*)\)$", obj.value)
+        classname_str = match.group(1)
+        args_str = match.group(2)
+        arg = Value.int(int(args_str))
+        arg_dict = {}
+        arg_dict["value"] = arg
+
+        classname = ClassName.decode(classname_str)
+
+        return arg_dict, classname
 
     def parse_comma_seperated_values(self, parser=None, end_by=None):
         if self.head is None:

@@ -2,25 +2,14 @@ package jpamb.cases;
 
 import jpamb.utils.Case;
 
+import jpamb.cases.PositiveInteger;
+
 public class CustomClasses {
 
     @Case("() -> assertion error")
     public static void assertFalse() {
         assert false;
     }
-
-    static class PositiveInteger {
-        private int value;
-
-        PositiveInteger(int value) { set(value); }
-
-        void set(int newValue) {
-            if (newValue < 0) throw new IllegalArgumentException();
-            this.value = newValue;
-        }
-
-        int get() { return value; }
-    }   
 
     static class BooleanTrue {
         private boolean value;
@@ -44,16 +33,19 @@ public class CustomClasses {
 
     @Case("(5) -> ok")
     public static void WithdrawInt(int i) {
-        PositiveInteger balance = new PositiveInteger(i);
-
-    }
-
-    @Case("(new PositiveInteger(5)) -> ok")
-    public static void Withdraw(PositiveInteger amount) {
-
-        PositiveInteger balance = new PositiveInteger(1000);
+        PositiveInteger amount = new PositiveInteger(i);
 
         int a = 2;
+        return;
+    }
+
+    @Case("(new jpamb/cases/PositiveInteger(5)) -> ok")
+    public static void Withdraw(PositiveInteger amount) {
+
+        // PositiveInteger balance = new PositiveInteger(1000);
+
+        int new_value = amount.get();
+        // int a = 2;
         // BooleanTrue b_test = new BooleanTrue(true);
         // ClassInputTest class_test = new ClassInputTest(balance);     -> overkill
 

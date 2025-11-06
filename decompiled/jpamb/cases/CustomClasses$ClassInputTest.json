@@ -15,14 +15,9 @@
       "type": {
         "annotations": [],
         "args": [],
-        "inner": {
-          "annotations": [],
-          "args": [],
-          "inner": null,
-          "name": "PositiveInteger"
-        },
+        "inner": null,
         "kind": "class",
-        "name": "jpamb/cases/CustomClasses"
+        "name": "jpamb/cases/PositiveInteger"
       },
       "value": null
     }
@@ -34,14 +29,6 @@
       ],
       "class": "jpamb/cases/CustomClasses$ClassInputTest",
       "name": "ClassInputTest",
-      "outer": "jpamb/cases/CustomClasses"
-    },
-    {
-      "access": [
-        "static"
-      ],
-      "class": "jpamb/cases/CustomClasses$PositiveInteger",
-      "name": "PositiveInteger",
       "outer": "jpamb/cases/CustomClasses"
     }
   ],
@@ -92,7 +79,7 @@
               "name": "pi",
               "type": {
                 "kind": "class",
-                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+                "name": "jpamb/cases/PositiveInteger"
               }
             },
             "offset": 6,
@@ -108,7 +95,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 42,
+            "line": 31,
             "offset": 0
           }
         ],
@@ -125,14 +112,9 @@
           "type": {
             "annotations": [],
             "args": [],
-            "inner": {
-              "annotations": [],
-              "args": [],
-              "inner": null,
-              "name": "PositiveInteger"
-            },
+            "inner": null,
             "kind": "class",
-            "name": "jpamb/cases/CustomClasses"
+            "name": "jpamb/cases/PositiveInteger"
           },
           "visible": true
         }

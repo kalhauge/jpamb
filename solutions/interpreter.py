@@ -1086,6 +1086,7 @@ def step(state: State, bytecode: Bytecode) -> State | str:
     logger.info(f"-- Bytecode[{frame.pc}]: {bytecode[frame.pc]}")
     logger.info(f"Op Stack[{frame.stack}]")
     logger.info(f"State heap[{state.heap}]")
+    logger.info(f"Locals: {frame.locals}")
     match bytecode[frame.pc]:
         case jvm.Push(value=v): return _push(value=v)
         case jvm.Load(type=jvm.Int(), index=n): return _load(index=n)
@@ -1132,6 +1133,10 @@ def generate_initial_frame(method_id: jvm.AbsMethodID, method_input: Input) -> t
     initial_frame = Frame.from_method(method_id)
     heap = {}
 
+    #logger.debug(method_input.values)
+    #logger.debug(method_input.values[0].type)
+    #uv run solutions/interpreter.py "jpamb.cases.CustomClasses.Withdraw:(Ljpamb/cases/PositiveInteger;)V" "(new jpamb/cases/PositiveInteger(5))"
+
     for index, value in enumerate(method_input.values):
         # match value:
         #     case jvm.Value(type=jvm.Boolean(), value=value):
@@ -1140,13 +1145,27 @@ def generate_initial_frame(method_id: jvm.AbsMethodID, method_input: Input) -> t
         #         local = value
         #     case _:
         #         assert False, f"Do not know how to handle {value}"
-        local = wrap_value(value.value)
-        if isinstance(local.type, jvm.Array):
-            ref = len(heap.values())
-            heap[ref] = local
+
+        #check if it is of type of custom class
+        logger.debug(value.type)
+        m = re.match(r"^L([A-Za-z0-9_/\$]+);$",str(value.type))
+        if m is not None:
+            #custom class found
+            class_name_str = m.group(1)
+            class_name = jvm.ClassName(class_name_str)
+
+            ref = max(heap.keys()) + 1 if heap else 0
+            obj_value = jvm.Value(jvm.Object(class_name), value.value)
+            heap[ref] = obj_value
             initial_frame.locals[index] = jvm.Value.int(ref)
         else:
-            initial_frame.locals[index] = local
+            local = wrap_value(value.value)
+            if isinstance(local.type, jvm.Array):
+                ref = len(heap.values())
+                heap[ref] = local
+                initial_frame.locals[index] = jvm.Value.int(ref)
+            else:
+                initial_frame.locals[index] = local
 
     logger.debug(f"Initial frame local variable {initial_frame.locals}")
     logger.debug(f"Heap {heap}")
@@ -1160,6 +1179,7 @@ def input_is_an_object() -> bool:
         return True
     return False
 
+#Solution 2)
 def do_first_step_with_object_input(bc: Bytecode):
     """This function manually goes through first step, given object as an input"""
     mid, not_relevant_minput = jpamb.getcase()
@@ -1220,12 +1240,15 @@ if __name__ == "__main__":
 
     bc = Bytecode(jpamb.Suite(), {})
     
-    if input_is_an_object():
-        state = do_first_step_with_object_input(bc)
-    else:
-        mid, minput = jpamb.getcase()
-        initial_frame, heap = generate_initial_frame(mid, minput)
-        state = State(heap, Stack.empty().push(initial_frame))
+    #Solution 2)
+    # if input_is_an_object():
+    #     state = do_first_step_with_object_input(bc)
+    # else:
+
+    #Solution 1) - parsing inside getcase()
+    mid, minput = jpamb.getcase()
+    initial_frame, heap = generate_initial_frame(mid, minput)
+    state = State(heap, Stack.empty().push(initial_frame))
 
     for x in range(100000):
         state = step(state, bc)

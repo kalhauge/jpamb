@@ -1,5 +1,6 @@
 {
   "access": [
+    "public",
     "super"
   ],
   "annotations": [],
@@ -19,16 +20,7 @@
       "value": null
     }
   ],
-  "innerclasses": [
-    {
-      "access": [
-        "static"
-      ],
-      "class": "jpamb/cases/CustomClasses$PositiveInteger",
-      "name": "PositiveInteger",
-      "outer": "jpamb/cases/CustomClasses"
-    }
-  ],
+  "innerclasses": [],
   "interfaces": [],
   "methods": [
     {
@@ -79,7 +71,7 @@
               "name": "set",
               "ref": {
                 "kind": "class",
-                "name": "jpamb/cases/CustomClasses$PositiveInteger"
+                "name": "jpamb/cases/PositiveInteger"
               },
               "returns": null
             },
@@ -95,7 +87,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 15,
+            "line": 10,
             "offset": 0
           }
         ],
@@ -183,7 +175,7 @@
           },
           {
             "field": {
-              "class": "jpamb/cases/CustomClasses$PositiveInteger",
+              "class": "jpamb/cases/PositiveInteger",
               "name": "value",
               "type": "int"
             },
@@ -200,15 +192,15 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 18,
+            "line": 13,
             "offset": 0
           },
           {
-            "line": 19,
+            "line": 14,
             "offset": 6
           },
           {
-            "line": 20,
+            "line": 15,
             "offset": 9
           }
         ],
@@ -254,7 +246,7 @@
           },
           {
             "field": {
-              "class": "jpamb/cases/CustomClasses$PositiveInteger",
+              "class": "jpamb/cases/PositiveInteger",
               "name": "value",
               "type": "int"
             },
@@ -271,7 +263,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 22,
+            "line": 17,
             "offset": 0
           }
         ],
@@ -292,7 +284,7 @@
       "typeparams": []
     }
   ],
-  "name": "jpamb/cases/CustomClasses$PositiveInteger",
+  "name": "jpamb/cases/PositiveInteger",
   "super": {
     "annotations": [],
     "args": [],
