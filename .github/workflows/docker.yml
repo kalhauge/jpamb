@@ -1,0 +1,173 @@
+name: Build and Distribute with Nix
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      push_to_registry:
+        description: 'Push to registry (yes/no)'
+        required: false
+        default: 'no'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Run tests first for tagged releases - only build and release if tests pass
+  run-tests:
+    name: Run Test Suite
+    if: startsWith(github.ref, 'refs/tags/')
+    uses: ./.github/workflows/test.yml
+
+  build-nix-docker:
+    runs-on: ubuntu-latest
+    # For tags: depend on tests passing. For main/PRs: run independently
+    needs: [run-tests]
+    if: |
+      always() &&
+      (needs.run-tests.result == 'success' || needs.run-tests.result == 'skipped')
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix with flakes
+      uses: DeterminateSystems/nix-installer-action@v9
+      with:
+        extra-conf: |
+          experimental-features = nix-command flakes
+          trusted-users = root runner
+
+    - name: Setup Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@v3
+
+    - name: Build Docker image with Nix
+      run: |
+        echo "Building Docker image using Nix flake..."
+        nix build .#packages.x86_64-linux.docker_image --print-build-logs
+    - name: Load and test image locally
+      run: |
+        # Load the image
+        nix run .#image.load
+        nix run .#image.jpamb -- -vv checkhealth
+    - name: Push to GitHub Container Registry
+      if: |
+        github.event_name == 'push' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      run: |
+        # Login to GitHub Container Registry
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+        # Get the loaded image name
+        LOCAL_IMAGE=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep jpamb | head -1)
+        echo "Local image: $LOCAL_IMAGE"
+
+        # Determine tags based on the trigger
+        if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+          TAGS="ghcr.io/${{ env.IMAGE_NAME }}:$VERSION ghcr.io/${{ env.IMAGE_NAME }}:latest"
+        else
+          BRANCH=${GITHUB_REF#refs/heads/}
+          TAGS="ghcr.io/${{ env.IMAGE_NAME }}:$BRANCH"
+        fi
+
+        # Tag and push
+        for TAG in $TAGS; do
+          echo "Pushing $TAG..."
+          docker tag "$LOCAL_IMAGE" "$TAG"
+          docker push "$TAG"
+        done
+
+    - name: Upload Docker tarball as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: jpamb-docker-${{ github.sha }}
+        path: result
+        retention-days: 7
+
+    - name: Create release with Docker tarball
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: result
+        generate_release_notes: true
+        body: |
+          ## JPAMB ${{ github.ref_name }}
+
+          ✅ **All tests passed** - This release has been fully tested.
+
+          ### 🐳 Docker Image
+
+          **Pull from GitHub Container Registry:**
+          ```bash
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
+          ```
+
+          **Or use latest:**
+          ```bash
+          docker pull ghcr.io/${{ env.IMAGE_NAME }}:latest
+          ```
+
+          **Load from tarball:**
+          Download the `result` file and:
+          ```bash
+          docker load < result
+          ```
+
+          ### 🚀 Usage
+
+          **Run jpamb:**
+          ```bash
+          docker run -it --rm -v $(pwd):/workspace ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }} jpamb checkhealth
+          ```
+
+          **Test your analysis script:**
+          ```bash
+          docker run -it --rm -v $(pwd):/workspace ghcr.io/${{ env.IMAGE_NAME }}:${{ github.ref_name }} jpamb test ./your_script.py
+          ```
+
+          ### 📚 Documentation
+
+          See the [README](https://github.com/${{ github.repository }}) for full documentation.
+
+#  build-multi-arch:
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+#    strategy:
+#      matrix:
+#        system: [x86_64-linux, aarch64-linux]
+#
+#    steps:
+#    - name: Checkout repository
+#      uses: actions/checkout@v4
+#
+#    - name: Install Nix with flakes
+#      uses: DeterminateSystems/nix-installer-action@v9
+#      with:
+#        extra-conf: |
+#          experimental-features = nix-command flakes
+#          trusted-users = root runner
+#          extra-platforms = aarch64-linux
+#
+#    - name: Setup QEMU for cross-compilation
+#      if: matrix.system == 'aarch64-linux'
+#      uses: docker/setup-qemu-action@v3
+#
+#    - name: Build for ${{ matrix.system }}
+#      run: |
+#        nix build .#packages.${{ matrix.system }}.default --print-build-logs
+#
+#    - name: Upload artifact
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: jpamb-docker-${{ matrix.system }}-${{ github.sha }}
+#        path: result
+#        retention-days: 7

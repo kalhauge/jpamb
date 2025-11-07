@@ -1,0 +1,219 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, docker_in_nix ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC to catch regressions
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+  workflow_call:  # Allow this workflow to be called by other workflows
+
+jobs:
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+      fail-fast: false
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '19'
+        cache: 'maven'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Compile Java code
+      run: mvn compile
+
+    - name: Install jpamb and test dependencies
+      run: |
+        uv pip install --system -e .
+        uv pip install --system pytest hypothesis
+
+    - name: Run checkhealth
+      run: |
+        jpamb -vv checkhealth
+
+    - name: Run Python tests (fast only)
+      run: |
+        python -m pytest test/ -v -m "not slow"
+
+    - name: Run Python tests (all tests)
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      run: |
+        python -m pytest test/ -v
+
+  java-tests:
+    name: Java Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '19'
+        cache: 'maven'
+
+    - name: Run Maven tests
+      run: mvn test
+
+    - name: Build package
+      run: mvn package
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [python-tests, java-tests]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '19'
+        cache: 'maven'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Full build
+      run: mvn compile
+
+    - name: Install jpamb
+      run: uv pip install --system -e .
+
+    - name: Test example solutions (Simple cases only)
+      run: |
+        for solution in solutions/apriori.py solutions/bytecoder.py solutions/cheater.py; do
+          echo "Testing $solution..."
+          jpamb test -f "Simple" "$solution"
+        done
+
+    - name: Run evaluate command
+      run: |
+        jpamb evaluate --timeout 5.0 --iterations 1 solutions/apriori.py > /dev/null
+
+    - name: Verify decompiled files exist
+      run: |
+        test -d decompiled/jpamb || exit 1
+        find decompiled/jpamb -name "*.json" | grep -q . || exit 1
+
+  reliability-tests:
+    name: Reliability & Error Handling
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '19'
+        cache: 'maven'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Compile Java
+      run: mvn compile
+
+    - name: Install jpamb and test dependencies
+      run: |
+        uv pip install --system -e .
+        uv pip install --system pytest hypothesis
+
+    - name: Run reliability tests
+      run: |
+        python -m pytest test/test_cli_reliability.py -v -m "not slow"
+
+    - name: Run slow reliability tests
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      run: |
+        python -m pytest test/test_cli_reliability.py -v
+
+  docker-tests:
+    name: Docker Image Tests
+    runs-on: ubuntu-latest
+    needs: [python-tests, java-tests]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Nix with flakes
+      uses: DeterminateSystems/nix-installer-action@v9
+      with:
+        extra-conf: |
+          experimental-features = nix-command flakes
+          trusted-users = root runner
+
+    - name: Setup Magic Nix Cache
+      uses: DeterminateSystems/magic-nix-cache-action@v3
+
+    - name: Build Docker image with Nix
+      run: |
+        echo "Building Docker image using Nix flake..."
+        nix build .#packages.x86_64-linux.docker_image --print-build-logs
+
+    - name: Load Docker image
+      run: |
+        nix run .#image.load
+
+    - name: Run tests in Docker (fast tests)
+      run: |
+        nix run .#image.test
+
+    - name: Run all tests in Docker
+      if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      run: |
+        nix run .#image.test-all
+
+    - name: Test jpamb command in Docker
+      run: |
+        nix run .#image.jpamb -- -vv checkhealth
+
+    - name: Upload Docker image as artifact
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: jpamb-docker-image
+        path: result
+        retention-days: 7

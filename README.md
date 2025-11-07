@@ -365,17 +365,52 @@ uv run jpamb evaluate -W my_analyzer.py > my_results.json
 
 **Still stuck?** Check the example solutions in `solutions/` directory or ask for help!
 
-## Expert: Extending the Benchmark
+## Using Docker
 
-To extend the benchmark suite you have to install nix. One way to do that is to use 
-use the [determinate system](https://docs.determinate.systems/) installer.
-
-After any changes to the source files you should run:
-
-```shell
-$ nix develop --command uv run build --test --decompile
+**Pull the image:**
+```bash
+docker pull ghcr.io/kalhauge/jpamb:latest
 ```
 
+**Run your analyzer:**
+```bash
+docker run --rm -v $(pwd):/workspace ghcr.io/kalhauge/jpamb:latest jpamb test my_analyzer.py
+```
 
+## Adding Your Own Java Test Cases
 
+Add test files to validate your understanding of benchmark behavior:
 
+```
+jpamb/
+└── src/test/java/jpamb/
+    ├── RuntimeTest.java      ← Existing examples
+    ├── ArraysTest.java
+    └── MyCustomTest.java     ← Add HERE
+```
+
+**Example:** `src/test/java/jpamb/MyCustomTest.java`
+```java
+package jpamb;
+
+import jpamb.cases.*;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class MyCustomTest {
+    @Test
+    public void testMyUnderstanding() {
+        try {
+            Simple.divideByZero();
+            fail("Should throw ArithmeticException");
+        } catch (ArithmeticException e) {
+            // Expected
+        }
+    }
+}
+```
+
+**Run tests:**
+```bash
+docker run --rm -v $(pwd):/workspace ghcr.io/kalhauge/jpamb:latest bash -c "mvn test"
+```

@@ -1,7 +1,6 @@
 import click
 from pathlib import Path
 import shlex
-import enum
 import math
 import sys
 import json
@@ -498,30 +497,54 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
 @click.option(
     "--compile / --no-compile",
     help="compile the java source files.",
+    default=None,
 )
 @click.option(
     "--decompile / --no-decompile",
     help="decompile the classfiles using jvm2json.",
+    default=None,
 )
 @click.option(
     "--document / --no-document",
-    help="decompile the classfiles using jvm2json.",
+    help="docmument the files",
+    default=None,
 )
 @click.option(
     "--test / --no-test",
     help="test that all cases are correct.",
+    default=None,
 )
 @click.pass_obj
 def build(suite, compile, decompile, document, test):
     """Rebuild all benchmarks."""
 
+    if not any(s for s in [compile, decompile, document, test]):
+        compile = compile is None
+        decompile = decompile is None
+        document = document is None
+        test = test is None
+
     if compile:
+        log.info("Compiling")
         run(
             ["mvn", "compile"],
             logerr=log.warning,
             logout=log.info,
             timeout=600,
         )
+
+        log.info("Building Stats")
+
+        res, x = run(
+            ["java", "-cp", "target/classes", "jpamb.Runtime"],
+            logout=log.info,
+            logerr=log.debug,
+            timeout=60,
+        )
+
+        Path("stats/cases.txt").write_text("\n".join(res.splitlines().sorted()))
+
+        # TODO: Compute distribution.csv
 
     if decompile:
         log.info("Decompiling")
@@ -540,6 +563,7 @@ def build(suite, compile, decompile, document, test):
         log.success("Done decompiling")
 
     if document:
+        log.info("Documenting")
         opcode_counts = Counter()
         opcode_urls = {}
         class_opcodes = {}
@@ -574,7 +598,13 @@ def build(suite, compile, decompile, document, test):
                     if op in class_opcodes[classname]:
                         in_classes += " " + classname
 
-                rel = Path(getsourcefile(opcode.__class__)).relative_to(Path.cwd())
+                folder = Path(getsourcefile(opcode.__class__)).parent
+                while folder.name != "jpamb":
+                    folder = folder.parent
+
+                root = folder.parent
+
+                rel = Path(getsourcefile(opcode.__class__)).relative_to(root)
                 giturl = f"{rel}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
 
                 document.write(

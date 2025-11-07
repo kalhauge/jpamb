@@ -1,58 +1,60 @@
-jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
+jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
+jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
+jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
+jpamb.cases.Simple.assertInteger:(I)V                        (0) -> assertion error
+jpamb.cases.Simple.assertInteger:(I)V                        (1) -> ok
+jpamb.cases.Simple.assertPositive:(I)V                       (-1) -> assertion error
+jpamb.cases.Simple.assertPositive:(I)V                       (1) -> ok
+jpamb.cases.Simple.divideByZero:()I                          () -> divide by zero
+jpamb.cases.Simple.divideByN:(I)I                            (0) -> divide by zero
+jpamb.cases.Simple.divideByN:(I)I                            (1) -> ok
+jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by zero
+jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
+jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertion error
+jpamb.cases.Simple.multiError:(Z)I                           (true) -> divide by zero
+jpamb.cases.Simple.earlyReturn:()I                           () -> ok
+jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (1) -> ok
+jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (0) -> assertion error
+jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (0) -> ok
+jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (1) -> ok
+jpamb.cases.Simple.checkBeforeAssert:(I)V                    (-1) -> assertion error
+jpamb.cases.Simple.checkBeforeAssert:(I)V                    (0) -> ok
+jpamb.cases.Simple.justReturn:()I                            () -> ok
+jpamb.cases.Simple.justAdd:(II)I                             (1, 2) -> ok
+jpamb.cases.Simple.justMulitply:(II)I                        (1, 2) -> ok
+jpamb.cases.Simple.justReturnNothing:()V                     () -> ok
+jpamb.cases.Simple.divideByNMinus10054203:(I)I               (0) -> ok
+jpamb.cases.Simple.divideByNMinus10054203:(I)I               (10054203) -> divide by zero
+jpamb.cases.Loops.forever:()V                                () -> *
+jpamb.cases.Loops.neverAsserts:()V                           () -> *
+jpamb.cases.Loops.neverDivides:()I                           () -> *
+jpamb.cases.Loops.terminates:()V                             () -> assertion error
+jpamb.cases.Tricky.collatz:(I)V                              (0) -> assertion error
+jpamb.cases.Tricky.collatz:(I)V                              (24) -> ok
+jpamb.cases.Arrays.arrayLength:()V                           () -> ok
+jpamb.cases.Arrays.binarySearch:(I)V                         (3) -> ok
+jpamb.cases.Arrays.binarySearch:(I)V                         (6) -> assertion error
+jpamb.cases.Arrays.arrayOutOfBounds:()V                      () -> out of bounds
 jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
 jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
 jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer
-jpamb.cases.Arrays.arrayLength:()V                           () -> ok
-jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:1]) -> ok
-jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:]) -> assertion error
-jpamb.cases.Arrays.arrayOutOfBounds:()V                      () -> out of bounds
-jpamb.cases.Arrays.arraySometimesNull:(I)V                   (0) -> out of bounds
 jpamb.cases.Arrays.arraySometimesNull:(I)V                   (11) -> null pointer
+jpamb.cases.Arrays.arraySometimesNull:(I)V                   (0) -> out of bounds
+jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
+jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:]) -> assertion error
+jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:1]) -> ok
 jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:'h', 'e', 'l', 'l', 'o']) -> ok
 jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:'x']) -> assertion error
 jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:]) -> out of bounds
 jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:50, 100, 200]) -> ok
 jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:]) -> assertion error
-jpamb.cases.Arrays.binarySearch:(I)V                         (3) -> ok
-jpamb.cases.Arrays.binarySearch:(I)V                         (6) -> assertion error
-jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
-jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
-jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
-jpamb.cases.Calls.callsAssertFalse:()V                       () -> assertion error
-jpamb.cases.Calls.callsAssertFib:(I)V                        (0) -> assertion error
-jpamb.cases.Calls.callsAssertFib:(I)V                        (8) -> ok
-jpamb.cases.Calls.callsAssertIf:(Z)V                         (false) -> assertion error
-jpamb.cases.Calls.callsAssertIf:(Z)V                         (true) -> ok
-jpamb.cases.Calls.callsAssertIfWithTrue:()V                  () -> ok
 jpamb.cases.Calls.callsAssertTrue:()V                        () -> ok
-jpamb.cases.Loops.forever:()V                                () -> *
-jpamb.cases.Loops.neverAsserts:()V                           () -> *
-jpamb.cases.Loops.neverDivides:()I                           () -> *
-jpamb.cases.Loops.terminates:()V                             () -> assertion error
-jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
-jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
-jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
-jpamb.cases.Simple.assertInteger:(I)V                        (0) -> assertion error
-jpamb.cases.Simple.assertInteger:(I)V                        (1) -> ok
-jpamb.cases.Simple.assertPositive:(I)V                       (-1) -> assertion error
-jpamb.cases.Simple.assertPositive:(I)V                       (1) -> ok
-jpamb.cases.Simple.checkBeforeAssert:(I)V                    (-1) -> assertion error
-jpamb.cases.Simple.checkBeforeAssert:(I)V                    (0) -> ok
-jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (0) -> ok
-jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (1) -> ok
-jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (0) -> assertion error
-jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (1) -> ok
-jpamb.cases.Simple.divideByN:(I)I                            (0) -> divide by zero
-jpamb.cases.Simple.divideByN:(I)I                            (1) -> ok
-jpamb.cases.Simple.divideByNMinus10054203:(I)I               (0) -> ok
-jpamb.cases.Simple.divideByNMinus10054203:(I)I               (10054203) -> divide by zero
-jpamb.cases.Simple.divideByZero:()I                          () -> divide by zero
-jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by zero
-jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
-jpamb.cases.Simple.earlyReturn:()I                           () -> ok
-jpamb.cases.Simple.justReturn:()I                            () -> ok
-jpamb.cases.Simple.justReturnNothing:()V                     () -> ok
-jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertion error
-jpamb.cases.Simple.multiError:(Z)I                           (true) -> divide by zero
-jpamb.cases.Tricky.collatz:(I)V                              (0) -> assertion error
-jpamb.cases.Tricky.collatz:(I)V                              (24) -> ok
+jpamb.cases.Calls.callsAssertFalse:()V                       () -> assertion error
+jpamb.cases.Calls.callsAssertIf:(Z)V                         (true) -> ok
+jpamb.cases.Calls.callsAssertIf:(Z)V                         (false) -> assertion error
+jpamb.cases.Calls.callsAssertIfWithTrue:()V                  () -> ok
+jpamb.cases.Calls.callsAssertFib:(I)V                        (8) -> ok
+jpamb.cases.Calls.callsAssertFib:(I)V                        (0) -> assertion error
+jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
+jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
+jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
