@@ -684,7 +684,7 @@ class ValueParser:
             ("OPEN_ARRAY", r"\[[IC]:"),
             ("CLOSE_ARRAY", r"\]"),
             ("INT", r"-?\d+"),
-            ("OBJECT", r"new [A-Za-z_./\$]+\(-?[0-9]*\)"), 
+            ("OBJECT", r"new [A-Za-z_./\$]+\([^)]*\)"), 
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
             ("COMMA", r","),
