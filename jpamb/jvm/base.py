@@ -777,6 +777,8 @@ class ValueParser:
         match = re.match(r"^new\s+([A-Za-z0-9_./\$]+)\(([^\)]*)\)$", obj.value)
         classname_str = match.group(1)
         args_str = match.group(2)
+        #TODO - make it work for types that are not integers....
+        #print(ValueParser.parse(args_str)[0].type)
         arg = Value.int(int(args_str))
         arg_dict = {}
         arg_dict["value"] = arg
