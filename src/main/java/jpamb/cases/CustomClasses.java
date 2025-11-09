@@ -12,13 +12,6 @@ public class CustomClasses {
         assert false;
     }
 
-    static class ClassInputTest{
-
-        private PositiveInteger pi;
-
-        ClassInputTest(PositiveInteger new_pi) {this.pi = new_pi;}
-    }
-
     @Case("(5) -> ok")
     public static void WithdrawInt(int i) {
         PositiveInteger amount = new PositiveInteger(i);

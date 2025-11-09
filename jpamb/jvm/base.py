@@ -779,6 +779,9 @@ class ValueParser:
         args_str = match.group(2)
         #TODO - make it work for types that are not integers....
         #print(ValueParser.parse(args_str)[0].type)
+        check_if_integer = re.match(r"^([0-9]+)$", args_str)
+        if not check_if_integer:
+            raise ValueError("Unsupported type of input to the object's constructor")     
         arg = Value.int(int(args_str))
         arg_dict = {}
         arg_dict["value"] = arg

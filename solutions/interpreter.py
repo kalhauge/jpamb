@@ -691,10 +691,8 @@ def generate_initial_state(method_id: jvm.AbsMethodID, method_input: Input, byte
         #         assert False, f"Do not know how to handle {value}"
 
         #check if it is of type of custom class
-        logger.debug(value.type)
         m = re.match(r"^L([A-Za-z0-9_/\$]+);$",str(value.type))
         if m is not None:
-            logger.debug("hello")
             #custom class found
             current_frame = state.frames.peek()
 

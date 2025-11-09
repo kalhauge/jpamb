@@ -22,16 +22,7 @@
       "value": null
     }
   ],
-  "innerclasses": [
-    {
-      "access": [
-        "static"
-      ],
-      "class": "jpamb/cases/CustomClasses$ClassInputTest",
-      "name": "ClassInputTest",
-      "outer": "jpamb/cases/CustomClasses"
-    }
-  ],
+  "innerclasses": [],
   "interfaces": [],
   "methods": [
     {
@@ -259,11 +250,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 24,
+            "line": 17,
             "offset": 0
           },
           {
-            "line": 27,
+            "line": 20,
             "offset": 5
           }
         ],
@@ -319,7 +310,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 34,
+            "line": 27,
             "offset": 0
           }
         ],
@@ -516,15 +507,15 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 40,
+            "line": 33,
             "offset": 0
           },
           {
-            "line": 48,
+            "line": 41,
             "offset": 5
           },
           {
-            "line": 55,
+            "line": 48,
             "offset": 17
           }
         ],
