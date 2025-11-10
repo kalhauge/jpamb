@@ -178,7 +178,11 @@ def step(state: State) -> State | str:
             
         case jvm.Get(static=val):
             if frame.locals and (0 in frame.locals or 1 in frame.locals):
-                if frame.locals[0] == Value.int(0) or frame.locals[0] == Value.int(1):
+                if frame.locals[0] == Value.int(0):
+                    frame.stack.push(Value.int(0))
+                    frame.pc += 1
+                if frame.locals[0] == Value.int(1):
+                    frame.stack.push(Value.int(1))
                     frame.pc += 1
                     return state
                 else:
@@ -199,7 +203,8 @@ def step(state: State) -> State | str:
             
         case jvm.Ifz(condition=cond, target=val):
             
-            v = frame.locals[0]
+            v = frame.stack.pop()
+            #v = frame.locals[0]
             if cond == 'eq': # equal to zero
                 if v == Value.int(0):
                     #logger.debug(f"Jumping to {val}")
@@ -296,6 +301,13 @@ def step(state: State) -> State | str:
                     frame.pc = PC(frame.pc.method, val)
                 else:
                     frame.pc += 1
+            # if cond == 'eq': # equal
+            #     v2, v1 = frame.stack.pop(), frame.stack.pop()
+            #     if v1.value == v2.value:
+            #         frame.pc = PC(frame.pc.method, val)
+            #     else:
+            #         frame.pc += 1
+                
             return state
         
         case jvm.Store(type=jvm.Int(), index=i):
