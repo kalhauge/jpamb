@@ -147,6 +147,14 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(result))
             frame.pc += 1
             return state
+        
+        case jvm.Binary(type=jvm.Int(), operant=jvm.BinaryOpr.Mul): # Binary multiplication
+            v2, v1 = frame.stack.pop(), frame.stack.pop()
+            assert v1.type is jvm.Int(), f"expected int, but got {v1}"
+            assert v2.type is jvm.Int(), f"expected int, but got {v2}"
+            frame.stack.push(jvm.Value.int(v1.value * v2.value))
+            frame.pc += 1
+            return state
 
         case jvm.Return(type=jvm.Int()):
             v1 = frame.stack.pop()
