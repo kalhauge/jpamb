@@ -301,6 +301,12 @@ def step(state: State) -> State | str:
             state.heap[array_ref.value][index.value] = value.value
             frame.pc += 1
             return state
+        
+        case jvm.Cast(from_=jvm.Int(), to_=jvm.Short()): # TODO: This case is not complete but for now it works... :/
+            v = frame.stack.pop()
+            assert v.type is jvm.Int(), f"expected int, but got {v}"
+            frame.pc += 1
+            return state
 
         case a:
             # a.help()
