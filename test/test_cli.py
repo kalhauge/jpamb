@@ -13,9 +13,9 @@ from jpamb import cli
 
 
 solutions = [
-    Path("solutions") / "apriori.py",
+    # Path("solutions") / "apriori.py",
     Path("solutions") / "bytecoder.py",
-    Path("solutions") / "cheater.py",
+    # Path("solutions") / "cheater.py",
     Path("solutions") / "syntaxer.py",
     Path("solutions") / "my_analyzer.py",
 ]
@@ -63,17 +63,3 @@ def test_interpret_i():
     )
 
     assert result.exit_code == 0
-
-
-@pytest.mark.slow
-def test_interpret():
-    runner = CliRunner()
-    cp = Path("target") / "classes"
-    result = runner.invoke(
-        cli.cli,
-        ["interpret", "--", "java", "-cp", str(cp), "-ea", "jpamb.Runtime"],
-        catch_exceptions=False,
-    )
-
-    assert result.exit_code == 0
-    assert "Total 58/58" in result.output

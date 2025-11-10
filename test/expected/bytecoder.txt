@@ -1,5 +1,5 @@
 ┌ Case jpamb.cases.Simple.assertBoolean:(Z)V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertBoolean:(Z)V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -10,14 +10,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertBoolean:(Z)V'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.assertBoolean:(Z)V
 ┌ Case jpamb.cases.Simple.assertFalse:()V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertFalse:()V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertFalse:()V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -28,14 +28,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertFalse:()V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertFalse:()V'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.assertFalse:()V
 ┌ Case jpamb.cases.Simple.assertInteger:(I)V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertInteger:(I)V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertInteger:(I)V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -46,14 +46,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertInteger:(I)V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertInteger:(I)V'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.assertInteger:(I)V
 ┌ Case jpamb.cases.Simple.assertPositive:(I)V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertPositive:(I)V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertPositive:(I)V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -64,14 +64,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.assertPositive:(I)V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.assertPositive:(I)V'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.assertPositive:(I)V
 ┌ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -82,14 +82,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -100,14 +100,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score -1.50
 └ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -118,14 +118,14 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
 ┌ Case jpamb.cases.Simple.divideByN:(I)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByN:(I)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByN:(I)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -136,14 +136,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByN:(I)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByN:(I)I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.divideByN:(I)I
 ┌ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -154,14 +154,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
 ┌ Case jpamb.cases.Simple.divideByZero:()I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByZero:()I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByZero:()I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -172,14 +172,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideByZero:()I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideByZero:()I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.divideByZero:()I
 ┌ Case jpamb.cases.Simple.divideZeroByZero:(II)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -190,14 +190,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.divideZeroByZero:(II)I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.divideZeroByZero:(II)I
 ┌ Case jpamb.cases.Simple.earlyReturn:()I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.earlyReturn:()I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.earlyReturn:()I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -208,14 +208,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.earlyReturn:()I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.earlyReturn:()I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.earlyReturn:()I
-┌ Case jpamb.cases.Simple.justReturn:()I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.justReturn:()I'
+┌ Case jpamb.cases.Simple.justAdd:(II)I
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justAdd:(II)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -226,14 +226,50 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.justReturn:()I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justAdd:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justAdd:(II)I
+┌ Case jpamb.cases.Simple.justMulitply:(II)I
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justMulitply:(II)I'
+││┌ Stderr
+│││ DEBUG:root:check assertion
+│││ DEBUG:root:read the method name
+│││ DEBUG:root:looking up method
+│││ DEBUG:root:trying to find an assertion error being created
+│││ DEBUG:root:did not find it
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justMulitply:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justMulitply:(II)I
+┌ Case jpamb.cases.Simple.justReturn:()I
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justReturn:()I'
+││┌ Stderr
+│││ DEBUG:root:check assertion
+│││ DEBUG:root:read the method name
+│││ DEBUG:root:looking up method
+│││ DEBUG:root:trying to find an assertion error being created
+│││ DEBUG:root:did not find it
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justReturn:()I'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.justReturn:()I
 ┌ Case jpamb.cases.Simple.justReturnNothing:()V
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.justReturnNothing:()V'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justReturnNothing:()V'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -244,14 +280,14 @@
 ││┌ Stdout
 │││ assertion error;20%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.justReturnNothing:()V'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.justReturnNothing:()V'
 │┌ Results
 ││ - assertion error: 20.00% -1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.justReturnNothing:()V
 ┌ Case jpamb.cases.Simple.multiError:(Z)I
-│┌ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.multiError:(Z)I'
+│┌ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.multiError:(Z)I'
 ││┌ Stderr
 │││ DEBUG:root:check assertion
 │││ DEBUG:root:read the method name
@@ -262,10 +298,10 @@
 ││┌ Stdout
 │││ assertion error;80%
 ││└ Stdout
-│└ Run .venv/bin/python3 solutions/bytecoder.py 'jpamb.cases.Simple.multiError:(Z)I'
+│└ Run .venv/bin/python solutions/bytecoder.py 'jpamb.cases.Simple.multiError:(Z)I'
 │┌ Results
 ││ - assertion error: 80.00% 1.50
 │└ Results
 │ Score 0.60
 └ Case jpamb.cases.Simple.multiError:(Z)I
-Total 6.90
+Total 8.10

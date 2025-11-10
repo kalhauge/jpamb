@@ -12,11 +12,13 @@ from loguru import logger
 import collections
 from collections import defaultdict
 import re
+import os
+import shutil
+import subprocess
 
 from typing import Iterable
 
 from jpamb import jvm
-from jpamb import timer
 
 
 @dataclass(frozen=True, order=True)
@@ -61,7 +63,7 @@ class Case:
     def decode(line):
         m = Case.match(line)
         return Case(
-            jvm.Absolute.decode(m.group(1), jvm.MethodID.decode),
+            jvm.AbsMethodID.decode(m.group(1)),
             Input.decode(m.group(2)),
             m.group(3),
         )
@@ -98,15 +100,13 @@ def _check(reason, failfast=False):
         else:
             logger.error(f"{reason} FAILED")
         if failfast:
-            e.args = (reason, *e.args)
-            raise
+            raise AssertionError(f"{reason} {str(e.args)}") from e
     else:
         logger.success(f"{reason} ok")
 
 
 @dataclass(frozen=True)
 class AnalysisInfo:
-
     name: str
     version: str
     group: str
@@ -246,7 +246,7 @@ class Suite:
     @property
     def stats_folder(self) -> Path:
         """The folder to place the statistics about the repository"""
-        return self.workfolder / "stats"
+        return self.workfolder / "target" / "stats"
 
     @property
     def classfiles_folder(self) -> Path:
@@ -276,7 +276,7 @@ class Suite:
 
     @property
     def decompiled_folder(self) -> Path:
-        return self.workfolder / "decompiled"
+        return self.workfolder / "target" / "decompiled"
 
     def decompiledfiles(self) -> Iterable[Path]:
         yield from self.decompiled_folder.glob("**/*.json")
@@ -295,14 +295,17 @@ class Suite:
     def findmethod(self, methodid: jvm.Absolute[jvm.MethodID]) -> jvm:
         methods = self.findclass(methodid.classname)["methods"]
         for method in methods:
-            if (
-                method["name"] == methodid.extension.name
-                and jvm.ParameterType.from_json(method["params"])
-                == methodid.extension.params
-            ):
-                break
+            if method["name"] != methodid.extension.name:
+                continue
+            params = jvm.ParameterType.from_json(method["params"], annotated=True)
+
+            assert params == methodid.extension.params, (
+                f"Mulitple methods with same name {method['name']!r}, "
+                f"but different params {params} from {method['params']} and {methodid.extension.params}"
+            )
+            break
         else:
-            assert False, f"Could not find {methodid}"
+            raise IndexError(f"Could not find {methodid}")
         return method
 
     def method_opcodes(self, method: jvm.Absolute[jvm.MethodID]) -> list[jvm.Opcode]:
@@ -341,11 +344,29 @@ class Suite:
 
         return methods.items()
 
+    def case_opcodes(self) -> list[jvm.Opcode]:
+        for m, _ in self.case_methods():
+            yield from self.method_opcodes(m)
+
     def checkhealth(self, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
+        from jpamb import timer
 
         def check(msg):
             return _check(msg, failfast)
+
+        with check("The path"):
+            with check("docker"):
+                dockerbin = shutil.which("podman") or shutil.which("docker")
+                assert dockerbin is not None, "java not on path"
+                res = subprocess.run(
+                    [dockerbin, "--version"],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    text=True,
+                )
+                logger.debug(f"{dockerbin} --version\n{res}")
+                assert res.returncode == 0, "dockerbin --version failed"
 
         with check("The timer"):
             x = timer.sieve(1000)
@@ -382,14 +403,11 @@ class Suite:
             assert len(self.cases) > 0, "cases should be parsable and at least one"
             logger.info(f"Found {len(self.cases)} cases")
 
-        methods = set(case.methodid for case in self.cases)
-        for method in methods:
+        for method, _ in self.case_methods():
             with check(f"The method: [{method}]"):
                 try:
                     for opr in self.method_opcodes(method):
                         str(opr)
                         str(opr.real())
                 except NotImplementedError as e:
-                    assert (
-                        False
-                    ), f"All operations should be supported in {method}, but {e}"
+                    raise AssertionError("All operations should be supported") from e

@@ -6,6 +6,7 @@ import tree_sitter
 import tree_sitter_java
 import jpamb
 import sys
+from pathlib import Path
 
 
 methodid = jpamb.getmethodid(
@@ -24,7 +25,7 @@ log = logging
 log.basicConfig(level=logging.DEBUG)
 
 
-srcfile = jpamb.sourcefile(methodid)
+srcfile = jpamb.sourcefile(methodid).relative_to(Path.cwd())
 
 with open(srcfile, "rb") as f:
     log.debug("parse sourcefile %s", srcfile)
@@ -36,12 +37,13 @@ log.debug(f"{simple_classname}")
 
 # To figure out how to write these you can consult the
 # https://tree-sitter.github.io/tree-sitter/playground
-class_q = JAVA_LANGUAGE.query(
+class_q = tree_sitter.Query(
+    JAVA_LANGUAGE,
     f"""
     (class_declaration 
         name: ((identifier) @class-name 
                (#eq? @class-name "{simple_classname}"))) @class
-"""
+""",
 )
 
 for node in tree_sitter.QueryCursor(class_q).captures(tree.root_node)["class"]:
@@ -55,12 +57,13 @@ else:
 
 method_name = methodid.extension.name
 
-method_q = JAVA_LANGUAGE.query(
+method_q = tree_sitter.Query(
+    JAVA_LANGUAGE,
     f"""
     (method_declaration name: 
       ((identifier) @method-name (#eq? @method-name "{method_name}"))
     ) @method
-"""
+""",
 )
 
 for node in tree_sitter.QueryCursor(method_q).captures(node)["method"]:
@@ -98,16 +101,18 @@ assert body and body.text
 for t in body.text.splitlines():
     log.debug("line: %s", t.decode())
 
-assert_q = JAVA_LANGUAGE.query(f"""(assert_statement) @assert""")
+assert_q = tree_sitter.Query(JAVA_LANGUAGE, """(assert_statement) @assert""")
 
-for node, t in tree_sitter.QueryCursor(assert_q).captures(body).items():
-    if node == "assert":
-        break
+
+assert_found = any(
+    capture_name == "assert"
+    for capture_name, _ in tree_sitter.QueryCursor(assert_q).captures(body).items()
+)
+if assert_found:
+    log.debug("Found assertion")
+    print("assertion error;80%")
 else:
-    log.debug("Did not find any assertions")
+    log.debug("No assertion")
     print("assertion error;20%")
-    sys.exit(0)
 
-log.debug("Found assertion")
-print("assertion error;80%")
 sys.exit(0)

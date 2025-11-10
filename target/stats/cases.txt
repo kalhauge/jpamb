@@ -50,6 +50,8 @@ jpamb.cases.Simple.divideByZero:()I                          () -> divide by zer
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by zero
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
 jpamb.cases.Simple.earlyReturn:()I                           () -> ok
+jpamb.cases.Simple.justAdd:(II)I                             (1, 2) -> ok
+jpamb.cases.Simple.justMulitply:(II)I                        (1, 2) -> ok
 jpamb.cases.Simple.justReturn:()I                            () -> ok
 jpamb.cases.Simple.justReturnNothing:()V                     () -> ok
 jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertion error

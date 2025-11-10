@@ -1,26 +1,52 @@
 from jpamb import jvm, model
 
-from pathlib import Path
+from hypothesis import given, strategies as st
+
+suite = model.Suite()
 
 
-def test_bytecode():
-    suite = model.Suite()
-    for c in suite.cases:
-        methods = suite.findclass(c.methodid.classname)["methods"]
-        for method in methods:
-            if method["name"] == c.methodid.extension.name:
-                break
-        else:
-            assert False, f"Could not find {c.methodid}"
+def st_casemethods():
+    methods = [m[0] for m in model.Suite().case_methods()]
+    return st.sampled_from(methods)
 
-        opcode_count = 0
-        for opcode in method["code"]["bytecode"]:
-            print(opcode)
-            result = jvm.Opcode.from_json(opcode)
-            print(result, "/", result.real())
-            assert not isinstance(result, dict), opcode
-            opcode_count += 1
 
-        assert opcode_count > 0, "No opcodes were processed"
+@given(st_casemethods())
+def test_findmethod(method):
+    assert isinstance(suite.findmethod(method), dict)
 
-        break
+
+def st_caseopcodes():
+    opcodes = sorted(set(suite.case_opcodes()), key=str)
+    return st.sampled_from(opcodes)
+
+
+@given(st_casemethods())
+def test_parse_opcode(method):
+    for opcode in suite.findmethod(method)["code"]["bytecode"]:
+        op = jvm.Opcode.from_json(opcode)
+        assert isinstance(op, jvm.Opcode)
+
+
+@given(st_caseopcodes())
+def test_opcode_correct(op):
+    assert isinstance(op, jvm.Opcode)
+
+
+@given(st_caseopcodes())
+def test_opcode_str(op):
+    assert str(op)
+
+
+@given(st_caseopcodes())
+def test_opcode_repr(op):
+    assert repr(op)
+
+
+@given(st_caseopcodes())
+def test_opcode_real(op):
+    assert op.real()
+
+
+@given(st_caseopcodes())
+def test_opcode_hash(op):
+    assert hash(op)

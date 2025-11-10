@@ -27,115 +27,6 @@
   "methods": [
     {
       "access": [
-        "static"
-      ],
-      "annotations": [],
-      "code": {
-        "annotations": [],
-        "bytecode": [
-          {
-            "offset": 0,
-            "opr": "push",
-            "value": {
-              "type": "class",
-              "value": {
-                "kind": "class",
-                "name": "jpamb/cases/Simple"
-              }
-            }
-          },
-          {
-            "access": "virtual",
-            "method": {
-              "args": [],
-              "name": "desiredAssertionStatus",
-              "ref": {
-                "kind": "class",
-                "name": "java/lang/Class"
-              },
-              "returns": "boolean"
-            },
-            "offset": 2,
-            "opr": "invoke"
-          },
-          {
-            "condition": "ne",
-            "offset": 5,
-            "opr": "ifz",
-            "target": 5
-          },
-          {
-            "offset": 8,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 1
-            }
-          },
-          {
-            "offset": 9,
-            "opr": "goto",
-            "target": 6
-          },
-          {
-            "offset": 12,
-            "opr": "push",
-            "value": {
-              "type": "integer",
-              "value": 0
-            }
-          },
-          {
-            "field": {
-              "class": "jpamb/cases/Simple",
-              "name": "$assertionsDisabled",
-              "type": "boolean"
-            },
-            "offset": 13,
-            "opr": "put",
-            "static": true
-          },
-          {
-            "offset": 16,
-            "opr": "return",
-            "type": null
-          }
-        ],
-        "exceptions": [],
-        "lines": [
-          {
-            "line": 5,
-            "offset": 0
-          }
-        ],
-        "max_locals": 0,
-        "max_stack": 1,
-        "stack_map": [
-          {
-            "index": 5,
-            "type": "same"
-          },
-          {
-            "index": 6,
-            "info": {
-              "type": "integer"
-            },
-            "type": "same_locals_1_stack_item_frame"
-          }
-        ]
-      },
-      "default": null,
-      "exceptions": [],
-      "name": "<clinit>",
-      "params": [],
-      "returns": {
-        "annotations": [],
-        "type": null
-      },
-      "typeparams": []
-    },
-    {
-      "access": [
         "public"
       ],
       "annotations": [],
@@ -2204,6 +2095,115 @@
         }
       },
       "typeparams": []
+    },
+    {
+      "access": [
+        "static"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/cases/Simple"
+              }
+            }
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "desiredAssertionStatus",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": "boolean"
+            },
+            "offset": 2,
+            "opr": "invoke"
+          },
+          {
+            "condition": "ne",
+            "offset": 5,
+            "opr": "ifz",
+            "target": 5
+          },
+          {
+            "offset": 8,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "offset": 9,
+            "opr": "goto",
+            "target": 6
+          },
+          {
+            "offset": 12,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Simple",
+              "name": "$assertionsDisabled",
+              "type": "boolean"
+            },
+            "offset": 13,
+            "opr": "put",
+            "static": true
+          },
+          {
+            "offset": 16,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 5,
+            "offset": 0
+          }
+        ],
+        "max_locals": 0,
+        "max_stack": 1,
+        "stack_map": [
+          {
+            "index": 5,
+            "type": "same"
+          },
+          {
+            "index": 6,
+            "info": {
+              "type": "integer"
+            },
+            "type": "same_locals_1_stack_item_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<clinit>",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
     }
   ],
   "name": "jpamb/cases/Simple",
@@ -2215,7 +2215,7 @@
   },
   "typeparams": [],
   "version": [
-    63,
+    65,
     0
   ]
 }

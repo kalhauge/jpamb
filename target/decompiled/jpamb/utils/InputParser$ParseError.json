@@ -64,21 +64,21 @@
     {
       "access": [
         "public",
+        "static"
+      ],
+      "class": "jpamb/utils/InputParser$ParseError",
+      "name": "ParseError",
+      "outer": "jpamb/utils/InputParser"
+    },
+    {
+      "access": [
+        "public",
         "static",
         "final"
       ],
       "class": "java/lang/invoke/MethodHandles$Lookup",
       "name": "Lookup",
       "outer": "java/lang/invoke/MethodHandles"
-    },
-    {
-      "access": [
-        "public",
-        "static"
-      ],
-      "class": "jpamb/utils/InputParser$ParseError",
-      "name": "ParseError",
-      "outer": "jpamb/utils/InputParser"
     }
   ],
   "interfaces": [],
@@ -216,7 +216,7 @@
   },
   "typeparams": [],
   "version": [
-    63,
+    65,
     0
   ]
 }

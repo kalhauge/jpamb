@@ -1,0 +1,38 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ "*" ]
+jobs:
+  python-tests:
+    name: Python Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python 
+      uses: actions/setup-python@v6
+      with:
+          python-version-file: "pyproject.toml"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Run checkhealth
+      run: |
+        uv run jpamb -vv checkhealth
+    
+    - name: Run build
+      run: |
+        uv run jpamb -vv build
+        
+        # Check if something was changed
+        git diff --exit-code
+
+    - name: Run Python tests 
+      run: |
+        uv run pytest test/
+    
+
