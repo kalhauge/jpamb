@@ -112,4 +112,34 @@ public class Simple {
     return 1 / (n - 10054203);
   }
 
+  @Case("(0) -> ok")
+  @Case("(1087) -> divide by zero")
+  public static int divideByZeroHidden(int n) {
+    if (n == 1087) {
+        return 1 / 0;
+    }
+    return n;
+  }
+
+  @Case("(3) -> ok")
+  @Case("(17) -> assertion error")
+  public static int assertFalseHidden(int n) {
+    int x = n - 3;
+    int y = 2 * x;
+    if (y == 28) {
+        assert false;
+    }
+    return n;
+  }
+
+  @Case("(2) -> ok")
+  @Case("(1) -> assertion error")
+  public static int assertFalseIfOdd(int n) {
+    int x = n % 2;
+    if (x == 1) {
+        assert false;
+    }
+    return n;
+  }
+
 }

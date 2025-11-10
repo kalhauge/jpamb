@@ -32,6 +32,10 @@ jpamb.cases.Loops.terminates:()V                             () -> assertion err
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
+jpamb.cases.Simple.assertFalseHidden:(I)I                    (17) -> assertion error
+jpamb.cases.Simple.assertFalseHidden:(I)I                    (3) -> ok
+jpamb.cases.Simple.assertFalseIfOdd:(I)I                     (1) -> assertion error
+jpamb.cases.Simple.assertFalseIfOdd:(I)I                     (2) -> ok
 jpamb.cases.Simple.assertInteger:(I)V                        (0) -> assertion error
 jpamb.cases.Simple.assertInteger:(I)V                        (1) -> ok
 jpamb.cases.Simple.assertPositive:(I)V                       (-1) -> assertion error
@@ -47,6 +51,8 @@ jpamb.cases.Simple.divideByN:(I)I                            (1) -> ok
 jpamb.cases.Simple.divideByNMinus10054203:(I)I               (0) -> ok
 jpamb.cases.Simple.divideByNMinus10054203:(I)I               (10054203) -> divide by zero
 jpamb.cases.Simple.divideByZero:()I                          () -> divide by zero
+jpamb.cases.Simple.divideByZeroHidden:(I)I                   (0) -> ok
+jpamb.cases.Simple.divideByZeroHidden:(I)I                   (1087) -> divide by zero
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by zero
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
 jpamb.cases.Simple.earlyReturn:()I                           () -> ok
