@@ -319,7 +319,14 @@ def step(state: State) -> State | str:
         case jvm.ArrayStore(type=jvm.Int()):
             value, index, array_ref = frame.stack.pop(), frame.stack.pop(), frame.stack.pop()
             logger.debug(f"Storing value {value} at index {index} of array {array_ref}")
-            
+
+
+            # check for null
+            if getattr(array_ref, "value", array_ref) is None:
+                return "null pointer"
+            if not hasattr(array_ref, "value"):
+                array_ref = Value.int(array_ref)
+
             
             try:
                 state.heap[array_ref.value][index.value] = value.value
@@ -365,6 +372,7 @@ def step(state: State) -> State | str:
             frame.stack.push(jvm.Value.int(value))
             frame.pc += 1
             return state
+        
 
         case a:
             # a.help()
