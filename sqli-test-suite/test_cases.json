@@ -1,0 +1,256 @@
+{
+  "version": "1.0",
+  "total_cases": 25,
+  "test_cases": [
+    {
+      "id": 1,
+      "name": "SQLi_DirectConcat",
+      "vulnerable_method": "jpamb.sqli.SQLi_DirectConcat.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_DirectConcat.safe",
+      "category": "basic_concatenation",
+      "description": "Basic string concatenation with user input",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 2,
+      "name": "SQLi_MultiConcat",
+      "vulnerable_method": "jpamb.sqli.SQLi_MultiConcat.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_MultiConcat.safe",
+      "category": "basic_concatenation",
+      "description": "Multiple concatenations with different inputs",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 3,
+      "name": "SQLi_LiteralMix",
+      "vulnerable_method": "jpamb.sqli.SQLi_LiteralMix.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_LiteralMix.safe",
+      "category": "basic_concatenation",
+      "description": "Concatenation through intermediate variables",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 4,
+      "name": "SQLi_HTTPSource",
+      "vulnerable_method": "jpamb.sqli.SQLi_HTTPSource.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_HTTPSource.safe",
+      "category": "basic_concatenation",
+      "description": "User input from HTTP request parameter",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 5,
+      "name": "SQLi_OrderBy",
+      "vulnerable_method": "jpamb.sqli.SQLi_OrderBy.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_OrderBy.safe",
+      "category": "basic_concatenation",
+      "description": "ORDER BY clause injection",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 6,
+      "name": "SQLi_Substring",
+      "vulnerable_method": "jpamb.sqli.SQLi_Substring.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Substring.safe",
+      "category": "string_operations",
+      "description": "Substring operation preserving taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 7,
+      "name": "SQLi_Replace",
+      "vulnerable_method": "jpamb.sqli.SQLi_Replace.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Replace.safe",
+      "category": "string_operations",
+      "description": "Replace operation preserving taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 8,
+      "name": "SQLi_Trim",
+      "vulnerable_method": "jpamb.sqli.SQLi_Trim.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Trim.safe",
+      "category": "string_operations",
+      "description": "Trim operation preserving taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 9,
+      "name": "SQLi_CaseConversion",
+      "vulnerable_method": "jpamb.sqli.SQLi_CaseConversion.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_CaseConversion.safe",
+      "category": "string_operations",
+      "description": "Case conversion preserving taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 10,
+      "name": "SQLi_SplitJoin",
+      "vulnerable_method": "jpamb.sqli.SQLi_SplitJoin.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_SplitJoin.safe",
+      "category": "string_operations",
+      "description": "Split and array operations",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 11,
+      "name": "SQLi_IfElse",
+      "vulnerable_method": "jpamb.sqli.SQLi_IfElse.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_IfElse.safe",
+      "category": "control_flow",
+      "description": "Conditional branches with taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 12,
+      "name": "SQLi_Loop",
+      "vulnerable_method": "jpamb.sqli.SQLi_Loop.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Loop.safe",
+      "category": "control_flow",
+      "description": "Loop concatenation accumulating taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 13,
+      "name": "SQLi_TryCatch",
+      "vulnerable_method": "jpamb.sqli.SQLi_TryCatch.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_TryCatch.safe",
+      "category": "control_flow",
+      "description": "Exception handling with taint",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 14,
+      "name": "SQLi_Switch",
+      "vulnerable_method": "jpamb.sqli.SQLi_Switch.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Switch.safe",
+      "category": "control_flow",
+      "description": "Switch statement with multiple paths",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 15,
+      "name": "SQLi_NestedConditions",
+      "vulnerable_method": "jpamb.sqli.SQLi_NestedConditions.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_NestedConditions.safe",
+      "category": "control_flow",
+      "description": "Complex nested control flow",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 16,
+      "name": "SQLi_StringBuilder",
+      "vulnerable_method": "jpamb.sqli.SQLi_StringBuilder.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_StringBuilder.safe",
+      "category": "stringbuilder",
+      "description": "StringBuilder append operations",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 17,
+      "name": "SQLi_StringBuffer",
+      "vulnerable_method": "jpamb.sqli.SQLi_StringBuffer.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_StringBuffer.safe",
+      "category": "stringbuilder",
+      "description": "StringBuffer with loop",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 18,
+      "name": "SQLi_StringBuilderMixed",
+      "vulnerable_method": "jpamb.sqli.SQLi_StringBuilderMixed.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_StringBuilderMixed.safe",
+      "category": "stringbuilder",
+      "description": "Mixed StringBuilder operations",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 19,
+      "name": "SQLi_LoginBypass",
+      "vulnerable_method": "jpamb.sqli.SQLi_LoginBypass.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_LoginBypass.safe",
+      "category": "real_world",
+      "description": "Classic authentication bypass",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 20,
+      "name": "SQLi_Union",
+      "vulnerable_method": "jpamb.sqli.SQLi_Union.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_Union.safe",
+      "category": "real_world",
+      "description": "UNION-based SQL injection",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 21,
+      "name": "SQLi_TimeBased",
+      "vulnerable_method": "jpamb.sqli.SQLi_TimeBased.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_TimeBased.safe",
+      "category": "real_world",
+      "description": "Time-based blind SQL injection",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 22,
+      "name": "SQLi_SecondOrder",
+      "vulnerable_method": "jpamb.sqli.SQLi_SecondOrder.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_SecondOrder.safe",
+      "category": "real_world",
+      "description": "Second-order SQL injection",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 23,
+      "name": "SQLi_MultipleSources",
+      "vulnerable_method": "jpamb.sqli.SQLi_MultipleSources.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_MultipleSources.safe",
+      "category": "real_world",
+      "description": "Multiple untrusted input sources",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 24,
+      "name": "SQLi_PartialSanitization",
+      "vulnerable_method": "jpamb.sqli.SQLi_PartialSanitization.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_PartialSanitization.safe",
+      "category": "real_world",
+      "description": "Incomplete sanitization attempt",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    },
+    {
+      "id": 25,
+      "name": "SQLi_ComplexNested",
+      "vulnerable_method": "jpamb.sqli.SQLi_ComplexNested.vulnerable",
+      "safe_method": "jpamb.sqli.SQLi_ComplexNested.safe",
+      "category": "real_world",
+      "description": "Complex chain of string operations",
+      "expected_vulnerable": true,
+      "expected_safe": false
+    }
+  ]
+}

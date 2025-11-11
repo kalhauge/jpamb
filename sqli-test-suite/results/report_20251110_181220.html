@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JPAMB SQLi Test Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        .metric { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        .pass { color: green; }
+        .fail { color: red; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>JPAMB SQL Injection Test Report</h1>
+    <p>Generated: 2025-11-10 18:12:20</p>
+    
+    <h2>Summary Metrics</h2>
+    <div class="metric">
+        <strong>Detection Rate:</strong> 100.0% 
+        <span class="pass">
+            (Target: 75%+)
+        </span>
+    </div>
+    <div class="metric">
+        <strong>False Positive Rate:</strong> 4.0%
+        <span class="pass">
+            (Target: <30%)
+        </span>
+    </div>
+    <div class="metric">
+        <strong>Average Time per Test:</strong> 0.16s
+        <span class="pass">
+            (Target: <60s)
+        </span>
+    </div>
+    
+    <h2>Detailed Results</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Test Name</th>
+            <th>Category</th>
+            <th>Vulnerable Detection</th>
+            <th>Safe (No FP)</th>
+            <th>Status</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>SQLi_DirectConcat</td>
+            <td>basic_concatenation</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>SQLi_MultiConcat</td>
+            <td>basic_concatenation</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>SQLi_LiteralMix</td>
+            <td>basic_concatenation</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>SQLi_HTTPSource</td>
+            <td>basic_concatenation</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>SQLi_OrderBy</td>
+            <td>basic_concatenation</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>SQLi_Substring</td>
+            <td>string_operations</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>SQLi_Replace</td>
+            <td>string_operations</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>SQLi_Trim</td>
+            <td>string_operations</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td>SQLi_CaseConversion</td>
+            <td>string_operations</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td>SQLi_SplitJoin</td>
+            <td>string_operations</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td>SQLi_IfElse</td>
+            <td>control_flow</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td>SQLi_Loop</td>
+            <td>control_flow</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td>SQLi_TryCatch</td>
+            <td>control_flow</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td>SQLi_Switch</td>
+            <td>control_flow</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td>SQLi_NestedConditions</td>
+            <td>control_flow</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td>SQLi_StringBuilder</td>
+            <td>stringbuilder</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td>SQLi_StringBuffer</td>
+            <td>stringbuilder</td>
+            <td>✓ SQL injection</td>
+            <td>✗ SQL injection</td>
+            <td class="fail">FAIL</td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td>SQLi_StringBuilderMixed</td>
+            <td>stringbuilder</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td>SQLi_LoginBypass</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td>SQLi_Union</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td>SQLi_TimeBased</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td>SQLi_SecondOrder</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td>SQLi_MultipleSources</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td>SQLi_PartialSanitization</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td>SQLi_ComplexNested</td>
+            <td>real_world</td>
+            <td>✓ SQL injection</td>
+            <td>✓ ok</td>
+            <td class="pass">PASS</td>
+        </tr>
+    </table>
+</body>
+</html>
