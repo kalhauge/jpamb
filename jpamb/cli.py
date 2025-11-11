@@ -366,7 +366,7 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
                 sys.exit(-1)
             count += 1
 
-    Path(".jpamb-stepwise").as_posix().unlink(True)
+    Path(".jpamb-stepwise").unlink(True)
 
     r.output(f"Total {total}/{count}")
 
