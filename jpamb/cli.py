@@ -366,7 +366,7 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
                 sys.exit(-1)
             count += 1
 
-    Path(".jpamb-stepwise").unlink(True)
+    Path(".jpamb-stepwise").as_posix().unlink(True)
 
     r.output(f"Total {total}/{count}")
 
@@ -499,7 +499,7 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
     "-D",
     "--docker",
     help="the docker container to build with.",
-    default="ghcr.io/kalhauge/jvm2json:jdk-latest",
+    default=Path("ghcr.io/kalhauge/jvm2json:jdk-latest").as_posix(),
 )
 @click.option(
     "--compile / --no-compile",
@@ -543,7 +543,7 @@ def build(suite, compile, decompile, document, test, docker):
         "run",
         "--rm",
         "-v",
-        f"{suite.workfolder}:/workspace",
+        Path(f"{suite.workfolder}:{Path('/workspace')}").as_posix(),
         docker,
     ]
 
@@ -551,7 +551,7 @@ def build(suite, compile, decompile, document, test, docker):
         log.info("Compiling")
         run(
             cmd
-            + ["javac", "-d", "target/classes"]
+            + ["javac", "-d", Path("target/classes").as_posix()]
             + list(a.relative_to(suite.workfolder) for a in suite.sourcefiles()),
             logerr=log.warning,
             logout=log.info,
@@ -561,7 +561,7 @@ def build(suite, compile, decompile, document, test, docker):
         log.info("Building Stats")
 
         res, x = run(
-            cmd + ["java", "-cp", "target/classes", "jpamb.Runtime"],
+            cmd + ["java", "-cp", Path("target/classes").as_posix(), "jpamb.Runtime"],
             logout=log.info,
             logerr=log.debug,
             timeout=60,
