@@ -104,6 +104,12 @@ class Type(ABC):
                     r = Float()
                 case "D":
                     r = Double()
+                case "L":
+                    i += 1
+                    start = i
+                    while input[i] != ";":
+                        i += 1
+                    r = Object(ClassName.decode(input[start:i]))
                 case "[":  # ]
                     stack.append(Array)
                     i += 1
@@ -143,12 +149,16 @@ class Type(ABC):
                     return Reference()
                 case "boolean":
                     return Boolean()
+                case "string":
+                    return Object(ClassName("java/lang/String"))
         if "base" in json:
             return Type.from_json(json["base"])
         if "kind" in json:
             match json["kind"]:
                 case "array":
                     return Array(Type.from_json(json["type"]))
+                case "class":
+                    return Object(ClassName.decode(json["name"]))
                 case kind:
                     raise NotImplementedError(
                         f"Unknown kind {kind}, in Type.from_json: {json!r}"
@@ -162,7 +172,6 @@ class Type(ABC):
 
 @dataclass(frozen=True)
 class StackType(Type):
-
     def is_stacktype(self):
         return True
 
@@ -406,7 +415,7 @@ class ParameterType:
 
     def __len__(self):
         return self._elements.__len__()
-    
+
     def __iter__(self):
         return self._elements.__iter__()
 
@@ -511,9 +520,9 @@ class Absolute[T: Encodable](ABC):
     extension: T
 
     def __post_init__(self):
-        assert (
-            self.__class__ != Absolute
-        ), "Do not use absolute directly, use AbsMethodId or AbsFieldID"
+        assert self.__class__ != Absolute, (
+            "Do not use absolute directly, use AbsMethodId or AbsFieldID"
+        )
 
     @classmethod
     def decode(cls, input, decode: Callable[[str], T]) -> "Self":
@@ -530,7 +539,6 @@ class Absolute[T: Encodable](ABC):
 
 
 class AbsMethodID(Absolute[MethodID]):
-
     @classmethod
     def decode(cls, input) -> "Self":
         return super().decode(input, MethodID.decode)
@@ -556,7 +564,6 @@ class AbsMethodID(Absolute[MethodID]):
 
 
 class AbsFieldID(Absolute[FieldID]):
-
     @classmethod
     def decode(cls, input) -> "Self":
         return super().decode(input, FieldID.decode)
@@ -593,6 +600,8 @@ class Value:
                 return str(self.value)
             case Char():
                 return f"'{self.value}'"
+            case Object(cn) if cn.name == "java/lang/String":
+                return f"s'{self.value}'"
             case Array(content):
                 assert isinstance(self.value, Iterable)
                 match content:
@@ -614,6 +623,10 @@ class Value:
     @classmethod
     def boolean(cls, n: bool) -> Self:
         return cls(Boolean(), n)
+
+    @classmethod
+    def string(cls, n: str) -> Self:
+        return cls(Object(ClassName("java/lang/String")), n)
 
     @classmethod
     def char(cls, char: str) -> Self:
@@ -663,6 +676,7 @@ class ValueParser:
             ("INT", r"-?\d+"),
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
+            ("STRING", r"s'[^']*'"),
             ("COMMA", r","),
             ("SKIP", r"[ \t]+"),
         ]
@@ -710,6 +724,8 @@ class ValueParser:
                 return Value.char(self.parse_char())
             case "BOOL":
                 return Value.boolean(self.parse_bool())
+            case "STRING":
+                return Value.string(self.parse_string())
             case "OPEN_ARRAY":
                 return self.parse_array()
         self.expected("char")
@@ -725,6 +741,10 @@ class ValueParser:
     def parse_char(self):
         tok = self.expect("CHAR")
         return tok.value[1]
+
+    def parse_string(self):
+        tok = self.expect("STRING")
+        return tok.value[2:-1]
 
     def parse_array(self):
         key = self.expect("OPEN_ARRAY")

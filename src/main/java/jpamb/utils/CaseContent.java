@@ -25,6 +25,8 @@ public record CaseContent(
         chars.add("'" + x + "'");
       }
       return "[C:" + String.join(", ", chars) + "]";
+    } else if (obj instanceof String) {
+      return "s'" + obj + "'";
     } else {
       return obj.toString();
     }
