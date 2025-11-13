@@ -1,5 +1,5 @@
 ┌ Case jpamb.cases.Simple.assertBoolean:(false) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(false)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(false)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(bool False)}, ϵ, jpamb.cases.Simple.assertBoolean:(Z)V:0>
@@ -10,11 +10,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(false)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(false)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.assertBoolean:(false) -> assertion error
 ┌ Case jpamb.cases.Simple.assertBoolean:(true) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(true)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(true)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(bool True)}, ϵ, jpamb.cases.Simple.assertBoolean:(Z)V:0>
@@ -25,11 +25,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(true)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertBoolean:(Z)V' '(true)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.assertBoolean:(true) -> ok
 ┌ Case jpamb.cases.Simple.assertFalse:() -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertFalse:()V' '()'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertFalse:()V' '()'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{}, ϵ, jpamb.cases.Simple.assertFalse:()V:0>
@@ -40,11 +40,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertFalse:()V' '()'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertFalse:()V' '()'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.assertFalse:() -> assertion error
 ┌ Case jpamb.cases.Simple.assertInteger:(0) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.assertInteger:(I)V:0>
@@ -55,11 +55,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(0)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.assertInteger:(0) -> assertion error
 ┌ Case jpamb.cases.Simple.assertInteger:(1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(1)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int 1)}, ϵ, jpamb.cases.Simple.assertInteger:(I)V:0>
@@ -70,11 +70,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertInteger:(I)V' '(1)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.assertInteger:(1) -> ok
 ┌ Case jpamb.cases.Simple.assertPositive:(-1) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(-1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(-1)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int -1)}, ϵ, jpamb.cases.Simple.assertPositive:(I)V:0>
@@ -85,11 +85,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(-1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(-1)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.assertPositive:(-1) -> assertion error
 ┌ Case jpamb.cases.Simple.assertPositive:(1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(1)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int 1)}, ϵ, jpamb.cases.Simple.assertPositive:(I)V:0>
@@ -100,11 +100,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.assertPositive:(I)V' '(1)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.assertPositive:(1) -> ok
 ┌ Case jpamb.cases.Simple.checkBeforeAssert:(-1) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(-1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(-1)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int -1)}, ϵ, jpamb.cases.Simple.checkBeforeAssert:(I)V:0>
@@ -117,11 +117,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Ifz(offset=1, condition='ne', target=3)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(-1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(-1)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeAssert:(-1) -> assertion error
 ┌ Case jpamb.cases.Simple.checkBeforeAssert:(0) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.checkBeforeAssert:(I)V:0>
@@ -134,11 +134,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Ifz(offset=1, condition='ne', target=3)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeAssert:(I)V' '(0)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeAssert:(0) -> ok
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN2:(0) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.checkBeforeDivideByN2:(I)I:0>
@@ -151,11 +151,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Ifz(offset=1, condition='eq', target=6)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(0)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeDivideByN2:(0) -> ok
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN2:(1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(1)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 1)}, ϵ, jpamb.cases.Simple.checkBeforeDivideByN2:(I)I:0>
@@ -168,11 +168,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Ifz(offset=1, condition='eq', target=6)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I' '(1)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeDivideByN2:(1) -> ok
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN:(0) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0>
@@ -183,11 +183,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(0)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeDivideByN:(0) -> assertion error
 ┌ Case jpamb.cases.Simple.checkBeforeDivideByN:(1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(1)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(int 1)}, ϵ, jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0>
@@ -198,11 +198,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I' '(1)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.checkBeforeDivideByN:(1) -> ok
 ┌ Case jpamb.cases.Simple.divideByN:(0) -> divide by zero
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 1
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.divideByN:(I)I:0>
@@ -214,11 +214,11 @@
 ││┌ Stdout
 │││ divide by zero
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(0)'
 │ Expected 'divide by zero' and got 'divide by zero'
 └ Case jpamb.cases.Simple.divideByN:(0) -> divide by zero
 ┌ Case jpamb.cases.Simple.divideByN:(1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(1)'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 1
 │││ {} <{0:(int 1)}, ϵ, jpamb.cases.Simple.divideByN:(I)I:0>
@@ -232,11 +232,11 @@
 ││┌ Stdout
 │││ ok
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByN:(I)I' '(1)'
 │ Expected 'ok' and got 'ok'
 └ Case jpamb.cases.Simple.divideByN:(1) -> ok
 ┌ Case jpamb.cases.Simple.divideByNMinus10054203:(0) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(0)'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 1
 │││ {} <{0:(int 0)}, ϵ, jpamb.cases.Simple.divideByNMinus10054203:(I)I:0>
@@ -253,11 +253,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Binary(offset=4, type=Int(), operant=<BinaryOpr.Sub: 2>)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(0)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.divideByNMinus10054203:(0) -> ok
 ┌ Case jpamb.cases.Simple.divideByNMinus10054203:(10054203) -> divide by zero
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(10054203)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(10054203)'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 1
 │││ {} <{0:(int 10054203)}, ϵ, jpamb.cases.Simple.divideByNMinus10054203:(I)I:0>
@@ -274,11 +274,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Binary(offset=4, type=Int(), operant=<BinaryOpr.Sub: 2>)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(10054203)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByNMinus10054203:(I)I' '(10054203)'
 │ Expected 'divide by zero' and got 'failure'
 └ Case jpamb.cases.Simple.divideByNMinus10054203:(10054203) -> divide by zero
 ┌ Case jpamb.cases.Simple.divideByZero:() -> divide by zero
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByZero:()I' '()'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByZero:()I' '()'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 1
 │││ {} <{}, ϵ, jpamb.cases.Simple.divideByZero:()I:0>
@@ -290,11 +290,11 @@
 ││┌ Stdout
 │││ divide by zero
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideByZero:()I' '()'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideByZero:()I' '()'
 │ Expected 'divide by zero' and got 'divide by zero'
 └ Case jpamb.cases.Simple.divideByZero:() -> divide by zero
 ┌ Case jpamb.cases.Simple.divideZeroByZero:(0, 0) -> divide by zero
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 0)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 0)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 0), 1:(int 0)}, ϵ, jpamb.cases.Simple.divideZeroByZero:(II)I:0>
@@ -306,11 +306,11 @@
 ││┌ Stdout
 │││ divide by zero
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 0)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 0)'
 │ Expected 'divide by zero' and got 'divide by zero'
 └ Case jpamb.cases.Simple.divideZeroByZero:(0, 0) -> divide by zero
 ┌ Case jpamb.cases.Simple.divideZeroByZero:(0, 1) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 1)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 1)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 0), 1:(int 1)}, ϵ, jpamb.cases.Simple.divideZeroByZero:(II)I:0>
@@ -324,11 +324,11 @@
 ││┌ Stdout
 │││ ok
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 1)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.divideZeroByZero:(II)I' '(0, 1)'
 │ Expected 'ok' and got 'ok'
 └ Case jpamb.cases.Simple.divideZeroByZero:(0, 1) -> ok
 ┌ Case jpamb.cases.Simple.earlyReturn:() -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.earlyReturn:()I' '()'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.earlyReturn:()I' '()'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 0
 │││ {} <{}, ϵ, jpamb.cases.Simple.earlyReturn:()I:0>
@@ -338,11 +338,11 @@
 ││┌ Stdout
 │││ ok
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.earlyReturn:()I' '()'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.earlyReturn:()I' '()'
 │ Expected 'ok' and got 'ok'
 └ Case jpamb.cases.Simple.earlyReturn:() -> ok
 ┌ Case jpamb.cases.Simple.justAdd:(1, 2) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justAdd:(II)I' '(1, 2)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justAdd:(II)I' '(1, 2)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 1), 1:(int 2)}, ϵ, jpamb.cases.Simple.justAdd:(II)I:0>
@@ -357,11 +357,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Binary(offset=2, type=Int(), operant=<BinaryOpr.Add: 1>)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justAdd:(II)I' '(1, 2)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justAdd:(II)I' '(1, 2)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.justAdd:(1, 2) -> ok
 ┌ Case jpamb.cases.Simple.justMulitply:(1, 2) -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justMulitply:(II)I' '(1, 2)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justMulitply:(II)I' '(1, 2)'
 ││┌ Stderr
 │││ [DEBUG] STEP load:I 0
 │││ {} <{0:(int 1), 1:(int 2)}, ϵ, jpamb.cases.Simple.justMulitply:(II)I:0>
@@ -376,11 +376,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Binary(offset=2, type=Int(), operant=<BinaryOpr.Mul: 3>)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justMulitply:(II)I' '(1, 2)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justMulitply:(II)I' '(1, 2)'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.justMulitply:(1, 2) -> ok
 ┌ Case jpamb.cases.Simple.justReturn:() -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justReturn:()I' '()'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justReturn:()I' '()'
 ││┌ Stderr
 │││ [DEBUG] STEP push:I 0
 │││ {} <{}, ϵ, jpamb.cases.Simple.justReturn:()I:0>
@@ -390,11 +390,11 @@
 ││┌ Stdout
 │││ ok
 ││└ Stdout
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justReturn:()I' '()'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justReturn:()I' '()'
 │ Expected 'ok' and got 'ok'
 └ Case jpamb.cases.Simple.justReturn:() -> ok
 ┌ Case jpamb.cases.Simple.justReturnNothing:() -> ok
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justReturnNothing:()V' '()'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justReturnNothing:()V' '()'
 ││┌ Stderr
 │││ [DEBUG] STEP return:V
 │││ {} <{}, ϵ, jpamb.cases.Simple.justReturnNothing:()V:0>
@@ -405,11 +405,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Return(offset=0, type=None)
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.justReturnNothing:()V' '()'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.justReturnNothing:()V' '()'
 │ Expected 'ok' and got 'failure'
 └ Case jpamb.cases.Simple.justReturnNothing:() -> ok
 ┌ Case jpamb.cases.Simple.multiError:(false) -> assertion error
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(false)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(false)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(bool False)}, ϵ, jpamb.cases.Simple.multiError:(Z)I:0>
@@ -420,11 +420,11 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(false)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(false)'
 │ Expected 'assertion error' and got 'failure'
 └ Case jpamb.cases.Simple.multiError:(false) -> assertion error
 ┌ Case jpamb.cases.Simple.multiError:(true) -> divide by zero
-│┌ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(true)'
+│┌ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(true)'
 ││┌ Stderr
 │││ [DEBUG] STEP get static jpamb/cases/Simple.$assertionsDisabled:Z
 │││ {} <{0:(bool True)}, ϵ, jpamb.cases.Simple.multiError:(Z)I:0>
@@ -435,7 +435,7 @@
 │││     raise NotImplementedError(f"Don't know how to handle: {a!r}")
 │││ NotImplementedError: Don't know how to handle: Get(offset=0, static=True, field=AbsFieldID(classname=ClassName('jpamb/cases/Simple'), extension=FieldID(name='$assertionsDisabled', type=Boolean())))
 ││└ Stderr
-│└ Run .venv/bin/python solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(true)'
+│└ Run .venv/bin/python3 solutions/interpreter.py 'jpamb.cases.Simple.multiError:(Z)I' '(true)'
 │ Expected 'divide by zero' and got 'failure'
 └ Case jpamb.cases.Simple.multiError:(true) -> divide by zero
 Total 7/27
