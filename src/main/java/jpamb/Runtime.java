@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import jpamb.utils.*;
 import jpamb.utils.CaseContent.ResultType;
+import jpamb.utils.InputParser.ParseError;
 import jpamb.cases.*;
 
 /**
@@ -21,6 +22,7 @@ public class Runtime {
       Loops.class,
       Tricky.class,
       jpamb.cases.Arrays.class,
+      jpamb.cases.Strings.class,
       Dependent.class,
       Calls.class);
 
@@ -53,6 +55,8 @@ public class Runtime {
       b.append("[I");
     } else if (c.equals(char[].class)) {
       b.append("[C");
+    } else if (c.equals(String.class)) {
+      b.append("Ljava/lang/String;");
     } else {
       throw new RuntimeException("Unknown type:" + c.toString());
     }
@@ -83,6 +87,22 @@ public class Runtime {
         }
         case 'C' -> {
           params.add(char.class);
+          break;
+        }
+        case 'L' -> {
+          i += 1;
+          var start = i;
+          while (i < s.length()) {
+            if (s.charAt(i) == ';') {
+              var str = s.substring(start, i);
+              if (str.equals("java/lang/String")) {
+                params.add(String.class);
+                break;
+              }
+              throw new InputParser.ParseError("Invalid type", str);
+            }
+            i += 1;
+          }
           break;
         }
         case '[' -> {
@@ -134,6 +154,7 @@ public class Runtime {
       String cls = matcher.group(1);
       String mth = matcher.group(2);
       String prams = matcher.group(3);
+      System.err.printf("Found method %s in %s with %s%n", mth, cls, prams);
       Method m = Class.forName(cls).getMethod(mth, parseMethodSignature(prams));
       if (!Modifier.isStatic(m.getModifiers())) {
         throw new RuntimeException("Expected " + pattern + " to be static");

@@ -147,6 +147,8 @@ class Push(Opcode):
                     case 5:
                         return "iconst_5"
                 return f"ldc [{self.value.value}]"
+            case jvm.Object(cn) if cn == jvm.ClassName("java/lang/String"):
+                return "ldc"
             case jvm.Reference():
                 assert self.value.value is None, f"what is {self.value}"
                 return "aconst_null"
@@ -170,6 +172,8 @@ class Push(Opcode):
                     return "iconst_i"
                 else:
                     return "ldc"
+            case jvm.Object(cn) if cn.name == "java/lang/String":
+                return "ldc"
             case jvm.Reference():
                 return "aconst_null"
 
@@ -427,7 +431,7 @@ class InvokeVirtual(Opcode):
         )
 
     def real(self) -> str:
-        return f"invokevirtual {self.method.dashed()}"
+        return f"invokevirtual {self.method.encode()}"
 
     def semantics(self) -> str | None:
         semantics = """
