@@ -406,7 +406,8 @@ src/main/java/jpamb/cases
     └── Tricky.java
 ```
 
-and then running the following command:
+You then have to update the `caseclasses` list in `src/main/java/jpamb/Runtime.java`, if
+you have added a new class and then run:
 
 ```
 $ uv run jpamb build
