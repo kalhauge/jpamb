@@ -135,16 +135,17 @@ def step(state: State) -> State | str:
             sys.exit(-1)
 
 
-frame = Frame.from_method(methodid)
-for i, v in enumerate(input.values):
-    frame.locals[i] = v
+def main():
+    frame = Frame.from_method(methodid)
+    for i, v in enumerate(input.values):
+        frame.locals[i] = v
 
-state = State({}, Stack.empty().push(frame))
+    state = State({}, Stack.empty().push(frame))
 
-for x in range(1000):
-    state = step(state)
-    if isinstance(state, str):
-        print(state)
-        break
-else:
-    print("*")
+    for x in range(1000):
+        state = step(state)
+        if isinstance(state, str):
+            print(state)
+            break
+    else:
+        print("*")

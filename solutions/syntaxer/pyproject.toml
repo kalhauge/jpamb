@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syntaxer"
+version = "0.1.0"
+description = "A very stupid syntatic analysis, that only checks for assertion errors."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "jpamb",
+  "tree-sitter>=0.26.0",
+  "tree-sitter-java>=0.23.5",
+]
+
+
+[project.scripts]
+syntaxer = "syntaxer:main"
+
+[tool.uv.sources]
+jpamb = { workspace = true }

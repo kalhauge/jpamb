@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interpreter"
+version = "0.1.0"
+description = "The start of an interperter"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "jpamb",
+]
+
+
+[project.scripts]
+interpreter = "interpreter:main"
+dynamic-analysis = "dynamic-analysis:main"
+
+[tool.uv.sources]
+jpamb = { workspace = true }

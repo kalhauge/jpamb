@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "basic"
+version = "0.1.0"
+description = "A no import analyser"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "jpamb",
+]
+
+[project.scripts]
+basic = "basic:main"
+
+[tool.uv.sources]
+jpamb = { path = "../../" }
+
+[dependency-groups]
+dev = [
+    "jpamb",
+    "pytest>=9.1.1",
+]
+

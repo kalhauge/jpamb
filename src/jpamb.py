@@ -1,5 +1,5 @@
 """
-jpamb.model
+jpamb
 
 This module provides the basic data model for working with the JPAMB.
 
@@ -18,7 +18,7 @@ import subprocess
 
 import runit
 
-from typing import Iterable
+from typing import Iterable, NoReturn
 
 import jvm
 
@@ -234,9 +234,11 @@ class Suite:
             cls._instances[workfolder] = super().__new__(cls)
         return cls._instances[workfolder]
 
+    @classmethod
     def from_cwd(cls):
         return cls(Path.cwd())
 
+    @classmethod
     def from_env(cls):
         return cls(Path(os.environ.get("JPAMB_WORKFOLDER")).absolute())
 
@@ -417,3 +419,60 @@ class Suite:
                         str(opr.real())
                 except NotImplementedError as e:
                     raise AssertionError("All operations should be supported") from e
+
+
+def getmethodid(
+    name: str,
+    version: str,
+    group: str,
+    tags: list[str],
+    for_science: bool,
+) -> jvm.AbsMethodID:
+    """Get the method id from the program arguments, or output the info."""
+
+    import sys
+
+    mid = sys.argv[1]
+    if mid == "info":
+        printinfo(name, version, group, tags, for_science)
+
+    return parse_methodid(mid)
+
+
+def getcase() -> tuple[jvm.AbsMethodID, Input]:
+    """Get the case from the program arguments."""
+    import sys
+
+    mid = sys.argv[1]
+    i = sys.argv[2]
+
+    return parse_methodid(mid), parse_input(i)
+
+
+def printinfo(
+    name: str,
+    version: str,
+    group: str,
+    tags: list[str],
+    for_science: bool,
+) -> NoReturn:
+    print(name)
+    print(version)
+    print(group)
+    print(",".join(tags))
+    if for_science:
+        import platform
+
+        print(platform.platform())
+
+    import sys
+
+    sys.exit(0)
+
+
+def parse_methodid(mid) -> jvm.AbsMethodID:
+    return jvm.AbsMethodID.decode(mid)
+
+
+def parse_input(i) -> Input:
+    return Input.decode(i)

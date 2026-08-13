@@ -1,0 +1,2 @@
+[console_scripts]
+syntaxer = syntaxer:main

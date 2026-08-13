@@ -1,0 +1,8 @@
+pyproject.toml
+syntaxer.py
+syntaxer.egg-info/PKG-INFO
+syntaxer.egg-info/SOURCES.txt
+syntaxer.egg-info/dependency_links.txt
+syntaxer.egg-info/entry_points.txt
+syntaxer.egg-info/requires.txt
+syntaxer.egg-info/top_level.txt

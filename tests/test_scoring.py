@@ -4,7 +4,7 @@ These ensure students get consistent and accurate feedback from their analysis s
 """
 
 import pytest
-from jpamb import model
+import jpamb
 
 
 class TestPredictionParsing:
@@ -12,36 +12,36 @@ class TestPredictionParsing:
 
     def test_parse_percentage(self):
         """Test parsing percentage format predictions."""
-        pred = model.Prediction.parse("75%")
+        pred = jpamb.Prediction.parse("75%")
         assert pred.to_probability() == pytest.approx(0.75, abs=0.01)
 
         # Note: 100% confidence (wager=inf) returns 0 probability to discourage
         # students from being overly confident - teaches that you can't be 100% certain
-        pred = model.Prediction.parse("100%")
+        pred = jpamb.Prediction.parse("100%")
         assert pred.to_probability() == 0.0
 
-        pred = model.Prediction.parse("0%")
+        pred = jpamb.Prediction.parse("0%")
         assert pred.to_probability() == pytest.approx(0.0, abs=0.01)
 
     def test_parse_wager(self):
         """Test parsing wager format predictions."""
-        pred = model.Prediction.parse("1.0")
+        pred = jpamb.Prediction.parse("1.0")
         assert pred.wager == 1.0
 
-        pred = model.Prediction.parse("0.5")
+        pred = jpamb.Prediction.parse("0.5")
         assert pred.wager == 0.5
 
-        pred = model.Prediction.parse("-1.0")
+        pred = jpamb.Prediction.parse("-1.0")
         assert pred.wager == -1.0
 
     def test_parse_infinity(self):
         """Test parsing infinite confidence predictions."""
-        pred = model.Prediction.parse("inf")
+        pred = jpamb.Prediction.parse("inf")
         assert pred.wager == float("inf")
         # Returns 0 to discourage extreme confidence (pedagogical choice)
         assert pred.to_probability() == 0.0
 
-        pred = model.Prediction.parse("-inf")
+        pred = jpamb.Prediction.parse("-inf")
         assert pred.wager == float("-inf")
         assert pred.to_probability() == 0.0
 
@@ -51,31 +51,31 @@ class TestPredictionScoring:
 
     def test_perfect_prediction_positive(self):
         """Test scoring when prediction is perfectly confident and correct."""
-        pred = model.Prediction(float("inf"))
+        pred = jpamb.Prediction(float("inf"))
         score = pred.score(happens=True)
         assert score == 1
 
     def test_perfect_prediction_negative(self):
         """Test scoring when prediction is perfectly confident it won't happen and is correct."""
-        pred = model.Prediction(float("-inf"))
+        pred = jpamb.Prediction(float("-inf"))
         score = pred.score(happens=False)
         assert score == 1
 
     def test_wrong_confident_prediction(self):
         """Test scoring when prediction is confident but wrong."""
         # Wager inf (think it will happen), but it doesn't
-        pred = model.Prediction(float("inf"))
+        pred = jpamb.Prediction(float("inf"))
         score = pred.score(happens=False)
         assert score == float("-inf")
 
         # Wager -inf (think it won't happen), but it does
-        pred = model.Prediction(float("-inf"))
+        pred = jpamb.Prediction(float("-inf"))
         score = pred.score(happens=True)
         assert score == float("-inf")  # Maximum penalty for being wrong
 
     def test_neutral_prediction(self):
         """Test scoring for neutral predictions."""
-        pred = model.Prediction(0)
+        pred = jpamb.Prediction(0)
         score_yes = pred.score(happens=True)
         score_no = pred.score(happens=False)
         # Neutral prediction should score 0 either way
@@ -84,7 +84,7 @@ class TestPredictionScoring:
 
     def test_moderate_confidence(self):
         """Test scoring for moderate confidence predictions."""
-        pred = model.Prediction(1.0)
+        pred = jpamb.Prediction(1.0)
         score_correct = pred.score(happens=True)
         score_wrong = pred.score(happens=False)
 
@@ -100,7 +100,7 @@ class TestPredictionScoring:
         discourages overconfidence - this is intentional pedagogy.
         """
         for prob in [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]:
-            pred = model.Prediction.from_probability(prob)
+            pred = jpamb.Prediction.from_probability(prob)
             recovered = pred.to_probability()
             assert recovered == pytest.approx(prob, abs=0.01)
 
@@ -111,7 +111,7 @@ class TestResponseParsing:
     def test_parse_simple_response(self):
         """Test parsing a simple response."""
         output = "ok;1.0\ndivide by zero;-1.0"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
 
         assert "ok" in response.predictions
         assert "divide by zero" in response.predictions
@@ -121,7 +121,7 @@ class TestResponseParsing:
     def test_parse_percentage_response(self):
         """Test parsing responses with percentages."""
         output = "ok;75%\nassertion error;25%"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
 
         assert "ok" in response.predictions
         assert "assertion error" in response.predictions
@@ -129,7 +129,7 @@ class TestResponseParsing:
     def test_parse_ignores_invalid_queries(self):
         """Test that invalid queries are ignored."""
         output = "ok;1.0\ninvalid_query;1.0\ndivide by zero;0.5"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
 
         assert "ok" in response.predictions
         assert "divide by zero" in response.predictions
@@ -138,7 +138,7 @@ class TestResponseParsing:
     def test_parse_handles_malformed_lines(self):
         """Test that malformed lines are skipped gracefully."""
         output = "ok;1.0\nthis is not valid\ndivide by zero;0.5"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
 
         # Should still parse the valid lines
         assert "ok" in response.predictions
@@ -147,7 +147,7 @@ class TestResponseParsing:
     def test_parse_empty_response(self):
         """Test parsing an empty response."""
         output = ""
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
         assert len(response.predictions) == 0
 
 
@@ -157,14 +157,14 @@ class TestResponseScoring:
     def test_score_perfect_response(self):
         """Test scoring a perfect response."""
         output = "ok;inf"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
         score = response.score(["ok"])
         assert score == 1
 
     def test_score_multi_query_response(self):
         """Test scoring a response with multiple queries."""
         output = "ok;inf\ndivide by zero;-inf"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
         score = response.score(["ok"])
 
         # Should get points for correct "ok" and correct "not divide by zero"
@@ -173,7 +173,7 @@ class TestResponseScoring:
     def test_score_partial_response(self):
         """Test scoring when not all queries are answered."""
         output = "ok;1.0"
-        response = model.Response.parse(output)
+        response = jpamb.Response.parse(output)
         score = response.score(["ok", "divide by zero"])
 
         # Should only score the answered query
@@ -186,7 +186,7 @@ class TestCaseParsing:
     def test_case_decode(self):
         """Test decoding a case string."""
         case_str = "jpamb.cases.Simple.divideByZero:()I () -> divide by zero"
-        case = model.Case.decode(case_str)
+        case = jpamb.Case.decode(case_str)
 
         assert case.methodid.classname.encode() == "jpamb.cases.Simple"
         assert case.methodid.extension.name == "divideByZero"
@@ -195,7 +195,7 @@ class TestCaseParsing:
     def test_case_encode(self):
         """Test encoding a case back to string."""
         case_str = "jpamb.cases.Simple.divideByN:(I)I (0) -> divide by zero"
-        case = model.Case.decode(case_str)
+        case = jpamb.Case.decode(case_str)
         encoded = case.encode()
 
         # Should be able to encode back
@@ -206,9 +206,9 @@ class TestCaseParsing:
     def test_case_roundtrip(self):
         """Test that case parsing is reversible."""
         original = "jpamb.cases.Simple.assertBoolean:(Z)V (false) -> assertion error"
-        case = model.Case.decode(original)
+        case = jpamb.Case.decode(original)
         encoded = case.encode()
-        case2 = model.Case.decode(encoded)
+        case2 = jpamb.Case.decode(encoded)
 
         assert case == case2
 
@@ -219,25 +219,25 @@ class TestInputParsing:
     def test_input_decode_empty(self):
         """Test decoding empty input."""
         input_str = "()"
-        input_obj = model.Input.decode(input_str)
+        input_obj = jpamb.Input.decode(input_str)
         assert len(input_obj.values) == 0
 
     def test_input_decode_single_int(self):
         """Test decoding single integer input."""
         input_str = "(1)"
-        input_obj = model.Input.decode(input_str)
+        input_obj = jpamb.Input.decode(input_str)
         assert len(input_obj.values) == 1
 
     def test_input_decode_multiple_values(self):
         """Test decoding multiple input values."""
         input_str = "(1, 2)"
-        input_obj = model.Input.decode(input_str)
+        input_obj = jpamb.Input.decode(input_str)
         assert len(input_obj.values) == 2
 
     def test_input_encode_roundtrip(self):
         """Test that input encoding is reversible."""
         original = "(1, false, 'a')"
-        input_obj = model.Input.decode(original)
+        input_obj = jpamb.Input.decode(original)
         encoded = input_obj.encode()
 
         # Should preserve the structure
@@ -247,7 +247,7 @@ class TestInputParsing:
     def test_input_invalid_format(self):
         """Test that invalid input format raises error."""
         with pytest.raises(ValueError):
-            model.Input.decode("1, 2")  # Missing parentheses
+            jpamb.Input.decode("1, 2")  # Missing parentheses
 
 
 class TestKnownQueries:
@@ -264,8 +264,8 @@ class TestKnownQueries:
             "out of bounds",
         }
 
-        assert set(model.QUERIES) == expected_queries
+        assert set(jpamb.QUERIES) == expected_queries
 
     def test_wildcard_query_present(self):
         """Test that wildcard query exists."""
-        assert "*" in model.QUERIES
+        assert "*" in jpamb.QUERIES

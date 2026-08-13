@@ -10,7 +10,7 @@ from collections import Counter
 
 import runit
 
-from jpamb import model
+import jpamb
 from loguru import logger as log
 
 import subprocess
@@ -148,7 +148,7 @@ def cli(ctx, workdir: Path, verbose):
     """This is the jpamb main entry point."""
     logger_initialize(verbose)
     log.debug(f"Setup suite in {workdir}")
-    ctx.obj = model.Suite(workdir)
+    ctx.obj = jpamb.Suite(workdir)
 
 
 @cli.command()
@@ -200,7 +200,7 @@ def test(suite, program, report, filter, fail_fast, with_python, timeout):
     if not filter:
         with r.context("Info"):
             out = r.run(program + ("info",), timeout=timeout)
-            info = model.AnalysisInfo.parse(out)
+            info = jpamb.AnalysisInfo.parse(out)
 
             with r.context("Results"):
                 for k, v in sorted(dataclasses.asdict(info).items()):
@@ -213,7 +213,7 @@ def test(suite, program, report, filter, fail_fast, with_python, timeout):
 
         with r.context(f"Case {methodid}"):
             out = r.run(program + (str(methodid),), timeout=timeout)
-            response = model.Response.parse(out)
+            response = jpamb.Response.parse(out)
             with r.context("Results"):
                 for k, v in sorted(response.predictions.items()):
                     r.output(f"- {k}: {v} {v.wager:0.2f}")
@@ -266,7 +266,7 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
     if stepwise:
         try:
             with open(".jpamb-stepwise", encoding="utf-8") as f:
-                last_case = model.Case.decode(f.read())
+                last_case = jpamb.Case.decode(f.read())
         except ValueError as e:
             log.warning(e)
             last_case = None
@@ -350,7 +350,7 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
             program + ("info",),
             timeout=timeout,
         )
-        info = model.AnalysisInfo.parse(out)
+        info = jpamb.AnalysisInfo.parse(out)
     except ValueError:
         log.error("Expected info, but got:")
         for o in out.splitlines():
@@ -372,7 +372,7 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
         for i in range(iterations):
             log.info(f"Running on {methodid}, iter {i}")
             experiment = runner.experiment(program + (methodid.encode(),))
-            response = model.Response.parse(experiment.output)
+            response = jpamb.Response.parse(experiment.output)
             score = response.score(correct)
 
             result = {k: v.wager for k, v in response.predictions.items()}
@@ -389,8 +389,8 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
             )
 
             _score += score
-            _relative += relative
-            _time += time
+            _relative += experiment.time_relative
+            _time += experiment.time_ns
 
         bymethod[str(methodid)] = {
             "score": _score / iterations,

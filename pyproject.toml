@@ -32,7 +32,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["test"]
+testpaths = ["tests"]
 markers = [
   "slow: mark test as slow"
 ]
@@ -42,4 +42,11 @@ ignore = ["F841", "F403"]
 
 [tool.uv.sources]
 runit = { git = "https://github.com/kalhauge/runit.git" }
+
+[tool.uv.workspace]
+members = [
+    "solutions/apriori",
+    "solutions/syntaxer",
+    "solutions/interpreter",
+]
 

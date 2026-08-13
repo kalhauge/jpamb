@@ -1,0 +1,8 @@
+basic.py
+pyproject.toml
+basic.egg-info/PKG-INFO
+basic.egg-info/SOURCES.txt
+basic.egg-info/dependency_links.txt
+basic.egg-info/entry_points.txt
+basic.egg-info/requires.txt
+basic.egg-info/top_level.txt
