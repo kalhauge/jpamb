@@ -10,8 +10,8 @@ from collections import Counter
 
 import runit
 
-from jpamb import model, logger, jvm
-from jpamb.logger import log
+from jpamb import model
+from loguru import logger as log
 
 import subprocess
 import dataclasses
@@ -35,6 +35,36 @@ def re_parser(ctx_, parms_, expr):
 
     if expr:
         return re.compile(expr)
+
+
+def logger_initialize(verbose: int):
+    LEVELS = ["SUCCESS", "INFO", "DEBUG", "TRACE"]
+
+    lvl = LEVELS[verbose]
+
+    if verbose >= 2:
+        log.remove()
+        log.add(
+            sys.stderr,
+            format="<green>{elapsed}</green> | <level>{level: <8}</level> | <red>{extra[process]:<8}</red> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+            level=lvl,
+        )
+    else:
+        log.remove()
+        log.add(
+            sys.stderr,
+            format="<red>{extra[process]:<8}</red>: <level>{message}</level>",
+            level=lvl,
+        )
+
+    log.configure(extra={"process": "main"})
+
+
+def summary64(cmd):
+    import base64
+    import hashlib
+
+    return base64.b64encode(hashlib.sha256(str(cmd).encode()).digest()).decode()[:8]
 
 
 @dataclasses.dataclass
@@ -116,7 +146,7 @@ def resolve_cmd(program, with_python=None):
 @click.pass_context
 def cli(ctx, workdir: Path, verbose):
     """This is the jpamb main entry point."""
-    logger.initialize(verbose)
+    logger_initialize(verbose)
     log.debug(f"Setup suite in {workdir}")
     ctx.obj = model.Suite(workdir)
 
