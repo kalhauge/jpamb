@@ -6,31 +6,27 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.*;
 import java.util.stream.Stream;
-
+import jpamb.cases.*;
 import jpamb.utils.*;
 import jpamb.utils.CaseContent.ResultType;
-import jpamb.cases.*;
 
-/**
- * The runtime method runs a single test-case and print the result or the
- * exeception.
- */
+/** The runtime method runs a single test-case and print the result or the exeception. */
 public class Runtime {
-  static List<Class<?>> caseclasses = List.of(
-      Simple.class,
-      Loops.class,
-      Tricky.class,
-      jpamb.cases.Arrays.class,
-      Dependent.class,
-      Calls.class);
+  static List<Class<?>> caseclasses =
+      List.of(
+          Simple.class,
+          Loops.class,
+          Tricky.class,
+          jpamb.cases.Arrays.class,
+          Dependent.class,
+          Calls.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
     if (cases == null) {
       var c = m.getAnnotation(Case.class);
-      if (c == null)
-        return new Case[] {};
-      return new Case[] { c };
+      if (c == null) return new Case[] {};
+      return new Case[] {c};
     } else {
       return cases.value();
     }

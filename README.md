@@ -109,9 +109,9 @@ You can rely on the following assumptions:
 
 1. Your program will always run in the JPAMB folder. This means that you can access files like `src/main/java/jpamb/cases/Simple.java` from your program.
 
-1. All methods presented to the analysis comes from files in the `src/main/java/jpamb/cases/` folder, and can be uniquely identified by their method name.
+2. All methods presented to the analysis comes from files in the `src/main/java/jpamb/cases/` folder, and can be uniquely identified by their method name.
 
-1. Only the stdout is captured by JPAMB, so you can output debug information in the stderr.
+3. Only the stdout is captured by JPAMB, so you can output debug information in the stderr.
 
 ### What Can Happen to Java Methods?
 

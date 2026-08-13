@@ -19,10 +19,8 @@ public class Dependent {
     if (dst == 0) {
       return 0;
     }
-    if (x < 0)
-      x = -x;
-    if (y < 0)
-      y = -y;
+    if (x < 0) x = -x;
+    if (y < 0) y = -y;
     if (x >= y) {
       return dst / x;
     } else {
@@ -34,10 +32,8 @@ public class Dependent {
   @Case("(1, 1) -> ok")
   public static int badNormalizedDistance(int x, int y) {
     int dst = y - x;
-    if (x < 0)
-      x = -x;
-    if (y < 0)
-      y = -y;
+    if (x < 0) x = -x;
+    if (y < 0) y = -y;
     if (x >= y) {
       return dst / x;
     } else {
@@ -53,5 +49,4 @@ public class Dependent {
     }
     assert n != 32;
   }
-
 }

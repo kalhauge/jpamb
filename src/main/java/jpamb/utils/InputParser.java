@@ -2,8 +2,6 @@ package jpamb.utils;
 
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class InputParser {
   private Scanner sc;
@@ -25,8 +23,8 @@ public class InputParser {
 
   private void nextToken() {
     if (sc.hasNext()) {
-      currentToken = sc.findWithinHorizon(
-          "[-]?[0-9\\.]+|\\[[ICZ]:|\\(|\\)|\\]|,|'[^']*'|true|false", 0);
+      currentToken =
+          sc.findWithinHorizon("[-]?[0-9\\.]+|\\[[ICZ]:|\\(|\\)|\\]|,|'[^']*'|true|false", 0);
     } else {
       currentToken = null;
     }
@@ -75,24 +73,21 @@ public class InputParser {
     ArrayList<Integer> items = new ArrayList<>();
     expect("[I:");
 
-    if (currentToken == null)
-      expected("integer or ]");
+    if (currentToken == null) expected("integer or ]");
 
     if (currentToken.equals("]")) {
       nextToken();
       return new int[] {};
     }
 
-    if (!currentToken.matches("[0-9]+"))
-      expected("integer");
+    if (!currentToken.matches("[0-9]+")) expected("integer");
 
     items.add(Integer.parseInt(currentToken));
     nextToken();
 
     while (currentToken != null && currentToken.equals(",")) {
       nextToken();
-      if (currentToken == null || !currentToken.matches("[0-9]+"))
-        expected("integer");
+      if (currentToken == null || !currentToken.matches("[0-9]+")) expected("integer");
       items.add(Integer.parseInt(currentToken));
       nextToken();
     }
@@ -110,24 +105,21 @@ public class InputParser {
     ArrayList<Character> items = new ArrayList<>();
     expect("[C:");
 
-    if (currentToken == null)
-      expected("char or ]");
+    if (currentToken == null) expected("char or ]");
 
     if (currentToken.equals("]")) {
       nextToken();
       return new char[] {};
     }
 
-    if (!currentToken.matches("'[^']+'"))
-      expected("char");
+    if (!currentToken.matches("'[^']+'")) expected("char");
 
     items.add(currentToken.charAt(1));
     nextToken();
 
     while (currentToken != null && currentToken.equals(",")) {
       nextToken();
-      if (currentToken == null || !currentToken.matches("'[^']+'"))
-        expected("char");
+      if (currentToken == null || !currentToken.matches("'[^']+'")) expected("char");
       items.add(currentToken.charAt(1));
       nextToken();
     }
@@ -146,8 +138,7 @@ public class InputParser {
 
     expect("(");
 
-    if (currentToken == null)
-      expected("input or )");
+    if (currentToken == null) expected("input or )");
 
     if (currentToken.equals(")")) {
       nextToken();
@@ -164,5 +155,4 @@ public class InputParser {
     expect(")");
     return list.toArray();
   }
-
 }

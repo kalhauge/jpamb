@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Kalhauge"
-  given-names: "Christian Gram"
-  orcid: "https://orcid.org/0000-0003-1947-7928"
+  - family-names: "Kalhauge"
+    given-names: "Christian Gram"
+    orcid: "https://orcid.org/0000-0003-1947-7928"
 title: "JPAMB: Java Program Analysis Micro Benchmarks"
 version: 0.2.0
 date-released: 2024-09-10

@@ -111,5 +111,4 @@ public class Simple {
   public static int divideByNMinus10054203(int n) {
     return 1 / (n - 10054203);
   }
-
 }

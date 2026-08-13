@@ -25,3 +25,4 @@ build/
 leananalyzer
 
 result
+.config/ash.json

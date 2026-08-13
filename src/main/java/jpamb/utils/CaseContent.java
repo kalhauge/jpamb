@@ -7,9 +7,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public record CaseContent(
-    Object[] params,
-    ResultType result) {
+public record CaseContent(Object[] params, ResultType result) {
 
   public String toString() {
     List<String> sparams = Arrays.asList(params).stream().map(CaseContent::toInputString).toList();
@@ -28,7 +26,6 @@ public record CaseContent(
     } else {
       return obj.toString();
     }
-
   }
 
   public static CaseContent parse(String string) {

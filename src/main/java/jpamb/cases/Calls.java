@@ -1,8 +1,9 @@
 package jpamb.cases;
 
+import static jpamb.utils.Tag.TagType.*;
+
 import jpamb.utils.Case;
 import jpamb.utils.Tag;
-import static jpamb.utils.Tag.TagType.*;
 
 public class Calls {
 
@@ -28,35 +29,33 @@ public class Calls {
   }
 
   @Case("() -> assertion error")
-  @Tag({ CALL })
+  @Tag({CALL})
   public static void callsAssertFalse() {
     assertFalse();
   }
 
   @Case("(true) -> ok")
   @Case("(false) -> assertion error")
-  @Tag({ CALL })
+  @Tag({CALL})
   public static void callsAssertIf(boolean b) {
     assertIf(b);
   }
-  
+
   @Case("() -> ok")
-  @Tag({ CALL })
+  @Tag({CALL})
   public static void callsAssertIfWithTrue() {
     assertIf(true);
   }
 
   public static int fib(int i) {
     assert i >= 0;
-    if (i == 0 || i == 1)
-      return i;
+    if (i == 0 || i == 1) return i;
     return fib(i - 1) + fib(i - 2);
   }
 
-
   @Case("(8) -> ok")
   @Case("(0) -> assertion error")
-  @Tag({ CALL, RECURSION })
+  @Tag({CALL, RECURSION})
   public static void callsAssertFib(int i) {
     assert fib(i) == 21;
   }
@@ -88,11 +87,10 @@ public class Calls {
   @Case("(100) -> ok")
   @Case("(0) -> out of bounds")
   @Case("(-1) -> assertion error")
-  @Tag({ CALL, ARRAY, LOOP, INTEGER_OVERFLOW })
+  @Tag({CALL, ARRAY, LOOP, INTEGER_OVERFLOW})
   public static void allPrimesArePositive(int number) {
     for (int p : generatePrimeArray(number)) {
       assert p > 0;
     }
   }
-
 }

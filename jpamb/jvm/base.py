@@ -162,7 +162,6 @@ class Type(ABC):
 
 @dataclass(frozen=True)
 class StackType(Type):
-
     def is_stacktype(self):
         return True
 
@@ -406,7 +405,7 @@ class ParameterType:
 
     def __len__(self):
         return self._elements.__len__()
-    
+
     def __iter__(self):
         return self._elements.__iter__()
 
@@ -511,9 +510,9 @@ class Absolute[T: Encodable](ABC):
     extension: T
 
     def __post_init__(self):
-        assert (
-            self.__class__ != Absolute
-        ), "Do not use absolute directly, use AbsMethodId or AbsFieldID"
+        assert self.__class__ != Absolute, (
+            "Do not use absolute directly, use AbsMethodId or AbsFieldID"
+        )
 
     @classmethod
     def decode(cls, input, decode: Callable[[str], T]) -> "Self":
@@ -530,7 +529,6 @@ class Absolute[T: Encodable](ABC):
 
 
 class AbsMethodID(Absolute[MethodID]):
-
     @classmethod
     def decode(cls, input) -> "Self":
         return super().decode(input, MethodID.decode)
@@ -556,7 +554,6 @@ class AbsMethodID(Absolute[MethodID]):
 
 
 class AbsFieldID(Absolute[FieldID]):
-
     @classmethod
     def decode(cls, input) -> "Self":
         return super().decode(input, FieldID.decode)

@@ -47,7 +47,6 @@ def get_kind(technologies):
 
 
 def analyse(experiment, logger):
-
     tools = []
     all_results = []
     version = (datetime.fromtimestamp(experiment["timestamp"] / 1000),)

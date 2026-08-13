@@ -67,7 +67,6 @@ method_q = tree_sitter.Query(
 )
 
 for node in tree_sitter.QueryCursor(method_q).captures(node)["method"]:
-
     if not (p := node.child_by_field_name("parameters")):
         log.debug(f"Could not find parameteres of {method_name}")
         continue

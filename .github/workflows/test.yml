@@ -1,8 +1,7 @@
 name: Test Suite
-
 on:
   push:
-    branches: [ "*" ]
+    branches: ["*"]
 jobs:
   python-tests:
     name: Python Tests
@@ -10,70 +9,58 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-2025]
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Python 
-      uses: actions/setup-python@v6
-      with:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
           python-version-file: "pyproject.toml"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Verify Docker installation
+        run: docker --version
+      - name: Check WSL status (Windows only)
+        if: runner.os == 'Windows'
+        continue-on-error: true
+        run: |
+          wsl --version
+          wsl --list --online
+          wsl --list --verbose
+      - name: Install WSL Ubuntu (Windows only)
+        if: runner.os == 'Windows'
+        timeout-minutes: 10
+        run: wsl --install Ubuntu --no-launch
+      - name: Set up Docker in WSL (Windows only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Keep WSL alive
+          wsl -d Ubuntu --exec dbus-launch true
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v6
+          # Install Docker
+          wsl -d Ubuntu -u root bash -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io"
 
-    - name: Verify Docker installation
-      run: docker --version
+          # Start Docker daemon
+          wsl -d Ubuntu -u root service docker start
 
-    - name: Check WSL status (Windows only)
-      if: runner.os == 'Windows'
-      continue-on-error: true
-      run: |
-        wsl --version
-        wsl --list --online
-        wsl --list --verbose
+          # Wait for Docker to be ready
+          Start-Sleep -Seconds 5
 
-    - name: Install WSL Ubuntu (Windows only)
-      if: runner.os == 'Windows'
-      timeout-minutes: 10
-      run: wsl --install Ubuntu --no-launch
+          # Test Docker connection
+          wsl -d Ubuntu sudo docker ps
 
-    - name: Set up Docker in WSL (Windows only)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        # Keep WSL alive
-        wsl -d Ubuntu --exec dbus-launch true
+          # Tell jpamb to use WSL Docker
+          echo "USE_WSL_DOCKER=1" >> $env:GITHUB_ENV
+      - name: Run checkhealth
+        run: |
+          uv run jpamb -vv checkhealth
+      - name: Run build
+        run: |
+          uv run jpamb -vv build
 
-        # Install Docker
-        wsl -d Ubuntu -u root bash -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io"
-
-        # Start Docker daemon
-        wsl -d Ubuntu -u root service docker start
-
-        # Wait for Docker to be ready
-        Start-Sleep -Seconds 5
-
-        # Test Docker connection
-        wsl -d Ubuntu sudo docker ps
-
-        # Tell jpamb to use WSL Docker
-        echo "USE_WSL_DOCKER=1" >> $env:GITHUB_ENV
-
-    - name: Run checkhealth
-      run: |
-        uv run jpamb -vv checkhealth
-    
-    - name: Run build
-      run: |
-        uv run jpamb -vv build
-        
-        # Check if something was changed
-        git diff --exit-code
-
-    - name: Run Python tests 
-      run: |
-        uv run pytest test/
-    
-
+          # Check if something was changed
+          git diff --exit-code
+      - name: Run Python tests
+        run: |
+          uv run pytest test/

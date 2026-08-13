@@ -3,83 +3,100 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/ca77296380960cd497a765102eeb1356eb80fed0";
+    flake-parts.url = "github:hercules-ci/flake-parts";
+
     jvm2json.url = "github:kalhauge/jvm2json";
     jvm2json.inputs.nixpkgs.follows = "nixpkgs";
+
+    ash.url = "github:kalhauge/a.sh";
+    ash.inputs.nixpkgs.follows = "nixpkgs";
+    ash.inputs.flake-parts.follows = "flake-parts";
   };
-  outputs = {
-    nixpkgs,
-    jvm2json,
-    self,
-    ...
-  }: let
-    perSystem = {
-      systems ? [
-        "x86_64-linux"
-        "x86_64-darwin"
-      ],
-      do,
-    }:
-      nixpkgs.lib.genAttrs systems (
-        system:
-          do {
-            inherit system;
-            pkgs = import nixpkgs {
-              inherit system;
-              overlays = [
-                (final: prev: {
-                  jvm2json = jvm2json.packages.${system}.default;
-                })
-              ];
-            };
-          }
-      );
-  in {
-    packages =
-      perSystem {
-        do = {pkgs, ...}: {
-          jvm2json = pkgs.jvm2json;
+
+  outputs =
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      top@{ self, config, ... }:
+      {
+        imports = [
+          inputs.ash.flakeModules.default
+        ];
+
+        flake = {
+          # Your flake goes here
         };
-      }
-      // perSystem {
-        systems = ["x86_64-linux"];
-        do = {pkgs, ...}: let
-          pythonWithPackages = pkgs.python313.withPackages (ps:
-            with ps; [
-              pytest
-              hypothesis
-              click
-              loguru
-              matplotlib
-              tree-sitter
-              tree-sitter-grammars.tree-sitter-java
-              z3-solver
-              z3
-            ]);
-        in {
-          docker_image = pkgs.dockerTools.buildImage {
-            name = "jpamb";
-            tag = "latest";
 
-            copyToRoot = pkgs.buildEnv {
-              name = "jpamb-test-env";
-              paths = [
-                pkgs.bashInteractive
-                pkgs.coreutils
-                pkgs.jdk
-                pythonWithPackages
-                pkgs.jvm2json
-              ];
+        perSystem =
+          {
+            config,
+            pkgs,
+            system,
+            self',
+            ...
+          }:
+          let
+            pythonWithPackages = pkgs.python313.withPackages (
+              ps: with ps; [
+                pytest
+                hypothesis
+                click
+                loguru
+                matplotlib
+                tree-sitter
+                tree-sitter-grammars.tree-sitter-java
+                z3-solver
+                z3
+              ]
+            );
+          in
+          {
+            ash = {
+              enable = true;
+              configuration = {
+                languages = {
+                  git.enable = true;
+                  markdown.enable = true;
+                  nix.enable = true;
+                  python.enable = true;
+                  yaml.enable = true;
+                  java.enable = true;
+                  c.enable = true;
+                };
+              };
             };
 
-            config = {
-              Cmd = ["/bin/bash"];
-              WorkingDir = "/workspace";
-              Env = [
-                "JAVA_HOME=${pkgs.jdk}"
-              ];
+            packages = {
+              jvm2json = inputs.jvm2json.packages.${system}.default;
+              docker_image = pkgs.dockerTools.buildImage {
+                name = "jpamb";
+                tag = "latest";
+
+                copyToRoot = pkgs.buildEnv {
+                  name = "jpamb-test-env";
+                  paths = [
+                    pkgs.bashInteractive
+                    pkgs.coreutils
+                    pkgs.jdk
+                    pythonWithPackages
+                    self'.packages.jvm2json
+                  ];
+                };
+
+                config = {
+                  Cmd = [ "/bin/bash" ];
+                  WorkingDir = "/workspace";
+                  Env = [
+                    "JAVA_HOME=${pkgs.jdk}"
+                  ];
+                };
+              };
             };
           };
-        };
-      };
-  };
+        systems = [
+          "x86_64-linux"
+          "aarch64-linux"
+          "aarch64-darwin"
+        ];
+      }
+    );
 }

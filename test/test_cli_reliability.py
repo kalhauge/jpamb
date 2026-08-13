@@ -26,7 +26,7 @@ class TestErrorHandling:
     def test_malformed_analysis_script(self):
         """Test handling of analysis script with syntax errors."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("def broken(:\n")  # Syntax error
             script_path = f.name
 
@@ -43,7 +43,7 @@ class TestErrorHandling:
     def test_analysis_script_without_info_command(self):
         """Test handling of analysis script that doesn't support 'info' command."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 # Script that doesn't handle 'info' command
@@ -69,7 +69,14 @@ sys.exit(1)
         # The signature format should be: package.Class.method:(params)returnType
         result = runner.invoke(
             cli.cli,
-            ["test", "--", "python3", "-c", "import sys; print(sys.argv)", "invalid..signature"],
+            [
+                "test",
+                "--",
+                "python3",
+                "-c",
+                "import sys; print(sys.argv)",
+                "invalid..signature",
+            ],
         )
         # Should either reject or handle gracefully
         assert isinstance(result.exit_code, int)
@@ -77,7 +84,7 @@ sys.exit(1)
     def test_invalid_json_from_analysis(self):
         """Test handling when analysis script returns invalid JSON."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 if len(sys.argv) > 1 and sys.argv[1] == "info":
@@ -107,7 +114,7 @@ class TestTimeoutHandling:
     def test_timeout_on_slow_analysis(self):
         """Test that slow analysis scripts are properly timed out."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 import time
@@ -134,7 +141,7 @@ else:
     def test_timeout_custom_value(self):
         """Test custom timeout values."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 import time
@@ -164,7 +171,7 @@ class TestCrashRecovery:
     def test_analysis_script_crashes(self):
         """Test handling when analysis script exits with error."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 if len(sys.argv) > 1 and sys.argv[1] == "info":
@@ -188,7 +195,7 @@ else:
     def test_analysis_script_segfault_simulation(self):
         """Test handling when analysis script exits abnormally."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 import os
@@ -251,7 +258,7 @@ class TestResourceLimits:
     def test_empty_output_from_analysis(self):
         """Test handling when analysis produces no output."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 if len(sys.argv) > 1 and sys.argv[1] == "info":
@@ -274,7 +281,7 @@ if len(sys.argv) > 1 and sys.argv[1] == "info":
     def test_excessive_output_from_analysis(self):
         """Test handling when analysis produces excessive output."""
         runner = CliRunner()
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
             f.write("""#!/usr/bin/env python3
 import sys
 if len(sys.argv) > 1 and sys.argv[1] == "info":
