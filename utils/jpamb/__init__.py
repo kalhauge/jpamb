@@ -1,4 +1,4 @@
-from jpamb.model import Suite, Input
+from jpamb.model import Input
 
 import jvm
 
@@ -54,14 +54,6 @@ def printinfo(
     import sys
 
     sys.exit(0)
-
-
-def sourcefile(lookup: jvm.Absolute[Any] | jvm.ClassName) -> Path:
-    return Suite().sourcefile(lookup.classname)
-
-
-def classfile(lookup: jvm.Absolute[Any] | jvm.ClassName) -> Path:
-    return Suite().classfile(lookup.classname)
 
 
 def parse_methodid(mid) -> jvm.AbsMethodID:

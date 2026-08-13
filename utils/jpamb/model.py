@@ -12,6 +12,7 @@ from loguru import logger
 import collections
 from collections import defaultdict
 import re
+import os
 import shutil
 import subprocess
 
@@ -226,14 +227,18 @@ class Suite:
 
     _instances = dict()
 
-    def __new__(cls, workfolder: Path | None = None):
-        workfolder = workfolder or Path.cwd()
+    def __new__(cls, workfolder: Path):
         if workfolder not in cls._instances:
             cls._instances[workfolder] = super().__new__(cls)
         return cls._instances[workfolder]
 
-    def __init__(self, workfolder: Path | None = None):
-        workfolder = workfolder or Path.cwd()
+    def from_cwd(cls):
+        return cls(Path.cwd())
+
+    def from_env(cls):
+        return cls(Path(os.environ.get("JPAMB_WORKFOLDER")).absolute())
+
+    def __init__(self, workfolder: Path):
         assert workfolder.is_absolute(), f"Assuming that {workfolder} is absolute."
         self.workfolder = workfolder
         self.invalidate_cache()

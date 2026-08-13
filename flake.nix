@@ -70,6 +70,13 @@
 
               jpamb = pkgs.python3Packages.callPackage ./utils { };
 
+              jpambshell = pkgs.mkShell {
+                name = "shell";
+                packages = [
+                  (pkgs.python3.withPackages (ps: [ self'.packages.jpamb ]))
+                ];
+              };
+
               docker_image = pkgs.dockerTools.buildImage {
                 name = "jpamb";
                 tag = "latest";

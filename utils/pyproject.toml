@@ -50,6 +50,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+testpaths = ["test"]
 markers = [
   "slow: mark test as slow"
 ]

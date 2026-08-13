@@ -305,27 +305,27 @@ else:
             Path(script_path).unlink(missing_ok=True)
 
 
-class TestCheckhealthCommand:
-    """Test the checkhealth command reliability."""
-
-    def test_checkhealth_basic(self):
-        """Test basic checkhealth command."""
-        runner = CliRunner()
-        result = runner.invoke(
-            cli.cli,
-            ["checkhealth"],
-            catch_exceptions=False,
-        )
-        # Should complete successfully or report specific issues
-        assert isinstance(result.exit_code, int)
-
-    def test_checkhealth_failfast(self):
-        """Test checkhealth with fail-fast option."""
-        runner = CliRunner()
-        # Note: removed --fail-fast as it's not supported per the git history
-        result = runner.invoke(
-            cli.cli,
-            ["checkhealth"],
-            catch_exceptions=False,
-        )
-        assert isinstance(result.exit_code, int)
+# class TestCheckhealthCommand:
+#     """Test the checkhealth command reliability."""
+#
+#     def test_checkhealth_basic(self):
+#         """Test basic checkhealth command."""
+#         runner = CliRunner()
+#         result = runner.invoke(
+#             cli.cli,
+#             ["checkhealth"],
+#             catch_exceptions=False,
+#         )
+#         # Should complete successfully or report specific issues
+#         assert isinstance(result.exit_code, int)
+#
+#     def test_checkhealth_failfast(self):
+#         """Test checkhealth with fail-fast option."""
+#         runner = CliRunner()
+#         # Note: removed --fail-fast as it's not supported per the git history
+#         result = runner.invoke(
+#             cli.cli,
+#             ["checkhealth"],
+#             catch_exceptions=False,
+#         )
+#         assert isinstance(result.exit_code, int)

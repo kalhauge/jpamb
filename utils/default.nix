@@ -1,26 +1,38 @@
 {
-  buildPythonApplication,
+  buildPythonPackage,
   setuptools,
   gcc,
   pyyaml,
   loguru,
   click,
+  pytest,
+  pytestCheckHook,
+  hypothesis,
 }:
-buildPythonApplication rec {
+buildPythonPackage rec {
   name = "jpamb";
   src = ./.;
   pyproject = true;
 
   buildInputs = [
-    setuptools
     gcc
     pyyaml
+    pytest
   ]
   ++ propagatedBuildInputs;
 
   propagatedBuildInputs = [
     loguru
     click
+  ];
+
+  build-system = [
+    setuptools
+  ];
+
+  nativeCheckInputs = [
+    pytestCheckHook
+    hypothesis
   ];
 
   meta.mainProgram = "jpamb";
