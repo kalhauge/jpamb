@@ -8,6 +8,7 @@
   pytest,
   pytestCheckHook,
   hypothesis,
+  runit,
 }:
 buildPythonPackage rec {
   name = "jpamb";
@@ -24,6 +25,7 @@ buildPythonPackage rec {
   propagatedBuildInputs = [
     loguru
     click
+    runit
   ];
 
   build-system = [

@@ -8,6 +8,8 @@ import json
 from inspect import getsourcelines, getsourcefile
 from collections import Counter
 
+import runit
+
 from jpamb import model, logger, jvm
 from jpamb.logger import log
 
@@ -35,99 +37,6 @@ def re_parser(ctx_, parms_, expr):
         return re.compile(expr)
 
 
-def run(cmd: list[str], /, timeout=2.0, logout=None, logerr=None, **kwargs):
-    import threading
-    from time import monotonic, perf_counter_ns
-
-    if not logerr:
-
-        def logerr(a):
-            pass
-
-    if not logout:
-
-        def logout(a):
-            pass
-
-    cp = None
-    stdout = []
-    stderr = []
-    tout = None
-    try:
-        start = monotonic()
-        start_ns = perf_counter_ns()
-
-        if timeout:
-            end = start + timeout
-        else:
-            end = None
-
-        cp = subprocess.Popen(
-            cmd,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            text=True,
-            **kwargs,
-        )
-        assert cp and cp.stdout and cp.stderr
-
-        def log_lines(cp):
-            assert cp.stderr
-            with cp.stderr:
-                for line in iter(cp.stderr.readline, ""):
-                    stderr.append(line)
-                    logerr(line[:-1])
-
-        def save_result(cp):
-            assert cp.stdout
-            with cp.stdout:
-                for line in iter(cp.stdout.readline, ""):
-                    stdout.append(line)
-                    logout(line[:-1])
-
-        terr = threading.Thread(
-            target=log_lines,
-            args=(cp,),
-            daemon=True,
-        )
-        terr.start()
-        tout = threading.Thread(
-            target=save_result,
-            args=(cp,),
-            daemon=True,
-        )
-        tout.start()
-
-        terr.join(end and end - monotonic())
-        tout.join(end and end - monotonic())
-        exitcode = cp.wait(end and end - monotonic())
-        end_ns = perf_counter_ns()
-
-        if exitcode != 0:
-            raise subprocess.CalledProcessError(
-                cmd=cmd,
-                returncode=exitcode,
-                stderr="".join(stderr),
-                output="".join(stdout),
-            )
-
-        return ("".join(stdout), end_ns - start_ns)
-    except subprocess.CalledProcessError as e:
-        if tout:
-            tout.join()
-        e.stderr = "".join(stderr)
-        e.stdout = "".join(stdout)
-        raise e
-    except subprocess.TimeoutExpired:
-        if cp:
-            cp.terminate()
-            if cp.stdout:
-                cp.stdout.close()
-            if cp.stderr:
-                cp.stderr.close()
-        raise
-
-
 @dataclasses.dataclass
 class Reporter:
     report: IO
@@ -152,9 +61,10 @@ class Reporter:
             print(f"{self.prefix}{msg}", file=self.report)
 
     def run(self, args, **kwargs):
+        runner = runit.Runner(err_callback=self.output)
         with self.context(f"Run {shlex.join(args)}"):
             with self.context("Stderr"):
-                out, time = run(args, logerr=self.output, **kwargs)
+                out, time = runner.run(args, **kwargs)
             with self.context("Stdout"):
                 self.output(out)
             return out
@@ -403,20 +313,11 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
 
     program = resolve_cmd(program, with_python)
 
-    def calibrate(count=100_000):
-        from time import perf_counter_ns
-        from jpamb import timer
-
-        start = perf_counter_ns()
-        timer.sieve(count)
-        end = perf_counter_ns()
-        return end - start
+    runner = runit.Runner(err_callback=log.info, out_callback=log.debug)
 
     try:
-        (out, _) = run(
+        (out, _) = runner.run(
             program + ("info",),
-            logout=log.info,
-            logerr=log.debug,
             timeout=timeout,
         )
         info = model.AnalysisInfo.parse(out)
@@ -440,14 +341,9 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
         _relative = 0
         for i in range(iterations):
             log.info(f"Running on {methodid}, iter {i}")
-            r1 = calibrate()
-            out, time = run(
-                program + (methodid.encode(),), logerr=log.debug, timeout=timeout
-            )
-            r2 = calibrate()
-            response = model.Response.parse(out)
+            experiment = runner.experiment(program + (methodid.encode(),))
+            response = model.Response.parse(experiment.output)
             score = response.score(correct)
-            relative = math.log10(time / (r1 + r2) * 2)
 
             result = {k: v.wager for k, v in response.predictions.items()}
 
@@ -456,9 +352,9 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
                     "iteration": i,
                     "response": result,
                     "score": score,
-                    "time": time,
-                    "relative": relative,
-                    "calibrates": [r1, r2],
+                    "time": experiment.time_ns,
+                    "relative": experiment.time_relative,
+                    "calibrates": experiment.calibrations_ns,
                 }
             )
 
@@ -499,6 +395,7 @@ class DockerRunner:
     docker_cmd: list[str]  # The base docker command (e.g., ["docker"] or ["wsl", ...])
     image: str  # Docker image to use
     workfolder: str  # Path to mount (already WSL-converted if needed)
+    runner: runit.Runner = dataclasses.field(default_factory=runit.Runner)
 
     @classmethod
     def create(cls, workfolder: Path, image: str):
@@ -525,7 +422,12 @@ class DockerRunner:
             docker_cmd = [dockerbin]
             workfolder_str = str(workfolder)
 
-        return cls(docker_cmd, image, workfolder_str)
+        return cls(
+            docker_cmd,
+            image,
+            workfolder_str,
+            runner=runit.Runner(out_callback=log.info, err_callback=log.debug),
+        )
 
     def run(self, command: list[str], **kwargs):
         """
@@ -550,7 +452,7 @@ class DockerRunner:
             ]
             + command
         )
-        return run(full_cmd, **kwargs)
+        return self.runner.run(full_cmd, **kwargs)
 
 
 @cli.command()
@@ -597,8 +499,6 @@ def build(suite, compile, decompile, document, test, docker):
         docker_runner.run(
             ["javac", "-g", "-d", "target/classes"]
             + [a.relative_to(suite.workfolder).as_posix() for a in suite.sourcefiles()],
-            logerr=log.warning,
-            logout=log.info,
             timeout=600,
         )
 
@@ -606,8 +506,6 @@ def build(suite, compile, decompile, document, test, docker):
 
         res, x = docker_runner.run(
             ["java", "-cp", "target/classes", "jpamb.Runtime"],
-            logout=log.info,
-            logerr=log.debug,
             timeout=60,
         )
         suite.case_file.parent.mkdir(exist_ok=True, parents=True)
@@ -625,7 +523,6 @@ def build(suite, compile, decompile, document, test, docker):
                     "-s",
                     suite.classfile(cl).relative_to(suite.workfolder).as_posix(),
                 ],
-                logerr=log.warning,
             )
             file = suite.decompiledfile(cl)
             file.parent.mkdir(exist_ok=True, parents=True)
@@ -701,8 +598,6 @@ def build(suite, compile, decompile, document, test, docker):
                         case.methodid.encode(),
                         case.input.encode(),
                     ],
-                    logout=log.info,
-                    logerr=log.debug,
                     timeout=5,
                 )
             except subprocess.TimeoutExpired:

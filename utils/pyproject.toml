@@ -2,11 +2,6 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-ext-modules = [
-  {name = "jpamb.timer", sources = ["jpamb/timer.c"]}
-]
-
 [tool.setuptools.packages.find]
 include = ["jpamb", "jvm"]  
 
@@ -22,6 +17,7 @@ dependencies = [
   # "matplotlib==3.10.*",
   # "tree-sitter-java >= 0.23, <= 0.26",
   # "tree-sitter >= 0.23, < 0.26",
+  "runit==0.1.*",
 ]
 authors = [
   { name = "Christian Gram Kalhauge", email = "chrg@dtu.dk" }
@@ -46,6 +42,7 @@ jpamb = "jpamb.cli:cli"
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.165.5",
     "pytest>=8.3.4",
 ]
 
@@ -57,4 +54,7 @@ markers = [
 
 [tool.ruff.lint]
 ignore = ["F841", "F403"]
+
+[tool.uv.sources]
+runit = { git = "https://github.com/kalhauge/runit.git" }
 

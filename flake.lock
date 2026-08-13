@@ -282,7 +282,34 @@
         "ash": "ash",
         "flake-parts": "flake-parts",
         "jvm2json": "jvm2json",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "runit": "runit"
+      }
+    },
+    "runit": {
+      "inputs": {
+        "ash": [
+          "ash"
+        ],
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786630479,
+        "narHash": "sha256-KpMEnUTO4wIjZvgLIOfCQyXg7lsq1NCEw7KZFekOOzs=",
+        "owner": "kalhauge",
+        "repo": "runit",
+        "rev": "88d2418e387cf6ca433fdc59899579d4a5faa65d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kalhauge",
+        "repo": "runit",
+        "type": "github"
       }
     },
     "systems": {

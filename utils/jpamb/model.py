@@ -16,6 +16,8 @@ import os
 import shutil
 import subprocess
 
+import runit
+
 from typing import Iterable
 
 import jvm
@@ -355,7 +357,6 @@ class Suite:
 
     def checkhealth(self, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
-        from jpamb import timer
 
         def check(msg):
             return _check(msg, failfast)
@@ -374,7 +375,7 @@ class Suite:
                 assert res.returncode == 0, "dockerbin --version failed"
 
         with check("The timer"):
-            x = timer.sieve(1000)
+            x = runit.timer.sieve(1000)
             assert x == 7919, "should find correct prime."
 
         with check(f"The source folder [{self.sourcefiles_folder}]"):

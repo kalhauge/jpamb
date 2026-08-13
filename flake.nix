@@ -8,6 +8,11 @@
     jvm2json.url = "github:kalhauge/jvm2json";
     jvm2json.inputs.nixpkgs.follows = "nixpkgs";
 
+    runit.url = "github:kalhauge/runit";
+    runit.inputs.nixpkgs.follows = "nixpkgs";
+    runit.inputs.ash.follows = "ash";
+    runit.inputs.flake-parts.follows = "flake-parts";
+
     ash.url = "github:kalhauge/a.sh";
     ash.inputs.nixpkgs.follows = "nixpkgs";
     ash.inputs.flake-parts.follows = "flake-parts";
@@ -34,21 +39,6 @@
             self',
             ...
           }:
-          let
-            pythonWithPackages = pkgs.python313.withPackages (
-              ps: with ps; [
-                pytest
-                hypothesis
-                click
-                loguru
-                matplotlib
-                tree-sitter
-                tree-sitter-grammars.tree-sitter-java
-                z3-solver
-                z3
-              ]
-            );
-          in
           {
             ash = {
               enable = true;
@@ -65,42 +55,41 @@
               };
             };
 
-            packages = {
-              jvm2json = inputs.jvm2json.packages.${system}.default;
-
-              jpamb = pkgs.python3Packages.callPackage ./utils { };
-
-              jpambshell = pkgs.mkShell {
-                name = "shell";
-                packages = [
-                  (pkgs.python3.withPackages (ps: [ self'.packages.jpamb ]))
-                ];
-              };
-
-              docker_image = pkgs.dockerTools.buildImage {
-                name = "jpamb";
-                tag = "latest";
-
-                copyToRoot = pkgs.buildEnv {
-                  name = "jpamb-test-env";
-                  paths = [
-                    pkgs.bashInteractive
-                    pkgs.coreutils
-                    pkgs.jdk
-                    pythonWithPackages
-                    self'.packages.jvm2json
-                  ];
+            packages =
+              let
+                python = pkgs.python3.override {
+                  self = python;
+                  packageOverrides = inputs.runit.pythonOverlay.default;
                 };
+              in
+              {
+                jvm2json = inputs.jvm2json.packages.${system}.default;
 
-                config = {
-                  Cmd = [ "/bin/bash" ];
-                  WorkingDir = "/workspace";
-                  Env = [
-                    "JAVA_HOME=${pkgs.jdk}"
-                  ];
+                jpamb = python.pkgs.callPackage ./utils { };
+
+                docker_image = pkgs.dockerTools.buildImage {
+                  name = "jpamb";
+                  tag = "latest";
+
+                  copyToRoot = pkgs.buildEnv {
+                    name = "jpamb-test-env";
+                    paths = [
+                      pkgs.bashInteractive
+                      pkgs.coreutils
+                      pkgs.jdk
+                      self'.packages.jvm2json
+                    ];
+                  };
+
+                  config = {
+                    Cmd = [ "/bin/bash" ];
+                    WorkingDir = "/workspace";
+                    Env = [
+                      "JAVA_HOME=${pkgs.jdk}"
+                    ];
+                  };
                 };
               };
-            };
           };
         systems = [
           "x86_64-linux"
