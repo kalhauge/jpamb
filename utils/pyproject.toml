@@ -8,7 +8,7 @@ ext-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["jpamb", "jpamb.jvm"]  
+include = ["jpamb", "jvm"]  
 
 
 [project]
@@ -17,12 +17,11 @@ version = "0.3.0"
 dependencies = [
   "PyYAML==6.0.*",
   "click==8.1.*",
-  "hypothesis>=6.136",
+  # "hypothesis>=6.136",
   "loguru==0.7.*",
-  "matplotlib==3.10.*",
-  "tree-sitter-java >= 0.23, <= 0.26",
-  "tree-sitter >= 0.23, < 0.26",
-  "z3-solver==4.15.*",
+  # "matplotlib==3.10.*",
+  # "tree-sitter-java >= 0.23, <= 0.26",
+  # "tree-sitter >= 0.23, < 0.26",
 ]
 authors = [
   { name = "Christian Gram Kalhauge", email = "chrg@dtu.dk" }

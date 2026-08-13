@@ -17,7 +17,7 @@ import subprocess
 
 from typing import Iterable
 
-from jpamb import jvm
+import jvm
 
 
 @dataclass(frozen=True, order=True)
@@ -331,6 +331,7 @@ class Suite:
     @property
     def cases(self) -> tuple[Case, ...]:
         if self._cases is None:
+            logger.debug(f"Loading cases from {self.case_file}")
             with open(self.case_file, encoding="utf-8") as f:
                 self._cases = tuple(Case.decode(line) for line in f)
         return self._cases

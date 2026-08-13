@@ -1,12 +1,12 @@
 """
-jpamb.jvm.base
+jvm.base
 
 This module provides primitives to talk about the contents of java bytefiles,
 as well as names and types.
 
 It is recommended to import this module qualified
 
-from jpamb import jvm
+import jvm
 
 """
 

@@ -1,5 +1,5 @@
 """
-jpamb.jvm.opcode
+jvm.opcode
 
 This module contains the decompilation of the output of jvm2json
 into a python structure, as well documentation and semantics for
@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 import enum
 import sys
 from loguru import logger
-from jpamb.jvm import base as jvm
+from jvm import base as jvm
 
 logger.add(sys.stderr, format="[{level}] {message}")
 

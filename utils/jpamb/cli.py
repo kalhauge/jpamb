@@ -7,8 +7,6 @@ import sys
 import json
 from inspect import getsourcelines, getsourcefile
 from collections import Counter
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 
 from jpamb import model, logger, jvm
 from jpamb.logger import log
@@ -659,11 +657,13 @@ def build(suite, compile, decompile, document, test, docker):
                 class_opcodes[str(case.methodid.classname).split(".")[-1]].add(o)
 
         with open("OPCODES.md", "w", encoding="utf-8") as document:
+            log.info(f"Writing OPCODES.md")
             document.write("#Bytecode instructions\n")
             document.write("| Mnemonic | Opcode Name |  Exists in |  Count |\n")
             document.write("| :---- | :---- | :----- | -----: |\n")
 
             for op, count in opcode_counts.most_common():
+                log.debug(f"Handeling {op} {count}")
                 (mnemonic, url, opcode) = opcode_urls[op]
                 in_classes = ""
 
@@ -671,29 +671,15 @@ def build(suite, compile, decompile, document, test, docker):
                     if op in class_opcodes[classname]:
                         in_classes += " " + classname
 
-                folder = Path(getsourcefile(opcode.__class__)).parent
-                while folder.name != "jpamb":
-                    folder = folder.parent
-
-                root = folder.parent
-
-                rel = Path(getsourcefile(opcode.__class__)).relative_to(root)
+                source = Path(getsourcefile(opcode.__class__))
+                rel = Path("utils") / source.relative_to(source.parent.parent)
                 giturl = (
                     f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
                 )
 
                 document.write(
-                    " | ["
-                    + mnemonic
-                    + "]("
-                    + url
-                    + ") | "
-                    + f"[{opcode.__class__.__name__}]({giturl})"
-                    + " | "
-                    + in_classes
-                    + " | "
-                    + str(count)
-                    + " |\n"
+                    f"| [{mnemonic}]({url}) | [{opcode.__class__.__name__}]({giturl})"
+                    f" | {in_classes} | {count} |\n"
                 )
 
     if test:
@@ -753,213 +739,6 @@ def inspect(suite, method, format):
             case "json":
                 res = json.dumps(res)
         print(f"{i:03d} | {res}")
-
-
-@cli.command()
-@click.pass_context
-@click.option(
-    "--directory",
-    "-d",
-    help="Specifying a directory will create a comparative plot of all reports in the directory",
-    type=click.Path(exists=True, file_okay=False, readable=True, path_type=Path),
-)
-@click.option(
-    "--report",
-    "-r",
-    help="Specifying the path to a report.json file will plot the scores of the report",
-    type=click.Path(
-        exists=True,
-        file_okay=True,
-        readable=True,
-        path_type=Path,
-    ),
-)
-def plot(ctx, report, directory):
-    """Plot results of a report or compare reports in a directory"""
-    import numpy as np
-
-    prefix = ""
-
-    @contextmanager
-    def context(title):
-        nonlocal prefix
-        old = prefix
-        print(f"{prefix[:-1]}┌ {title}", file=report)
-        prefix = f"{prefix[:-1]}│ "
-        yield
-        prefix = old
-        print(f"{prefix[:-1]}└ {title}", file=report)
-
-    def parse_report(report):
-        import json
-
-        with open(report, "r", encoding="utf-8") as data:
-            try:
-                report = json.loads(data.read())
-
-                info = report["info"]
-                methods = report["bymethod"]
-                total_value = JpambScore(
-                    max(report["score"], -100), report["time"], report["relative"]
-                )
-                method_values = {}
-
-                for methodid, correct in ctx.obj.case_methods():
-                    method = methods[str(methodid)]
-                    method_values[str(methodid)] = JpambScore(
-                        max(method["score"], -100), method["time"], method["relative"]
-                    )
-
-                return info, method_values, total_value
-
-            except ValueError:
-                raise ValueError(f"Cannot read {report}")
-
-    def compare_reports(directory):
-        import os
-
-        scores = []
-        times = []
-        labels = []
-
-        for report in os.listdir(directory):
-            if report.endswith(".json"):
-                try:
-                    rep_info, _, rep_scores = parse_report(directory.joinpath(report))
-                    scores.append(rep_scores.score)
-                    times.append(rep_scores.rel_time)
-                    labels.append(rep_info["name"] + ": " + ", ".join(rep_info["tags"]))
-                except ValueError:
-                    print(f"Failed to process {report}")
-
-        return scores, times, labels
-
-    def get_plotcolor(problemclass):
-        if "Simple" in problemclass:
-            return "seagreen"
-        if "Calls" in problemclass:
-            return "turquoise"
-        if "Loops" in problemclass:
-            return "mediumslateblue"
-        if "Arrays" in problemclass:
-            return "violet"
-        if "Tricky" in problemclass:
-            return "darkviolet"
-
-        return "red"
-
-    def plot_scores(scores, times, labels, classes):
-        import numpy as np
-        import matplotlib.patches as mpatches
-
-        class MidpointNormalize(colors.Normalize):
-            # Normalise the colorbar so that diverging bars work there way either side from a prescribed midpoint value)
-            def __init__(self, vmin=None, vmax=None, midpoint=None, clip=True):
-                self.midpoint = midpoint
-                colors.Normalize.__init__(self, vmin, vmax, clip)
-
-            def __call__(self, value, clip=None):
-                x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-                return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
-
-        simplec = mpatches.Patch(color=get_plotcolor("Simple"), label="Simple")
-        arraysc = mpatches.Patch(color=get_plotcolor("Arrays"), label="Arrays")
-        callsc = mpatches.Patch(color=get_plotcolor("Calls"), label="Calls")
-        loopsc = mpatches.Patch(color=get_plotcolor("Loops"), label="Loops")
-        trickyc = mpatches.Patch(color=get_plotcolor("Tricky"), label="Tricky")
-
-        plt.title("JPAMB Test Scores", pad=15.0)
-        plt.legend(handles=[simplec, arraysc, callsc, loopsc, trickyc])
-
-        plt.xticks([])
-        plt.yticks([])
-
-        plot_times = np.array(times)
-        plot_scores = np.array(scores)
-
-        barcolors = [
-            get_plotcolor(pc) if score > -100 else "red"
-            for (pc, score) in zip(classes, plot_scores)
-        ]
-
-        plt.subplot(2, 1, 1)
-        plt.bar(labels, plot_scores, color=barcolors, label=classes)
-        plt.ylabel("Test Score")
-        plt.xticks([])
-
-        max_y = abs(plot_scores).max() * 1.05
-        plt.ylim(-max_y, max_y)
-
-        plt.subplot(2, 1, 2)
-        plt.bar(labels, plot_times, color=barcolors, label=classes)
-        plt.ylabel("Test Time")
-
-        plt.xticks(rotation=80)
-        max_y = abs(plot_times).max() * 1.05
-        plt.ylim(0, max_y)
-
-        plt.show()
-
-    def plot_directory(scores, times, labels):
-        class MidpointNormalize(colors.Normalize):
-            # Normalise the colorbar so that diverging bars work there way either side from a prescribed midpoint value)
-            def __init__(self, vmin=None, vmax=None, midpoint=None, clip=True):
-                self.midpoint = midpoint
-                colors.Normalize.__init__(self, vmin, vmax, clip)
-
-            def __call__(self, value, clip=None):
-                x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
-                return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
-
-        plot_times = np.array(times)
-        plot_norm_times = (plot_times - plot_times.min()) / (
-            plot_times.max() - plot_times.min()
-        )
-        plot_scores = np.array(scores)
-
-        performance_score = 100 * plot_scores * (1 - (plot_norm_times * 0.5))
-        performance_score = [max(100, score) for score in performance_score]
-
-        plt.scatter(
-            x=plot_scores,
-            y=plot_times,
-            s=performance_score,
-            c=plot_scores,
-            cmap="tab20b",
-            clim=(plot_times.min(), plot_scores.max()),
-            norm=MidpointNormalize(
-                midpoint=0, vmin=plot_scores.min(), vmax=plot_scores.max()
-            ),
-        )
-
-        for i, name in enumerate(labels):
-            plt.annotate(name, (plot_scores[i], plot_times[i]))
-
-        plt.title("JPAMB Test Scores", pad=15.0)
-        plt.xlabel("Test Score")
-        plt.ylabel("Analyzer Relative Execution Time")
-        plt.show()
-
-    if directory:
-        scores, times, labels = compare_reports(directory)
-        plot_directory(scores, times, labels)
-
-    if report:
-        info, method_values, total_values = parse_report(report)
-
-        scores = []
-        times = []
-        labels = []
-        classes = []
-
-        for methodid, correct in ctx.obj.case_methods():
-            method = method_values[str(methodid)]
-            scores.append(method.score)
-            times.append(method.time)
-            labels.append(methodid.extension.encode())
-            classes.append(str(methodid.classname))
-
-        plot_scores(scores, times, labels, classes)
 
 
 if __name__ == "__main__":

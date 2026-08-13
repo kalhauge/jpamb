@@ -1,5 +1,6 @@
-from jpamb import jvm
 from jpamb.model import Suite, Input
+
+import jvm
 
 from typing import NoReturn, Any
 

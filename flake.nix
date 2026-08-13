@@ -67,6 +67,9 @@
 
             packages = {
               jvm2json = inputs.jvm2json.packages.${system}.default;
+
+              jpamb = pkgs.python3Packages.callPackage ./utils { };
+
               docker_image = pkgs.dockerTools.buildImage {
                 name = "jpamb";
                 tag = "latest";
