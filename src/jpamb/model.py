@@ -270,7 +270,7 @@ class Suite:
     @property
     def sourcefiles_folder(self) -> Path:
         """The folder containing the class files"""
-        return self.workfolder / "src" / "main" / "java"
+        return self.workfolder / "cases"
 
     def sourcefiles(self) -> Iterable[Path]:
         yield from self.sourcefiles_folder.glob("**/*.java")
