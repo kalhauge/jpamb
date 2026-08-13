@@ -703,7 +703,7 @@ def build(suite, compile, decompile, document, test, docker):
                     ],
                     logout=log.info,
                     logerr=log.debug,
-                    timeout=2,
+                    timeout=5,
                 )
             except subprocess.TimeoutExpired:
                 res = "*"
