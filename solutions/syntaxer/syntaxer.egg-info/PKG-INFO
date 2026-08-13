@@ -1,9 +1,0 @@
-Metadata-Version: 2.4
-Name: syntaxer
-Version: 0.1.0
-Summary: A very stupid syntatic analysis, that only checks for assertion errors.
-Requires-Python: >=3.13
-Description-Content-Type: text/markdown
-Requires-Dist: jpamb
-Requires-Dist: tree-sitter>=0.26.0
-Requires-Dist: tree-sitter-java>=0.23.5

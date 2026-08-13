@@ -2,6 +2,7 @@ import click
 from pathlib import Path
 import shlex
 import shutil
+import os
 import math
 import sys
 import json
@@ -192,6 +193,10 @@ def checkhealth(suite):
 @click.pass_obj
 def test(suite, program, report, filter, fail_fast, with_python, timeout):
     """Test run a PROGRAM."""
+
+    if suite.workfolder != Path.cwd():
+        log.warning(f"Changing to {suite.workfolder}")
+        os.chdir(suite.workfolder)
 
     program = resolve_cmd(program, with_python)
 

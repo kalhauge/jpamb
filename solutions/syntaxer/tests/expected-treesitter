@@ -1,0 +1,936 @@
+┌ Info
+│┌ Run syntaxer-treesitter info
+││┌ Stderr
+││└ Stderr
+││┌ Stdout
+│││ syntaxer
+│││ 1.0
+│││ The Rice Theorem Cookers
+│││ syntatic,python
+│││ Linux-6.18.43-x86_64-with-glibc2.42
+││└ Stdout
+│└ Run syntaxer-treesitter info
+│┌ Results
+││ - group: The Rice Theorem Cookers
+││ - name: syntaxer
+││ - system: Linux-6.18.43-x86_64-with-glibc2.42
+││ - tags: ['syntatic', 'python']
+││ - version: 1.0
+│└ Results
+└ Info
+┌ Case jpamb.cases.Arrays.arrayContent:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayContent:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = {1, 2, 100, -13, 23};
+│││ DEBUG:root:line:     for (int i = 0; i < array.length; i++) {
+│││ DEBUG:root:line:       assert i > 0;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayContent:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arrayContent:()V
+┌ Case jpamb.cases.Arrays.arrayInBounds:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayInBounds:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = {0, 0};
+│││ DEBUG:root:line:     array[1] = 1;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayInBounds:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arrayInBounds:()V
+┌ Case jpamb.cases.Arrays.arrayIsNull:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayIsNull:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = null;
+│││ DEBUG:root:line:     array[1] = 10;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayIsNull:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arrayIsNull:()V
+┌ Case jpamb.cases.Arrays.arrayIsNullLength:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayIsNullLength:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = null;
+│││ DEBUG:root:line:     assert array.length == 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayIsNullLength:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Arrays.arrayIsNullLength:()V
+┌ Case jpamb.cases.Arrays.arrayLength:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayLength:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = {0, 0};
+│││ DEBUG:root:line:     assert array.length == 2;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayLength:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Arrays.arrayLength:()V
+┌ Case jpamb.cases.Arrays.arrayNotEmpty:([I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayNotEmpty:([I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert array.length > 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayNotEmpty:([I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arrayNotEmpty:([I)V
+┌ Case jpamb.cases.Arrays.arrayOutOfBounds:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayOutOfBounds:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = {0, 0};
+│││ DEBUG:root:line:     array[3] = 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arrayOutOfBounds:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arrayOutOfBounds:()V
+┌ Case jpamb.cases.Arrays.arraySometimesNull:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySometimesNull:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int array[] = null;
+│││ DEBUG:root:line:     if (i < 10) {
+│││ DEBUG:root:line:       array = new int[] {i};
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     array[1] = 10;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySometimesNull:(I)V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arraySometimesNull:(I)V
+┌ Case jpamb.cases.Arrays.arraySpellsHello:([C)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySpellsHello:([C)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert array[0] == 'h'
+│││ DEBUG:root:line:         && array[1] == 'e'
+│││ DEBUG:root:line:         && array[2] == 'l'
+│││ DEBUG:root:line:         && array[3] == 'l'
+│││ DEBUG:root:line:         && array[4] == 'o';
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySpellsHello:([C)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arraySpellsHello:([C)V
+┌ Case jpamb.cases.Arrays.arraySumIsLarge:([I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySumIsLarge:([I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int sum = 0;
+│││ DEBUG:root:line:     for (int i = 0; i < array.length; i++) {
+│││ DEBUG:root:line:       sum += array[i];
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert sum > 300;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.arraySumIsLarge:([I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.arraySumIsLarge:([I)V
+┌ Case jpamb.cases.Arrays.binarySearch:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Arrays.binarySearch:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Arrays.java
+│││ DEBUG:root:Arrays
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int arr[] = {2, 3, 4, 10, 40};
+│││ DEBUG:root:line:     int l = 0, r = arr.length - 1;
+│││ DEBUG:root:line:     while (l <= r) {
+│││ DEBUG:root:line:       int m = l + (r - l) / 2;
+│││ DEBUG:root:line:       if (arr[m] == x) return;
+│││ DEBUG:root:line:       if (arr[m] < x) l = m + 1;
+│││ DEBUG:root:line:       else r = m - 1;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert false;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Arrays.binarySearch:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Arrays.binarySearch:(I)V
+┌ Case jpamb.cases.Calls.allPrimesArePositive:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.allPrimesArePositive:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     for (int p : generatePrimeArray(number)) {
+│││ DEBUG:root:line:       assert p > 0;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.allPrimesArePositive:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Calls.allPrimesArePositive:(I)V
+┌ Case jpamb.cases.Calls.callsAssertFalse:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertFalse:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assertFalse();
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertFalse:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Calls.callsAssertFalse:()V
+┌ Case jpamb.cases.Calls.callsAssertFib:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertFib:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert fib(i) == 21;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertFib:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Calls.callsAssertFib:(I)V
+┌ Case jpamb.cases.Calls.callsAssertIf:(Z)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertIf:(Z)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assertIf(b);
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertIf:(Z)V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Calls.callsAssertIf:(Z)V
+┌ Case jpamb.cases.Calls.callsAssertIfWithTrue:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertIfWithTrue:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assertIf(true);
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertIfWithTrue:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Calls.callsAssertIfWithTrue:()V
+┌ Case jpamb.cases.Calls.callsAssertTrue:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertTrue:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Calls.java
+│││ DEBUG:root:Calls
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assertTrue();
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Calls.callsAssertTrue:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Calls.callsAssertTrue:()V
+┌ Case jpamb.cases.Dependent.badNormalizedDistance:(II)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Dependent.badNormalizedDistance:(II)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Dependent.java
+│││ DEBUG:root:Dependent
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int dst = y - x;
+│││ DEBUG:root:line:     if (x < 0) x = -x;
+│││ DEBUG:root:line:     if (y < 0) y = -y;
+│││ DEBUG:root:line:     if (x >= y) {
+│││ DEBUG:root:line:       return dst / x;
+│││ DEBUG:root:line:     } else {
+│││ DEBUG:root:line:       return dst / y;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Dependent.badNormalizedDistance:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Dependent.badNormalizedDistance:(II)I
+┌ Case jpamb.cases.Dependent.divisionLoop:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Dependent.divisionLoop:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Dependent.java
+│││ DEBUG:root:Dependent
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     for (int i = 0; i < 5; i++) { // 1024 / 2^5 = 32
+│││ DEBUG:root:line:       n /= 2;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert n != 32;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Dependent.divisionLoop:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Dependent.divisionLoop:(I)V
+┌ Case jpamb.cases.Dependent.normalizedDistance:(II)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Dependent.normalizedDistance:(II)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Dependent.java
+│││ DEBUG:root:Dependent
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int dst = y - x;
+│││ DEBUG:root:line:     if (dst == 0) {
+│││ DEBUG:root:line:       return 0;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     if (x < 0) x = -x;
+│││ DEBUG:root:line:     if (y < 0) y = -y;
+│││ DEBUG:root:line:     if (x >= y) {
+│││ DEBUG:root:line:       return dst / x;
+│││ DEBUG:root:line:     } else {
+│││ DEBUG:root:line:       return dst / y;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Dependent.normalizedDistance:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Dependent.normalizedDistance:(II)I
+┌ Case jpamb.cases.Dependent.safeDivByN:(I)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Dependent.safeDivByN:(I)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Dependent.java
+│││ DEBUG:root:Dependent
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     if (n != 0) {
+│││ DEBUG:root:line:       return 1 / n;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     return 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Dependent.safeDivByN:(I)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Dependent.safeDivByN:(I)I
+┌ Case jpamb.cases.Loops.forever:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Loops.forever:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Loops.java
+│││ DEBUG:root:Loops
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     while (true) {}
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Loops.forever:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Loops.forever:()V
+┌ Case jpamb.cases.Loops.neverAsserts:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Loops.neverAsserts:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Loops.java
+│││ DEBUG:root:Loops
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int i = 1;
+│││ DEBUG:root:line:     while (i > 0) {}
+│││ DEBUG:root:line:     assert false;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Loops.neverAsserts:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Loops.neverAsserts:()V
+┌ Case jpamb.cases.Loops.neverDivides:()I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Loops.neverDivides:()I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Loops.java
+│││ DEBUG:root:Loops
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     int i = 1;
+│││ DEBUG:root:line:     while (i > 0) {}
+│││ DEBUG:root:line:     return 0 / 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Loops.neverDivides:()I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Loops.neverDivides:()I
+┌ Case jpamb.cases.Loops.terminates:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Loops.terminates:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Loops.java
+│││ DEBUG:root:Loops
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     short i = 0;
+│││ DEBUG:root:line:     while (i++ != 0) {}
+│││ DEBUG:root:line:     assert false;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Loops.terminates:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Loops.terminates:()V
+┌ Case jpamb.cases.Simple.assertBoolean:(Z)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.assertBoolean:(Z)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert shouldFail;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.assertBoolean:(Z)V
+┌ Case jpamb.cases.Simple.assertFalse:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.assertFalse:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert false;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.assertFalse:()V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.assertFalse:()V
+┌ Case jpamb.cases.Simple.assertInteger:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.assertInteger:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert n != 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.assertInteger:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.assertInteger:(I)V
+┌ Case jpamb.cases.Simple.assertPositive:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.assertPositive:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert num > 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.assertPositive:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.assertPositive:(I)V
+┌ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     if (n == 0) {
+│││ DEBUG:root:line:       return;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert 1 / n > 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
+┌ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     if (n != 0) {
+│││ DEBUG:root:line:       return 1 / n;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert 10 > n;
+│││ DEBUG:root:line:     return 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
+┌ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert n != 0;
+│││ DEBUG:root:line:     return 1 / n;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
+┌ Case jpamb.cases.Simple.divideByN:(I)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByN:(I)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return 1 / n;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByN:(I)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.divideByN:(I)I
+┌ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return 1 / (n - 10054203);
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
+┌ Case jpamb.cases.Simple.divideByZero:()I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByZero:()I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return 1 / 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.divideByZero:()I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.divideByZero:()I
+┌ Case jpamb.cases.Simple.divideZeroByZero:(II)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return a / b;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.divideZeroByZero:(II)I
+┌ Case jpamb.cases.Simple.earlyReturn:()I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.earlyReturn:()I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     if (true) {
+│││ DEBUG:root:line:       return 0;
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:     assert false;
+│││ DEBUG:root:line:     return 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.earlyReturn:()I'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score -1.50
+└ Case jpamb.cases.Simple.earlyReturn:()I
+┌ Case jpamb.cases.Simple.justAdd:(II)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.justAdd:(II)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return a + b;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.justAdd:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justAdd:(II)I
+┌ Case jpamb.cases.Simple.justMulitply:(II)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.justMulitply:(II)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return a * b;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.justMulitply:(II)I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justMulitply:(II)I
+┌ Case jpamb.cases.Simple.justReturn:()I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.justReturn:()I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.justReturn:()I'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justReturn:()I
+┌ Case jpamb.cases.Simple.justReturnNothing:()V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.justReturnNothing:()V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     return;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:No assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;20%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.justReturnNothing:()V'
+│┌ Results
+││ - assertion error: 20.00% -1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.justReturnNothing:()V
+┌ Case jpamb.cases.Simple.multiError:(Z)I
+│┌ Run syntaxer-treesitter 'jpamb.cases.Simple.multiError:(Z)I'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Simple.java
+│││ DEBUG:root:Simple
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert b;
+│││ DEBUG:root:line:     return 1 / 0;
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Simple.multiError:(Z)I'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Simple.multiError:(Z)I
+┌ Case jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Strings.java
+│││ DEBUG:root:Strings
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert greeting.equals("hello");
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V
+┌ Case jpamb.cases.Tricky.collatz:(I)V
+│┌ Run syntaxer-treesitter 'jpamb.cases.Tricky.collatz:(I)V'
+││┌ Stderr
+│││ DEBUG:root:parse sourcefile cases/jpamb/cases/Tricky.java
+│││ DEBUG:root:Tricky
+│││ DEBUG:root:line: {
+│││ DEBUG:root:line:     assert n > 0;
+│││ DEBUG:root:line:     while (n != 1) {
+│││ DEBUG:root:line:       if (n % 2 == 0) {
+│││ DEBUG:root:line:         n = n / 2;
+│││ DEBUG:root:line:       } else {
+│││ DEBUG:root:line:         n = n * 3 + 1;
+│││ DEBUG:root:line:       }
+│││ DEBUG:root:line:     }
+│││ DEBUG:root:line:   }
+│││ DEBUG:root:Found assertion
+││└ Stderr
+││┌ Stdout
+│││ assertion error;80%
+││└ Stdout
+│└ Run syntaxer-treesitter 'jpamb.cases.Tricky.collatz:(I)V'
+│┌ Results
+││ - assertion error: 80.00% 1.50
+│└ Results
+│ Score 0.60
+└ Case jpamb.cases.Tricky.collatz:(I)V
+Total 9.60

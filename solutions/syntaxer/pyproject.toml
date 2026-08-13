@@ -16,7 +16,14 @@ dependencies = [
 
 
 [project.scripts]
-syntaxer = "syntaxer:main"
+syntaxer-treesitter = "syntaxer_treesitter:main"
+syntaxer-regex = "syntaxer_regex:main"
 
 [tool.uv.sources]
-jpamb = { workspace = true }
+jpamb = { path = "../../" }
+
+[dependency-groups]
+dev = [
+    "jpamb",
+    "pytest>=9.1.1",
+]
