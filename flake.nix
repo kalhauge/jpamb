@@ -65,7 +65,7 @@
               {
                 jvm2json = inputs.jvm2json.packages.${system}.default;
 
-                jpamb = python.pkgs.callPackage ./utils { };
+                jpamb = python.pkgs.callPackage ./. { };
 
                 docker_image = pkgs.dockerTools.buildImage {
                   name = "jpamb";
