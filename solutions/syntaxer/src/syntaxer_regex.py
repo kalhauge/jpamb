@@ -55,5 +55,3 @@ def main():
     else:
         log.debug("No assertion")
         print("assertion error;20%")
-
-    sys.exit(0)
