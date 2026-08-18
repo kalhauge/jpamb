@@ -1,5 +1,5 @@
 target/**/* -format
-test/expected/* -format
+*/expected/* -format
 .python-version -format
 *.toml -format
 *.lock -format

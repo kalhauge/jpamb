@@ -18,6 +18,7 @@ dependencies = [
 [project.scripts]
 syntaxer-treesitter = "syntaxer_treesitter:main"
 syntaxer-regex = "syntaxer_regex:main"
+syntaxer-bytecode = "syntaxer_bytecode:main"
 
 [tool.uv.sources]
 jpamb = { path = "../../" }
