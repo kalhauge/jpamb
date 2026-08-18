@@ -14,8 +14,14 @@ dependencies = [
 
 
 [project.scripts]
-interpreter = "interpreter:main"
-dynamic-analysis = "dynamic-analysis:main"
+interpreter_test = "interpreter:test"
+interpreter_analyse = "interpreter:analyse"
 
 [tool.uv.sources]
-jpamb = { workspace = true }
+jpamb = { path = "../../" }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+

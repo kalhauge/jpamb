@@ -13,7 +13,7 @@ result.json
 
 reports/
 
-jpamb.egg-info/
+*.egg-info/
 dist/
 *.pyd
 *.so

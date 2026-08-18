@@ -12,10 +12,10 @@ from abc import ABC, abstractmethod
 
 import enum
 import sys
-from loguru import logger
 from jvm import base as jvm
+import logging
 
-logger.add(sys.stderr, format="[{level}] {message}")
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, order=True)

@@ -12,12 +12,15 @@ from collections import Counter
 import runit
 
 import jpamb
-from loguru import logger as log
+import jvm
+import logging
 
 import subprocess
 import dataclasses
 from contextlib import contextmanager
 from typing import IO
+
+log = logging.getLogger(__name__)
 
 
 class JpambScore:
@@ -39,26 +42,29 @@ def re_parser(ctx_, parms_, expr):
 
 
 def logger_initialize(verbose: int):
-    LEVELS = ["SUCCESS", "INFO", "DEBUG", "TRACE"]
+    pass
 
-    lvl = LEVELS[verbose]
 
-    if verbose >= 2:
-        log.remove()
-        log.add(
-            sys.stderr,
-            format="<green>{elapsed}</green> | <level>{level: <8}</level> | <red>{extra[process]:<8}</red> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-            level=lvl,
-        )
-    else:
-        log.remove()
-        log.add(
-            sys.stderr,
-            format="<red>{extra[process]:<8}</red>: <level>{message}</level>",
-            level=lvl,
-        )
-
-    log.configure(extra={"process": "main"})
+#     LEVELS = ["SUCCESS", "INFO", "DEBUG", "TRACE"]
+#
+#     lvl = LEVELS[verbose]
+#
+#     if verbose >= 2:
+#         log.remove()
+#         log.add(
+#             sys.stderr,
+#             format="<green>{elapsed}</green> | <level>{level: <8}</level> | <red>{extra[process]:<8}</red> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
+#             level=lvl,
+#         )
+#     else:
+#         log.remove()
+#         log.add(
+#             sys.stderr,
+#             format="<red>{extra[process]:<8}</red>: <level>{message}</level>",
+#             level=lvl,
+#         )
+#
+#     log.configure(extra={"process": "main"})
 
 
 def summary64(cmd):
@@ -194,11 +200,11 @@ def checkhealth(suite):
 def test(suite, program, report, filter, fail_fast, with_python, timeout):
     """Test run a PROGRAM."""
 
+    program = resolve_cmd(program, with_python)
+
     if suite.workfolder != Path.cwd():
         log.warning(f"Changing to {suite.workfolder}")
         os.chdir(suite.workfolder)
-
-    program = resolve_cmd(program, with_python)
 
     r = Reporter(report)
 
@@ -217,7 +223,11 @@ def test(suite, program, report, filter, fail_fast, with_python, timeout):
             continue
 
         with r.context(f"Case {methodid}"):
-            out = r.run(program + (str(methodid),), timeout=timeout)
+            try:
+                out = r.run(program + (str(methodid),), timeout=timeout)
+            except subprocess.CalledProcessError as e:
+                r.output(f"Got error {e}")
+                continue
             response = jpamb.Response.parse(out)
             with r.context("Results"):
                 for k, v in sorted(response.predictions.items()):
@@ -266,6 +276,10 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
 
     r = Reporter(report)
     program = resolve_cmd(program, with_python)
+
+    if suite.workfolder != Path.cwd():
+        log.warning(f"Changing to {suite.workfolder}")
+        os.chdir(suite.workfolder)
 
     last_case = None
     if stepwise:
@@ -347,6 +361,10 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
     """Evaluate the PROGRAM."""
 
     program = resolve_cmd(program, with_python)
+
+    if suite.workfolder != Path.cwd():
+        log.warning(f"Changing to {suite.workfolder}")
+        os.chdir(suite.workfolder)
 
     runner = runit.Runner(err_callback=log.info, out_callback=log.debug)
 

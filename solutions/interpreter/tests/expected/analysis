@@ -1,0 +1,428 @@
+┌ Case jpamb.cases.Simple.assertBoolean:(Z)V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.assertBoolean:(Z)V'
+││┌ Stderr
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=False)]
+│││ Got assertion error
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got ok
+│││ Testing [Value(type=Boolean(), value=False)]
+│││ Got assertion error
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+│││ assertion error;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│┌ Results
+││ - assertion error: 0.00% inf
+││ - ok: 0.00% inf
+│└ Results
+│ Score 2.00
+└ Case jpamb.cases.Simple.assertBoolean:(Z)V
+┌ Case jpamb.cases.Simple.assertFalse:()V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.assertFalse:()V'
+││┌ Stderr
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+│││ Testing []
+│││ Got assertion error
+││└ Stderr
+││┌ Stdout
+│││ assertion error;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.assertFalse:()V'
+│┌ Results
+││ - assertion error: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.assertFalse:()V
+┌ Case jpamb.cases.Simple.assertInteger:(I)V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.assertInteger:(I)V'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-341142443)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=48424546)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-100515324)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1752831507)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=20129910)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-936999309)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1098670713)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1727289611)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-815409959)]
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.assertInteger:(I)V'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.assertInteger:(I)V
+┌ Case jpamb.cases.Simple.assertPositive:(I)V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.assertPositive:(I)V'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ It seems Ifz(offset=7, condition='gt', target=8) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.if_cond
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.assertPositive:(I)V'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.assertPositive:(I)V')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.assertPositive:(I)V
+┌ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ It seems Ifz(offset=14, condition='gt', target=13) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.if_cond
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeAssert:(I)V'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.checkBeforeAssert:(I)V')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.checkBeforeAssert:(I)V
+┌ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ It seems Ifz(offset=1, condition='eq', target=6) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.if_cond
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.checkBeforeDivideByN2:(I)I')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.checkBeforeDivideByN2:(I)I
+┌ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-341142443)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=48424546)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-100515324)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1752831507)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=20129910)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-936999309)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1098670713)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1727289611)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-815409959)]
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.checkBeforeDivideByN:(I)I'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.checkBeforeDivideByN:(I)I
+┌ Case jpamb.cases.Simple.divideByN:(I)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.divideByN:(I)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-341142443)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=48424546)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-100515324)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1752831507)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=20129910)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-936999309)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1098670713)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1727289611)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-815409959)]
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.divideByN:(I)I'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.divideByN:(I)I
+┌ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589)]
+│││ It seems Binary(offset=4, type=Int(), operant=<BinaryOpr.Sub: 2>) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.isub
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.divideByNMinus10054203:(I)I'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.divideByNMinus10054203:(I)I')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.divideByNMinus10054203:(I)I
+┌ Case jpamb.cases.Simple.divideByZero:()I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.divideByZero:()I'
+││┌ Stderr
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+│││ Testing []
+│││ Got divide by zero
+││└ Stderr
+││┌ Stdout
+│││ divide by zero;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.divideByZero:()I'
+│┌ Results
+││ - divide by zero: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.divideByZero:()I
+┌ Case jpamb.cases.Simple.divideZeroByZero:(II)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589), Value(type=Int(), value=-341142443)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=48424546), Value(type=Int(), value=-100515324)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1752831507), Value(type=Int(), value=20129910)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-936999309), Value(type=Int(), value=1098670713)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1727289611), Value(type=Int(), value=-815409959)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=987119867), Value(type=Int(), value=790204970)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-1714975244), Value(type=Int(), value=-282729822)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1773868988), Value(type=Int(), value=-98742266)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=-1028677693), Value(type=Int(), value=-2087175000)]
+│││ Got ok
+│││ Testing [Value(type=Int(), value=1578841898), Value(type=Int(), value=1591161832)]
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.divideZeroByZero:(II)I'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.divideZeroByZero:(II)I
+┌ Case jpamb.cases.Simple.earlyReturn:()I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.earlyReturn:()I'
+││┌ Stderr
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.earlyReturn:()I'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.earlyReturn:()I
+┌ Case jpamb.cases.Simple.justAdd:(II)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.justAdd:(II)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589), Value(type=Int(), value=-341142443)]
+│││ It seems Binary(offset=2, type=Int(), operant=<BinaryOpr.Add: 1>) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.iadd
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.justAdd:(II)I'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.justAdd:(II)I')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.justAdd:(II)I
+┌ Case jpamb.cases.Simple.justMulitply:(II)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.justMulitply:(II)I'
+││┌ Stderr
+│││ Testing [Value(type=Int(), value=1479280589), Value(type=Int(), value=-341142443)]
+│││ It seems Binary(offset=2, type=Int(), operant=<BinaryOpr.Mul: 3>) is not implemented!
+│││ Instructions can be found at: https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5.imul
+││└ Stderr
+│└ Run interpreter_analyse 'jpamb.cases.Simple.justMulitply:(II)I'
+│ Got error Command '('interpreter_analyse', 'jpamb.cases.Simple.justMulitply:(II)I')' returned non-zero exit status 255.
+└ Case jpamb.cases.Simple.justMulitply:(II)I
+┌ Case jpamb.cases.Simple.justReturn:()I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.justReturn:()I'
+││┌ Stderr
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.justReturn:()I'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.justReturn:()I
+┌ Case jpamb.cases.Simple.justReturnNothing:()V
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.justReturnNothing:()V'
+││┌ Stderr
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+│││ Testing []
+│││ Got ok
+││└ Stderr
+││┌ Stdout
+│││ ok;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.justReturnNothing:()V'
+│┌ Results
+││ - ok: 0.00% inf
+│└ Results
+│ Score 1.00
+└ Case jpamb.cases.Simple.justReturnNothing:()V
+┌ Case jpamb.cases.Simple.multiError:(Z)I
+│┌ Run interpreter_analyse 'jpamb.cases.Simple.multiError:(Z)I'
+││┌ Stderr
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=False)]
+│││ Got assertion error
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=True)]
+│││ Got divide by zero
+│││ Testing [Value(type=Boolean(), value=False)]
+│││ Got assertion error
+││└ Stderr
+││┌ Stdout
+│││ assertion error;100%
+│││ divide by zero;100%
+││└ Stdout
+│└ Run interpreter_analyse 'jpamb.cases.Simple.multiError:(Z)I'
+│┌ Results
+││ - assertion error: 0.00% inf
+││ - divide by zero: 0.00% inf
+│└ Results
+│ Score 2.00
+└ Case jpamb.cases.Simple.multiError:(Z)I
+Total 13.00

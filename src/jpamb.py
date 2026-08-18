@@ -8,19 +8,21 @@ This module provides the basic data model for working with the JPAMB.
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from loguru import logger
 import collections
 from collections import defaultdict
 import re
 import os
 import shutil
 import subprocess
+import logging
 
 import runit
 
 from typing import Iterable, NoReturn
 
 import jvm
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, order=True)
@@ -432,6 +434,8 @@ def getmethodid(
 
     import sys
 
+    assert len(sys.argv) == 2, f"expected only one argument but got {sys.argv[1:]}"
+
     mid = sys.argv[1]
     if mid == "info":
         printinfo(name, version, group, tags, for_science)
@@ -442,6 +446,8 @@ def getmethodid(
 def getcase() -> tuple[jvm.AbsMethodID, Input]:
     """Get the case from the program arguments."""
     import sys
+
+    assert len(sys.argv) == 3, f"expected exactly two arguments but got {sys.argv[1:]}"
 
     mid = sys.argv[1]
     i = sys.argv[2]
