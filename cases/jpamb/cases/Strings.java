@@ -9,5 +9,4 @@ public class Strings {
   public static void sayHello(String greeting) {
     assert greeting.equals("hello");
   }
-
 }
