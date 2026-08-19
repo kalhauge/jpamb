@@ -3,7 +3,6 @@
   setuptools,
   gcc,
   pyyaml,
-  loguru,
   click,
   pytest,
   pytestCheckHook,
@@ -23,7 +22,6 @@ buildPythonPackage rec {
   ++ propagatedBuildInputs;
 
   propagatedBuildInputs = [
-    loguru
     click
     runit
   ];

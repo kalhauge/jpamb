@@ -42,29 +42,22 @@ def re_parser(ctx_, parms_, expr):
 
 
 def logger_initialize(verbose: int):
-    pass
+    LEVELS = [25, logging.INFO, logging.DEBUG, 0]
 
+    lvl = LEVELS[verbose]
 
-#     LEVELS = ["SUCCESS", "INFO", "DEBUG", "TRACE"]
-#
-#     lvl = LEVELS[verbose]
-#
-#     if verbose >= 2:
-#         log.remove()
-#         log.add(
-#             sys.stderr,
-#             format="<green>{elapsed}</green> | <level>{level: <8}</level> | <red>{extra[process]:<8}</red> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-#             level=lvl,
-#         )
-#     else:
-#         log.remove()
-#         log.add(
-#             sys.stderr,
-#             format="<red>{extra[process]:<8}</red>: <level>{message}</level>",
-#             level=lvl,
-#         )
-#
-#     log.configure(extra={"process": "main"})
+    logging.basicConfig(
+        level=lvl,
+        format="{relativeCreated:>8,.0f}ms {levelname:>5}: {message}",
+        style="{",
+    )
+
+    logging.addLevelName(25, "SUCCESS")
+
+    def success(self, msg, *args, **kwargs):
+        return self.log(25, msg, *args, **kwargs)
+
+    log.__class__.success = success
 
 
 def summary64(cmd):
@@ -329,7 +322,7 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
 
 
 @cli.command()
-@click.pass_context
+@click.pass_obj
 @click.option(
     "--with-python/--no-with-python",
     "-W/-noW",
@@ -357,7 +350,7 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
     help="A file to write the report to",
 )
 @click.argument("PROGRAM", nargs=-1)
-def evaluate(ctx, program, report, timeout, iterations, with_python):
+def evaluate(suite, program, report, timeout, iterations, with_python):
     """Evaluate the PROGRAM."""
 
     program = resolve_cmd(program, with_python)
@@ -385,7 +378,7 @@ def evaluate(ctx, program, report, timeout, iterations, with_python):
     total_methods = 0
     bymethod = {}
 
-    for methodid, correct in ctx.obj.case_methods():
+    for methodid, correct in suite.case_methods():
         log.success(f"Running on {methodid}")
         results = []
 
