@@ -41,18 +41,40 @@ def re_parser(ctx_, parms_, expr):
         return re.compile(expr)
 
 
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        logging.DEBUG: "\033[36m",  # Cyan
+        25: "\033[32m",  # Green
+        logging.INFO: "",  # Green
+        logging.WARNING: "\033[33m",  # Yellow
+        logging.ERROR: "\033[31m",  # Red
+        logging.CRITICAL: "\033[1;31m",  # Bold red
+    }
+
+    RESET = "\033[0m"
+
+    def format(self, record):
+        message = super().format(record)
+        color = self.COLORS.get(record.levelno, self.RESET)
+        return f"{color}{message}{self.RESET}"
+
+
 def logger_initialize(verbose: int):
     LEVELS = [25, logging.INFO, logging.DEBUG, 0]
 
     lvl = LEVELS[verbose]
 
-    logging.basicConfig(
-        level=lvl,
-        format="{relativeCreated:>8,.0f}ms {levelname:>5}: {message}",
-        style="{",
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        ColorFormatter(
+            "{relativeCreated:>8,.0f}ms [{levelname:^5}] {message}", style="{"
+        )
     )
 
-    logging.addLevelName(25, "SUCCESS")
+    logging.addLevelName(25, "SUCCS")
+
+    log.setLevel(lvl)
+    log.addHandler(handler)
 
     def success(self, msg, *args, **kwargs):
         return self.log(25, msg, *args, **kwargs)
