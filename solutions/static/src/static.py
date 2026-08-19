@@ -268,17 +268,6 @@ def manystep2(
             sys.exit(-1)
 
 
-def manystep(
-    analysis: SignAnalysis, states: StateSet
-) -> Iterable[tuple[PC, object] | str]:
-    for pc, state in states.per_instruction():
-        opr = analysis.bc[pc]
-        logger.debug(f"{pc} {opr}\n{state}")
-        for res in manystep2(analysis, pc, state):
-            logger.debug(f"-> {res}")
-            yield res
-
-
 def run(suite, methodid, MAX_STEPS=10):
     bc = Bytecode(suite)
 
@@ -287,12 +276,16 @@ def run(suite, methodid, MAX_STEPS=10):
     final = set()
     sts = analysis.initialstate_from_method(methodid)
     for i in range(MAX_STEPS):
-        for s in manystep(analysis, sts):
-            if isinstance(s, str):
-                final.add(s)
-            else:
-                pc, st = s
-                sts[pc] |= st
+        for pc, state in states.per_instruction():
+            opr = analysis.bc[pc]
+            logger.debug(f"{pc} {opr}\n{state}")
+            for res in manystep2(analysis, pc, state):
+                logger.debug(f"-> {res}")
+                if isinstance(s, str):
+                    final.add(s)
+                else:
+                    pc, st = s
+                    sts[pc] |= st
 
     logger.info(f"The following final states {final} is possible in {MAX_STEPS}")
     return final

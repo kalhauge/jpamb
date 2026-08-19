@@ -1,6 +1,6 @@
 ┌ Case jpamb.cases.Simple.assertBoolean:(Z)V
-│┌ Run dynamic 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│┌ Run dynamic_analysis 'jpamb.cases.Simple.assertBoolean:(Z)V'
 ││┌ Stderr
 ││└ Stderr
-│└ Run dynamic 'jpamb.cases.Simple.assertBoolean:(Z)V'
+│└ Run dynamic_analysis 'jpamb.cases.Simple.assertBoolean:(Z)V'
 └ Case jpamb.cases.Simple.assertBoolean:(Z)V

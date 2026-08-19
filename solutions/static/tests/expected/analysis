@@ -1,7 +1,7 @@
 ┌ Case jpamb.cases.Simple.assertBoolean:(Z)V
 │┌ Run static 'jpamb.cases.Simple.assertBoolean:(Z)V'
 ││┌ Stderr
-│││ The following final states {'assertion error', 'ok'} is possible in 10
+│││ The following final states {'ok', 'assertion error'} is possible in 10
 ││└ Stderr
 ││┌ Stdout
 │││ *;0%
@@ -21,7 +21,7 @@
 ┌ Case jpamb.cases.Simple.assertFalse:()V
 │┌ Run static 'jpamb.cases.Simple.assertFalse:()V'
 ││┌ Stderr
-│││ The following final states {'ok', 'assertion error'} is possible in 10
+│││ The following final states {'assertion error', 'ok'} is possible in 10
 ││└ Stderr
 ││┌ Stdout
 │││ *;0%
@@ -41,7 +41,7 @@
 ┌ Case jpamb.cases.Simple.assertInteger:(I)V
 │┌ Run static 'jpamb.cases.Simple.assertInteger:(I)V'
 ││┌ Stderr
-│││ The following final states {'ok', 'assertion error'} is possible in 10
+│││ The following final states {'assertion error', 'ok'} is possible in 10
 ││└ Stderr
 ││┌ Stdout
 │││ *;0%
@@ -61,7 +61,7 @@
 ┌ Case jpamb.cases.Simple.assertPositive:(I)V
 │┌ Run static 'jpamb.cases.Simple.assertPositive:(I)V'
 ││┌ Stderr
-│││ The following final states {'ok', 'assertion error'} is possible in 10
+│││ The following final states {'assertion error', 'ok'} is possible in 10
 ││└ Stderr
 ││┌ Stdout
 │││ *;0%

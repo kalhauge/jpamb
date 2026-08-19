@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def test_dynamic():
     subprocess.run(
-        "jpamb --workdir ../.. dynamic -f Simple dynamic > tests/expected/test",
+        "jpamb --workdir ../.. interpret -f Simple dynamic_test > tests/expected/test",
         shell=True,
         check=True,
     )
@@ -21,7 +21,7 @@ def test_dynamic():
 
 def test_dynamic():
     subprocess.run(
-        "jpamb --workdir ../.. test -f Simple dynamic > tests/expected/analysis",
+        "jpamb --workdir ../.. test -f Simple dynamic_analysis > tests/expected/analysis",
         shell=True,
         check=True,
     )
