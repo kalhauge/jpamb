@@ -203,7 +203,7 @@ def analyse():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     methodid = jpamb.getmethodid(
-        "interpreter",
+        "dynamic",
         "1.0",
         "The Rice Theorem Cookers",
         ["dynamic", "python"],

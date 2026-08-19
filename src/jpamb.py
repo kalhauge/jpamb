@@ -322,6 +322,9 @@ class Suite:
         for op in self.findmethod(method)["code"]["bytecode"]:
             yield jvm.Opcode.from_json(op)
 
+    def method_max_locals(self, method: jvm.Absolute[jvm.MethodID]) -> int:
+        return self.findmethod(method)["code"]["max_locals"]
+
     def classes(self) -> Iterable[jvm.ClassName]:
         for file in self.classfiles():
             yield jvm.ClassName.from_parts(
@@ -347,16 +350,16 @@ class Suite:
                 self._cases = tuple(Case.decode(line) for line in f)
         return self._cases
 
-    def case_methods(self) -> Iterable[tuple[jvm.Absolute[jvm.MethodID], set[str]]]:
+    def case_methods(self) -> dict[jvm.Absolute[jvm.MethodID], set[str]]:
         methods = defaultdict(set)
 
         for case in self.cases:
             methods[case.methodid].add(case.result)
 
-        return methods.items()
+        return methods
 
     def case_opcodes(self) -> list[jvm.Opcode]:
-        for m, _ in self.case_methods():
+        for m in self.case_methods().keys():
             yield from self.method_opcodes(m)
 
     def checkhealth(self, failfast=False):

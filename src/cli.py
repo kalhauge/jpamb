@@ -234,7 +234,7 @@ def test(suite, program, report, filter, fail_fast, with_python, timeout):
                     r.output(f"- {k}: {v}")
 
     total = 0
-    for methodid, correct in suite.case_methods():
+    for methodid, correct in suite.case_methods().items():
         if filter and not filter.search(str(methodid)):
             continue
 
