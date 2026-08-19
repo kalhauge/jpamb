@@ -3,28 +3,25 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "syntaxer"
+name = "dynamic"
 version = "0.1.0"
-description = "A very stupid syntatic analysis, that only checks for assertion errors."
+description = "The start of an interperter"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "jpamb",
-  "tree-sitter>=0.26.0",
-  "tree-sitter-java>=0.23.5",
 ]
 
 
 [project.scripts]
-syntaxer-treesitter = "syntaxer_treesitter:main"
-syntaxer-regex = "syntaxer_regex:main"
-syntaxer-bytecode = "syntaxer_bytecode:main"
+dynamic_test = "dynamic:test"
+dynamic_analyse = "dynamic:analyse"
 
 [tool.uv.sources]
 jpamb = { path = "../../" }
 
 [dependency-groups]
 dev = [
-    "jpamb",
     "pytest>=9.1.1",
 ]
+

@@ -162,7 +162,8 @@ def resolve_cmd(program, with_python=None):
         path_type=Path,
         resolve_path=True,
     ),
-    default=".",
+    default=Path.cwd(),
+    show_default=True,
     help="the base of the jpamb folder.",
 )
 @click.pass_context

@@ -6,22 +6,22 @@ import logging
 
 suite = jpamb.Suite(Path("../..").absolute())
 
-import interpreter
+import dynamic
 
 logger = logging.getLogger(__name__)
 
 
-def test_interpreter():
+def test_dynamic():
     subprocess.run(
-        "jpamb --workdir ../.. interpret -f Simple interpreter_test > tests/expected/test",
+        "jpamb --workdir ../.. dynamic -f Simple dynamic > tests/expected/test",
         shell=True,
         check=True,
     )
 
 
-def test_interpreter_analysis():
+def test_dynamic():
     subprocess.run(
-        "jpamb --workdir ../.. test -f Simple interpreter_analyse > tests/expected/analysis",
+        "jpamb --workdir ../.. test -f Simple dynamic > tests/expected/analysis",
         shell=True,
         check=True,
     )
@@ -33,5 +33,5 @@ def test_interpreter_analysis():
     ids=lambda x: f"{x.methodid}:{x.input.encode()}",
 )
 def test_run(case):
-    output = interpreter.run(suite, case.methodid, case.input.values)
+    output = dynamic.run(suite, case.methodid, case.input.values)
     assert output == case.result

@@ -3,25 +3,28 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "interpreter"
+name = "syntatic"
 version = "0.1.0"
-description = "The start of an interperter"
+description = "A very stupid syntatic analysis, that only checks for assertion errors."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
   "jpamb",
+  "tree-sitter>=0.26.0",
+  "tree-sitter-java>=0.23.5",
 ]
 
 
 [project.scripts]
-interpreter_test = "interpreter:test"
-interpreter_analyse = "interpreter:analyse"
+syntatic-treesitter = "syntatic_treesitter:main"
+syntatic-regex = "syntatic_regex:main"
+syntatic-bytecode = "syntatic_bytecode:main"
 
 [tool.uv.sources]
 jpamb = { path = "../../" }
 
 [dependency-groups]
 dev = [
+    "jpamb",
     "pytest>=9.1.1",
 ]
-
