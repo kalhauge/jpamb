@@ -302,7 +302,7 @@ class Suite:
         with open(self.decompiledfile(cn), encoding="utf-8") as fp:
             return json.load(fp)
 
-    def findmethod(self, methodid: jvm.Absolute[jvm.MethodID]) -> jvm:
+    def findmethod(self, methodid: jvm.Absolute[jvm.MethodID]) -> dict:
         methods = self.findclass(methodid.classname)["methods"]
         for method in methods:
             if method["name"] != methodid.extension.name:
@@ -317,6 +317,10 @@ class Suite:
         else:
             raise IndexError(f"Could not find {methodid}")
         return method
+
+    def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
+        """Get the json for a method and covert it to a Method"""
+        return jvm.Method.from_json(methodid, self.findmethod(methodid))
 
     def method_opcodes(self, method: jvm.Absolute[jvm.MethodID]) -> list[jvm.Opcode]:
         for op in self.findmethod(method)["code"]["bytecode"]:
@@ -416,7 +420,7 @@ class Suite:
             assert len(self.cases) > 0, "cases should be parsable and at least one"
             logger.info(f"Found {len(self.cases)} cases")
 
-        for method, _ in self.case_methods():
+        for method in self.case_methods().keys():
             with check(f"The method: [{method}]"):
                 try:
                     for opr in self.method_opcodes(method):

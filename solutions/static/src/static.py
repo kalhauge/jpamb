@@ -101,8 +101,10 @@ class SignSet:
         match value.type:
             case jvm.Int():
                 return SignSet(frozenset({(value.value > 0) - (value.value < 0)}))
+            case jvm.Boolean():
+                return SignSet(frozenset({int(value.value)}))
             case a:
-                assert False, f"Unsupported value {a}"
+                assert False, f"Unsupported value {value!r}"
 
     @classmethod
     def abstract(cls, values):
@@ -159,21 +161,91 @@ class SignAnalysis:
         def load(self, index):
             return self.locals[index]
 
-        def logical(
-            self, opr: str, v1: SignSet, v2: SignSet
+        def binary(
+            self, opr: jvm.BinaryOpr, v1: SignSet, v2: SignSet
         ) -> Iterable[tuple[bool, "SignAnalysis"]]:
             assert isinstance(v1, SignSet), f"Expected sign set but got {v1}"
             assert isinstance(v2, SignSet), f"Expected sign set but got {v2}"
             match opr:
-                case "ne":
-                    if len(v1.sign & v1.sign) > 0:
+                case jvm.BinaryOpr.Div:
+                    divides_by_zero = False
+                    signs = set()
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if y == 0:
+                                divides_by_zero = True
+                                continue
+                            signs.add(x / y)
+                    yield (SignSet(frozenset(signs)), self)
+                    if divides_by_zero:
+                        yield "divide by zero"
+                case jvm.BinaryOpr.Sub:
+                    signs = set()
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if y == 0:
+                                divides_by_zero = True
+                                continue
+                            signs.add(x - y)
+                    yield (SignSet(frozenset(signs)), self)
+                case jvm.BinaryOpr.Add:
+                    signs = set()
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if y == 0:
+                                divides_by_zero = True
+                                continue
+                            signs.add(x + y)
+                    yield (SignSet(frozenset(signs)), self)
+                case jvm.BinaryOpr.Mul:
+                    signs = set()
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if y == 0:
+                                divides_by_zero = True
+                                continue
+                            signs.add(x * y)
+                    yield (SignSet(frozenset(signs)), self)
+                case a:
+                    raise NotImplementedError(f"The binary operator {a!r}")
+
+        def compare(
+            self, opr: jvm.CmpOpr, v1: SignSet, v2: SignSet
+        ) -> Iterable[tuple[bool, "SignAnalysis"]]:
+            assert isinstance(v1, SignSet), f"Expected sign set but got {v1}"
+            assert isinstance(v2, SignSet), f"Expected sign set but got {v2}"
+            match opr:
+                case jvm.CmpOpr.Ne:
+                    equal = False
+                    notequal = False
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if x == y:
+                                equal = True
+                            if x != y:
+                                notequal = True
+                    if equal:
                         yield (False, self)
-                    yield (True, self)
-                case "gt":
+                    if notequal:
+                        yield (True, self)
+                case jvm.CmpOpr.Eq:
+                    equal = False
+                    notequal = False
+                    for x in v1.sign:
+                        for y in v2.sign:
+                            if x == y:
+                                equal = True
+                            if x != y:
+                                notequal = True
+                    if equal:
+                        yield (True, self)
+                    if notequal:
+                        yield (False, self)
+                case jvm.CmpOpr.Gt:
                     greater = False
                     smallerequal = False
                     for x in v1.sign:
-                        for y in v1.sign:
+                        for y in v2.sign:
                             if x > y:
                                 greater = True
                             if x <= y:
@@ -183,14 +255,20 @@ class SignAnalysis:
                     if smallerequal:
                         yield (False, self)
                 case a:
-                    raise NotImplementedError(f"The logical operator {a}")
+                    raise NotImplementedError(f"The compare operator {a!r}")
 
-    def initialstate_from_method(self, methodid: jvm.AbsMethodID):
+    def initialstate_from_method(
+        self, methodid: jvm.AbsMethodID, inputs: list[jvm.Value] | None
+    ):
         # assert len(methodid.extension.params) == 0, "Expected no parameters
         state = self.bot_from_method(methodid, stack=tuple())
 
-        for i, p in enumerate(methodid.extension.params):
-            state.locals[i] = SignSet.top()
+        if inputs is None:
+            for i, p in enumerate(methodid.extension.params):
+                state.locals[i] = SignSet.top()
+        else:
+            for i, x in enumerate(inputs):
+                state.locals[i] = SignSet.from_singleton(x)
 
         return StateSet({PC(methodid, 0): state}, abstraction=self)
 
@@ -236,10 +314,22 @@ def manystep2(
 
             yield (pc + 1, state.push(va))
 
-        case jvm.Ifz(condition=opr, target=target):
+        case jvm.Ifz(condition=op, target=target):
             [val], after = state.pop(1)
 
-            for res in after.logical(opr, val, analysis.abstract([jvm.Value.int(0)])):
+            for res in after.compare(op, val, analysis.abstract([jvm.Value.int(0)])):
+                match res:
+                    case (True, final):
+                        yield (pc.with_offset(target), final)
+                    case (False, final):
+                        yield (pc + 1, final)
+                    case err:
+                        yield err
+
+        case jvm.If(condition=op, target=target):
+            [v1, v2], after = state.pop(2)
+
+            for res in after.compare(op, v1, v2):
                 match res:
                     case (True, final):
                         yield (pc.with_offset(target), final)
@@ -256,7 +346,19 @@ def manystep2(
             va = analysis.abstract([v])
             yield (pc + 1, state.push(va))
 
+        case jvm.Binary(operant=op):
+            [v1, v2], after = state.pop(2)
+            for res in after.binary(op, v1, v2):
+                match res:
+                    case (v3, final):
+                        yield (pc + 1, final.push(v3))
+                    case err:
+                        yield err
+
         case jvm.Return(type=None):
+            yield "ok"
+
+        case jvm.Return(type=t):
             yield "ok"
 
         case jvm.New(classname=jvm.ClassName("java/lang/AssertionError")):
@@ -268,27 +370,41 @@ def manystep2(
             sys.exit(-1)
 
 
-def run(suite, methodid, MAX_STEPS=10):
+def run(suite, methodid, inputs: list[jvm.Value] | None, MAX_STEPS=20):
     bc = Bytecode(suite)
 
     analysis = SignAnalysis(bc)
 
     final = set()
-    sts = analysis.initialstate_from_method(methodid)
+    sts = analysis.initialstate_from_method(methodid, inputs)
     for i in range(MAX_STEPS):
-        for pc, state in states.per_instruction():
+        for pc, state in sts.per_instruction():
             opr = analysis.bc[pc]
-            logger.debug(f"{pc} {opr}\n{state}")
+            step = f"STEP {pc}"
+            step += f"\n{state}"
+            step += f"\n--- {opr} -->"
             for res in manystep2(analysis, pc, state):
-                logger.debug(f"-> {res}")
-                if isinstance(s, str):
-                    final.add(s)
+                if isinstance(res, str):
+                    step += f"\n{res}"
+                    final.add(res)
                 else:
-                    pc, st = s
+                    pc, st = res
+                    step += f"\n{pc}:  {st}"
                     sts[pc] |= st
+            logger.debug(step)
 
     logger.info(f"The following final states {final} is possible in {MAX_STEPS}")
     return final
+
+
+def interpret():
+    """The static analysis"""
+    logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+    methodid, input = jpamb.getcase()
+    suite = jpamb.Suite.from_cwd()
+    final = run(suite, methodid, input.values)
+    for f in final:
+        print(f)
 
 
 def analyse():

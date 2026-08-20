@@ -616,6 +616,39 @@ class Store(Opcode):
         return f"store:{self.type} {self.index}"
 
 
+import enum
+
+
+class CmpOpr(enum.Enum):
+    Ne = enum.auto()
+    Eq = enum.auto()
+    Lt = enum.auto()
+    Le = enum.auto()
+    Ge = enum.auto()
+    Gt = enum.auto()
+
+    @staticmethod
+    def from_json(json_str: str) -> "CmpOpr":
+        match json_str.lower():
+            case "ne":
+                return CmpOpr.Ne
+            case "eq":
+                return CmpOpr.Eq
+            case "lt":
+                return CmpOpr.Lt
+            case "le":
+                return CmpOpr.Le
+            case "ge":
+                return CmpOpr.Ge
+            case "gt":
+                return CmpOpr.Gt
+            case _:
+                raise NotImplementedError(f"Unknown operator: {json_str}")
+
+    def __str__(self):
+        return self.name.lower()
+
+
 class BinaryOpr(enum.Enum):
     Add = enum.auto()
     Sub = enum.auto()
@@ -734,25 +767,27 @@ class If(Opcode):
     2. Reference comparisons (if_acmp*)
     """
 
-    condition: str  # One of the CmpOpr values
+    condition: CmpOpr  # One of the CmpOpr values
     target: int  # Jump target offset
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
-            offset=json["offset"], condition=json["condition"], target=json["target"]
+            offset=json["offset"],
+            condition=CmpOpr.from_json(json["condition"]),
+            target=json["target"],
         )
 
     def real(self) -> str:
         # Map our condition to actual JVM instruction
         # For integer comparisons
         int_cmp_map = {
-            "eq": "if_icmpeq",
-            "ne": "if_icmpne",
-            "lt": "if_icmplt",
-            "ge": "if_icmpge",
-            "gt": "if_icmpgt",
-            "le": "if_icmple",
+            CmpOpr.Eq: "if_icmpeq",
+            CmpOpr.Ne: "if_icmpne",
+            CmpOpr.Lt: "if_icmplt",
+            CmpOpr.Ge: "if_icmpge",
+            CmpOpr.Gt: "if_icmpgt",
+            CmpOpr.Le: "if_icmple",
         }
 
         # For reference comparisons
@@ -860,25 +895,27 @@ class Ifz(Opcode):
     2. Reference comparisons against null (ifnull, ifnonnull)
     """
 
-    condition: str  # One of the CmpOpr values
+    condition: CmpOpr  # One of the CmpOpr values
     target: int  # Jump target offset
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
-            offset=json["offset"], condition=json["condition"], target=json["target"]
+            offset=json["offset"],
+            condition=CmpOpr.from_json(json["condition"]),
+            target=json["target"],
         )
 
     def real(self) -> str:
         # Map our condition to actual JVM instruction
         # For integer comparisons against zero
         int_cmp_map = {
-            "eq": "ifeq",  # value == 0
-            "ne": "ifne",  # value != 0
-            "lt": "iflt",  # value < 0
-            "ge": "ifge",  # value >= 0
-            "gt": "ifgt",  # value > 0
-            "le": "ifle",  # value <= 0
+            CmpOpr.Eq: "ifeq",  # value == 0
+            CmpOpr.Ne: "ifne",  # value != 0
+            CmpOpr.Lt: "iflt",  # value < 0
+            CmpOpr.Ge: "ifge",  # value >= 0
+            CmpOpr.Gt: "ifgt",  # value > 0
+            CmpOpr.Le: "ifle",  # value <= 0
         }
 
         # For reference comparisons against null
@@ -1013,16 +1050,7 @@ class Incr(Opcode):
         return f"iinc {self.index} {self.amount}"
 
     def semantics(self) -> str | None:
-        semantic = """
-        bc[i].opr = 'incr'
-        bc[i].index = idx
-        bc[i].amount = const
-        -------------------------[iinc]
-        bc |- (i, s) -> (i+1, s)
-        where locals[idx] = locals[idx] + const
-        """
-
-        return semantic
+        return None
 
     def mnemonic(self) -> str:
         return "iinc"

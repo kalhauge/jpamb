@@ -14,11 +14,11 @@ dependencies = [
 
 
 [project.scripts]
-dynamic_test = "dynamic:test"
+dynamic_interpret = "dynamic:interpret"
 dynamic_analyse = "dynamic:analyse"
 
 [tool.uv.sources]
-jpamb = { path = "../../" }
+jpamb = { path = "../../", editable = true }
 
 [dependency-groups]
 dev = [

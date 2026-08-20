@@ -6,7 +6,7 @@ suite = jpamb.Suite.from_cwd()
 
 
 def st_casemethods():
-    methods = [m[0] for m in suite.case_methods()]
+    methods = list(suite.case_methods().keys())
     return st.sampled_from(methods)
 
 

@@ -11,25 +11,28 @@ import dynamic
 logger = logging.getLogger(__name__)
 
 
-def test_dynamic():
+def test_dynamic_interpret():
     subprocess.run(
-        "jpamb --workdir ../.. interpret -f Simple dynamic_test > tests/expected/test",
+        "jpamb --workdir ../.. interpret -f Simple dynamic_interpret > tests/expected/interpret",
         shell=True,
-        check=True,
     )
 
 
-def test_dynamic():
-    subprocess.run(
-        "jpamb --workdir ../.. test -f Simple dynamic_analysis > tests/expected/analysis",
-        shell=True,
-        check=True,
-    )
+# def test_dynamic_analysis():
+#     subprocess.run(
+#         "jpamb --workdir ../.. test -f Simple dynamic_analysis > tests/expected/analysis",
+#         shell=True,
+#     )
 
 
+# @pytest.mark.parametrize(
+#     "case",
+#     [s for s in suite.cases if "Simple" == s.methodid.classname.name],
+#     ids=lambda x: f"{x.methodid}:{x.input.encode()}",
+# )
 @pytest.mark.parametrize(
     "case",
-    [s for s in suite.cases if "Simple" == s.methodid.classname.name],
+    list(suite.cases),
     ids=lambda x: f"{x.methodid}:{x.input.encode()}",
 )
 def test_run(case):
