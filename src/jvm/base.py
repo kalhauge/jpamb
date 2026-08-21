@@ -782,23 +782,3 @@ class ValueParser:
             inputs.append(parser())
 
         return inputs
-
-
-@dataclass(frozen=True)
-class Method:
-    """A java method, (still) partial"""
-
-    id: jvm.AbsMethodID
-    opcodes: list[jvm.Opcode]
-    max_locals: int
-
-    @classmethod
-    def from_json(cls, id: jvm.AbsMethodID, json) -> Self:
-        opcodes = [jvm.Opcode.from_json(op) for op in json["code"]["bytecode"]]
-        max_locals = jsom["code"]["max_locals"]
-
-        return Method(
-            id=id,
-            opcodes=opcodes,
-            max_locals=max_locals,
-        )
