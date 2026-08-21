@@ -119,7 +119,7 @@ class HeapArray(HeapValue):
 @dataclass
 class HeapObject(HeapValue):
     classname: jvm.ClassName
-    fields: dict[jvm.FieldId, jvm.Value]
+    fields: dict[jvm.FieldID, jvm.Value]
 
 
 @dataclass
