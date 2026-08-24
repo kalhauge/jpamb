@@ -390,6 +390,9 @@ def evaluate(suite, program, report, timeout, iterations, with_python):
             timeout=timeout,
         )
         info = jpamb.AnalysisInfo.parse(out)
+    except subprocess.CalledProcessError as e:
+        log.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
+        sys.exit(1)
     except ValueError:
         log.error("Expected info, but got:")
         for o in out.splitlines():
@@ -401,7 +404,7 @@ def evaluate(suite, program, report, timeout, iterations, with_python):
     total_methods = 0
     bymethod = {}
 
-    for methodid, correct in suite.case_methods():
+    for methodid, correct in suite.case_methods().items():
         log.success(f"Running on {methodid}")
         results = []
 
@@ -410,7 +413,14 @@ def evaluate(suite, program, report, timeout, iterations, with_python):
         _relative = 0
         for i in range(iterations):
             log.info(f"Running on {methodid}, iter {i}")
-            experiment = runner.experiment(program + (methodid.encode(),))
+            try:
+                experiment = runner.experiment(program + (methodid.encode(),))
+            except subprocess.CalledProcessError as e:
+                log.warning(
+                    f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}"
+                )
+                continue
+
             response = jpamb.Response.parse(experiment.output)
             score = response.score(correct)
 

@@ -27,25 +27,18 @@ class PC:
         return f"{self.method}:{self.offset}"
 
 
-@dataclass(frozen=True)
-class Method:
-    id: jvm.AbsMethodID
-    opcodes: list[jvm.Opcode]
-    max_locals: int
-
-
 @dataclass
 class Bytecode:
     suite: jpamb.Suite
-    methods: dict[jvm.AbsMethodID, Method] = field(default_factory=dict)
+    methods: dict[jvm.AbsMethodID, jvm.Method] = field(default_factory=dict)
 
-    def getmethod(self, methodid: jvm.AbsMethodID) -> Method:
+    def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
         try:
             method = self.methods[methodid]
         except KeyError:
             opcodes = list(self.suite.method_opcodes(methodid))
             max_locals = self.suite.method_max_locals(methodid)
-            method = Method(methodid, opcodes, max_locals)
+            method = jvm.Method(methodid, opcodes, max_locals)
             self.methods[methodid] = method
         return method
 
@@ -370,7 +363,7 @@ def manystep2(
             sys.exit(-1)
 
 
-def run(suite, methodid, inputs: list[jvm.Value] | None, MAX_STEPS=20):
+def run(suite, methodid, inputs: list[jvm.Value] | None = None, MAX_STEPS=20):
     bc = Bytecode(suite)
 
     analysis = SignAnalysis(bc)
