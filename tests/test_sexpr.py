@@ -1,6 +1,6 @@
-from sexpr import Step, check_step
 import sexpr
 from hypothesis import given, note, strategies as st
+from dataclasses import dataclass
 
 
 def test_small_frame():
@@ -12,6 +12,17 @@ def test_small_frame():
     print(token1)
 
     assert token1 == ["FRAME", ["LOCALS", ["int", "11"]], ["STACK", ["ref", "None"]]]
+
+
+@dataclass
+class Step:
+    state: sexpr.SExpr
+    opr: sexpr.SExpr
+    next_state: sexpr.SExpr
+
+
+def check_step(step1: Step, step2: Step) -> bool:
+    return step1.next_state == step2.state
 
 
 def test_larger_frame():
@@ -101,3 +112,18 @@ def test_tripping_indent(expr):
     items = sexpr.from_string(string)
     assert len(items) == 1
     assert items[0] == expr
+
+
+def test_data():
+    assert sexpr.data("hello", key="value") == ["hello", ":key", "value"]
+
+
+@given(st.lists(st_sexpr()))
+def test_data_tripping(expr):
+    assert (
+        sexpr.undata(
+            {"data": lambda *args, **kwargs: sexpr.data("data", *args, **kwargs)},
+            ["data"] + expr,
+        )
+        == ["data"] + expr
+    )

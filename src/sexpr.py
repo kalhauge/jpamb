@@ -3,7 +3,7 @@ import io
 from typing import NamedTuple, Iterable
 from dataclasses import dataclass
 
-from typing import Iterator
+from typing import Iterator, Callable
 
 
 type SExpr = list[SExpr] | str
@@ -26,8 +26,38 @@ def sexpr(obj: object) -> SExpr:
 BAD_SYMBOL = re.compile("[)(\n \t|]")
 
 
-def data(name: str, *args: object) -> list[SExpr]:
-    return [name] + [sexpr(a) for a in args]
+def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
+    exp = [name] + [sexpr(a) for a in args]
+    for k, v in kwargs.items():
+        exp += [":" + k, sexpr(v)]
+    return exp
+
+
+def undata[T](handlers: dict[str, Callable[..., T]], sexpr: list[SExpr]) -> T:
+    if not isinstance(sexpr, list) or len(sexpr) == 0:
+        raise RuntimeError(f"Unexpected expression: {sexpr}")
+
+    key = sexpr[0]
+
+    if not isinstance(key, str):
+        raise RuntimeError(f"Unexpected expression: {key} in {sexpr}")
+
+    items = list(sexpr[1:])
+    args = []
+    kwargs = {}
+
+    while len(items):
+        a = items.pop(0)
+        if isinstance(a, str) and a.startswith(":"):
+            k = a[1:]
+            assert not k in kwargs
+            v = items.pop()
+            kwargs[k] = v
+            continue
+
+        args.append(a)
+
+    return handlers[key](*args, **kwargs)
 
 
 def escape(symbol: str) -> str:
@@ -168,14 +198,3 @@ class Parser:
         self.next()
 
         return output
-
-
-@dataclass
-class Step:
-    state: SExpr
-    opr: SExpr
-    next_state: SExpr
-
-
-def check_step(step1: Step, step2: Step) -> bool:
-    return step1.next_state == step2.state

@@ -23,6 +23,9 @@ class PC:
     def __str__(self):
         return f"{self.method}:{self.offset}"
 
+    def __sexpr__(self):
+        return str(self)
+
 
 @dataclass
 class Bytecode:
@@ -45,11 +48,6 @@ class Bytecode:
 
     def __contains__(self, pc: PC) -> bool:
         return pc.offset < len(self.getmethod(pc.method).opcodes)
-
-    def __sexpr__(self, pc) -> sexpr.SExpr:
-        assert False
-        opcode = self.getmethod(pc.method).opcodes[pc.offset]
-        return opcode.__sexpr__()
 
 
 @dataclass
@@ -114,11 +112,12 @@ class Frame:
         )
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return [
+        return sexpr.data(
             "frame",
-            sexpr.data("locals", *self.locals),
-            sexpr.data("stack", *self.stack.items),
-        ]
+            locals=self.locals,
+            stack=self.stack,
+            pc=self.pc,
+        )
 
 
 @dataclass
@@ -176,12 +175,12 @@ class State:
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
             "state",
-            sexpr.data("heap", *self.heap),
-            sexpr.data("callstack", self.frames),
+            heap=self.heap,
+            callstack=self.frames,
         )
 
     @classmethod
-    def from_sexpr(cls, expr) -> State:
+    def from_sexpr(cls, expr) -> "State":
         if not isinstance(expr, list):
             raise RuntimeError("...")
 
@@ -468,7 +467,7 @@ def interpret():
 
         print(sexpr.pretty(["step", prev_state, opr, next_state]))
 
-        state.display()
+        #  state.display()
 
         if isinstance(state, str):
             break
