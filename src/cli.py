@@ -6,7 +6,6 @@ import os
 import math
 import sys
 import json
-from inspect import getsourcelines, getsourcefile
 from collections import Counter
 
 from jpamb_utils import Effect, DockerRunner
@@ -96,66 +95,6 @@ def checkhealth(ctx):
 
 @cli.command()
 @click.option(
-    "--fail-fast/--no-fail-fast",
-    help="if we should stop after the first error.",
-)
-@click.option(
-    "--timeout",
-    show_default=True,
-    default=2.0,
-    help="timeout in seconds.",
-)
-@click.option(
-    "--filter",
-    "-f",
-    help="A regular expression which filter the methods to run on.",
-    callback=re_parser,
-)
-@click.argument("PROGRAM", nargs=-1)
-@click.pass_obj
-def test(ctx, program, filter, fail_fast, timeout):
-    """Test run a PROGRAM."""
-
-    if ctx.suite.workfolder != Path.cwd():
-        eff.warning(f"Changing to {ctx.suite.workfolder}")
-        os.chdir(ctx.suite.workfolder)
-
-    if not filter:
-        with eff.context("Info"):
-            out = eff.run(program + ("info",), timeout=timeout)
-            info = jpamb.AnalysisInfo.parse(out)
-
-            with eff.context("Results"):
-                for k, v in sorted(dataclasses.asdict(info).items()):
-                    eff.output(f"- {k}: {v}")
-
-    total = 0
-    for methodid, correct in suite.case_methods().items():
-        if filter and not filter.search(str(methodid)):
-            continue
-
-        with eff.context(f"Case {methodid}"):
-            try:
-                out = eff.run(program + (str(methodid),), timeout=timeout)
-            except subprocess.CalledProcessError as e:
-                eff.output(f"Got error {e}")
-                continue
-            response, warnings = jpamb.Response.parse(out)
-            for warning in warnings:
-                eff.warning(warning)
-
-            with eff.context("Results"):
-                for k, v in sorted(response.predictions.items()):
-                    eff.output(f"- {k}: {v} {v.wager:0.2f}")
-            score = response.score(correct)
-            eff.output(f"Score {score:0.2f}")
-            total += score
-
-    eff.output(f"Total {total:0.2f}")
-
-
-@cli.command()
-@click.option(
     "--stepwise / --no-stepwise",
     help="continue from last failure",
 )
@@ -185,9 +124,9 @@ def interpret(ctx, program, report, filter, timeout, stepwise):
 
     eff = ctx.eff
 
-    if ctx.suite.workfolder != Path.cwd():
-        eff.warning(f"Changing to {ctx.suite.workfolder}")
-        os.chdir(ctx.suite.workfolder)
+    if ctx.suite.workdir != Path.cwd():
+        eff.warning(f"Changing to {ctx.suite.workdir}")
+        os.chdir(ctx.suite.workdir)
 
     last_case = None
     if stepwise:
@@ -240,25 +179,34 @@ def run_analysis(
     analysis: tuple[str],
     methodid: jvm.AbsMethodID,
     iterations: int,
+    timeout: float,
     eff: Effect,
 ):
     results = []
 
-    # _score = 0
     _time = 0
     _relative = 0
+    _iterations = 0
     for i in range(iterations):
         with eff.context(f"Iteration {i}"):
             try:
-                experiment = eff.experiment(analysis + (methodid.encode(),))
+                experiment = eff.experiment(
+                    analysis + (methodid.encode(),), timeout=timeout
+                )
             except subprocess.CalledProcessError as e:
-                eff.output(
+                eff.warning(
                     f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}"
                 )
                 continue
+            except subprocess.TimeoutExpired as e:
+                eff.warning(
+                    f"Ran {shlex.join(analysis)} info, and timed out after {e.timeout} seconds"
+                )
+                continue
 
-        response = jpamb.Response.parse(experiment.output)
-        # score = response.score(correct)
+        response, warns = jpamb.Response.parse(experiment.output)
+        for warn in warns:
+            eff.warning(warn)
 
         result = {k: v.__json__() for k, v in response.predictions.items()}
 
@@ -266,21 +214,20 @@ def run_analysis(
             {
                 "iteration": i,
                 "response": result,
-                # "score": score,
                 "time": experiment.time_ns,
                 "relative": experiment.time_relative,
                 "calibrates": experiment.calibrations_ns,
             }
         )
 
-        # _score += score
         _relative += experiment.time_relative
         _time += experiment.time_ns
+        _iterations += 1
 
     return {
         # "score": _score / iterations,
-        "time": _time / iterations,
-        "relative": _relative / iterations,
+        "time": _time / _iterations if _iterations else float("NaN"),
+        "relative": _relative / _iterations if _iterations else float("NaN"),
         "iterations": results,
     }
 
@@ -297,7 +244,7 @@ def run_analysis(
 @click.option(
     "--timeout",
     show_default=True,
-    default=2.0,
+    default=5.0,
     help="timeout in seconds.",
 )
 @click.option(
@@ -308,14 +255,14 @@ def run_analysis(
     help="timeout in seconds.",
 )
 @click.argument("PROGRAM", nargs=-1)
-def evaluate(suite, program, timeout, format, iterations):
+def evaluate(ctx, program, timeout, format, iterations):
     """Evaluate the PROGRAM."""
 
     eff = ctx.eff
 
-    if suite.workfolder != Path.cwd():
-        eff.warning(f"Changing to {suite.workfolder}")
-        os.chdir(suite.workfolder)
+    if ctx.suite.workdir != Path.cwd():
+        eff.warning(f"Changing to {ctx.suite.workdir}")
+        os.chdir(ctx.suite.workdir)
 
     with eff.context("Getting info about analysis"):
         try:
@@ -337,11 +284,17 @@ def evaluate(suite, program, timeout, format, iterations):
     category_success = Counter()
     category_count = Counter()
 
-    case_methods = suite.case_methods()
+    case_methods = ctx.suite.case_methods()
 
     for methodid, correct in sorted(case_methods.items()):
         with eff.context(f"Running on {methodid}"):
-            output = run_analysis(program, methodid, iterations=iterations, eff=eff)
+            output = run_analysis(
+                program,
+                methodid,
+                timeout=timeout,
+                iterations=iterations,
+                eff=eff,
+            )
 
             bymethod[methodid] = output
 
@@ -358,12 +311,16 @@ def evaluate(suite, program, timeout, format, iterations):
         for methodid, correct in sorted(case_methods.items()):
             output = bymethod[methodid]
             _score = 0
-            for it in output["iterations"]:
-                resp = jpamb.Response.from_json(it["response"])
-                it["score"] = resp.score(correct, category)
-                _score += it["score"]
 
-            _score /= len(output["iterations"])
+            if not output["iterations"]:
+                eff.warning(f"{methodid}: no iterations")
+            else:
+                for it in output["iterations"]:
+                    resp = jpamb.Response.from_json(it["response"])
+                    it["score"] = resp.score(correct, category)
+                    _score += it["score"]
+
+                _score /= len(output["iterations"])
 
             eff.output(f"{methodid}: {_score}")
 
@@ -394,6 +351,11 @@ def dump_json(result):
     json.dump(result, sys.stdout, indent=2)
 
 
+def mean(results):
+    res = [r for r in results if not math.isnan(r)]
+    return sum(res) / len(res)
+
+
 def dump_table(result):
     bymethod = result["bymethod"]
 
@@ -413,9 +375,20 @@ def dump_table(result):
                     " " + str(methodid.extension),
                     f"{output['score']:.2f}",
                     f"{output['relative']:.3f}",
-                    f"{output['time'] / 10**9:0.3f}",
+                    f"{output['time'] / 10**9:.3f}",
                 ]
             )
+
+    rows.append(["", "", "", ""])
+    rows.append(
+        [
+            "Total",
+            f"{sum(o['score'] for o in bymethod.values()):.2f}",
+            f"{mean(o['relative'] for o in bymethod.values()):.3f}",
+            f"{mean(o['time'] for o in bymethod.values()) / 10**9:.3f}",
+        ]
+    )
+    print(rows[-1])
 
     sizes = [max(map(len, col)) for col in zip(*rows)]
 
@@ -425,9 +398,13 @@ def dump_table(result):
         print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)))
 
     print()
-    maxcat = max(map(len, result["category"]))
-    for category, value in result["category"].items():
-        print(f"{category:<{maxcat}}  {value:6.2%}")
+    if not result["category"]:
+        print("No categories used")
+    else:
+        print("Categories:")
+        maxcat = max(map(len, result["category"]))
+        for category, value in result["category"].items():
+            print(f"{category:<{maxcat}}  {value:7.2%}")
 
 
 @cli.command()
@@ -476,9 +453,9 @@ def build(ctx, compile, document, test):
 )
 @click.argument("METHOD")
 @click.pass_obj
-def inspect(suite, method, format):
+def inspect(ctx, method, format):
     method = jvm.AbsMethodID.decode(method)
-    for i, res in enumerate(suite.findmethod(method)["code"]["bytecode"]):
+    for i, res in enumerate(ctx.suite.findmethod(method)["code"]["bytecode"]):
         op = jvm.Opcode.from_json(res)
         match format:
             case "pretty":

@@ -189,7 +189,7 @@ wheels = [
 [[package]]
 name = "runit"
 version = "0.1.0"
-source = { git = "https://github.com/kalhauge/runit.git#88d2418e387cf6ca433fdc59899579d4a5faa65d" }
+source = { git = "https://github.com/kalhauge/runit.git#5b97e77c598407e4263ca2e50feb01f7edba1fa5" }
 
 [[package]]
 name = "sortedcontainers"

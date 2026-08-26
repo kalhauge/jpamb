@@ -342,8 +342,10 @@ class Suite:
         for op in self.findmethod(method, eff=eff)["code"]["bytecode"]:
             yield jvm.Opcode.from_json(op)
 
-    def method_max_locals(self, method: jvm.Absolute[jvm.MethodID]) -> int:
-        return self.findmethod(method)["code"]["max_locals"]
+    def method_max_locals(
+        self, method: jvm.Absolute[jvm.MethodID], *, eff: Effect
+    ) -> int:
+        return self.findmethod(method, eff=eff)["code"]["max_locals"]
 
     def classes(self, *, eff: Effect) -> Iterable[jvm.ClassName]:
         for file in self.classfiles(eff=eff):
@@ -544,11 +546,12 @@ class Suite:
                     )
 
 
-def setup() -> Suite:
+def setup() -> tuple[Suite, Effect]:
     """Get a suite in the current working directory"""
     import sys
 
-    return Suite.from_workdir(Path.cwd(), eff=Effect(sys.stderr))
+    eff = Effect(sys.stderr)
+    return (Suite.from_workdir(Path.cwd(), eff=eff), eff)
 
 
 @contextmanager

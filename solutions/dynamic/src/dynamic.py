@@ -1,4 +1,4 @@
-import jpamb
+import jpamb, jpamb_utils
 from dataclasses import dataclass, field
 import logging
 import sys
@@ -27,14 +27,15 @@ class PC:
 @dataclass
 class Bytecode:
     suite: jpamb.Suite
+    eff: jpamb_utils.Effect
     methods: dict[jvm.AbsMethodID, jvm.Method] = field(default_factory=dict)
 
     def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
         try:
             method = self.methods[methodid]
         except KeyError:
-            opcodes = list(self.suite.method_opcodes(methodid))
-            max_locals = self.suite.method_max_locals(methodid)
+            opcodes = list(self.suite.method_opcodes(methodid, eff=self.eff))
+            max_locals = self.suite.method_max_locals(methodid, eff=self.eff)
             method = jvm.Method(methodid, opcodes, max_locals)
             self.methods[methodid] = method
         return method
@@ -359,9 +360,7 @@ def step(bc: Bytecode, state: State) -> State | str:
     return output
 
 
-def run(suite, methodid, input, MAX_STEPS=100000):
-    bc = Bytecode(suite, dict())
-
+def run(bc, methodid, input, MAX_STEPS=1000):
     frame = Frame.from_method(bc.getmethod(methodid))
     state = State([], Stack.empty().push(frame))
     for i, v in enumerate(input):
@@ -397,7 +396,10 @@ def run(suite, methodid, input, MAX_STEPS=100000):
 def interpret():
     """The entry point for the interpreter"""
     logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-    suite = jpamb.Suite.from_cwd()
+
+    suite, eff = jpamb.setup()
+    bc = Bytecode(suite, eff, dict())
+
     methodid, input = jpamb.getcase()
     output = run(suite, methodid, input.values)
     print(output)
@@ -415,7 +417,8 @@ def analyse():
         for_science=True,
     )
 
-    suite = jpamb.Suite.from_cwd()
+    suite, eff = jpamb.setup()
+    bc = Bytecode(suite, eff, dict())
 
     import random
 
@@ -438,10 +441,16 @@ def analyse():
 
         logger.info(f"Testing {input}")
 
-        output = run(suite, methodid, input)
+        output = run(bc, methodid, input)
 
         logger.info(f"Got {output}")
         behaviors.add(output)
 
-    for behavior in behaviors:
-        print(f"{behavior};100%")
+    for query in jpamb.QUERIES:
+        if query in behaviors:
+            if query == "*":
+                print(f"{query};timeout")
+            else:
+                print(f"{query};found")
+        else:
+            print(f"{query};not-found")
