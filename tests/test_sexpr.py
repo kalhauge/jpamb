@@ -1,5 +1,6 @@
 from sexpr import Step, check_step
 import sexpr
+from hypothesis import given, note, strategies as st
 
 
 def test_small_frame():
@@ -66,16 +67,28 @@ def test_checker_many():
     ( STEP ( ( Array:C 120 ) ( FRAME ( LOCALS (ref 0) ) ( STACK (int 120) ) ) ) ( OPR ( push:I 104 )) ( ( Array:C 120 ) ( FRAME ( LOCALS (ref 0) ) ( STACK (int 120) (int 104) ) ) ) ) \
     ( STEP ( ( Array:C 120 ) ( FRAME ( LOCALS (ref 0) ) ( STACK (int 120) (int 104) ) ) ) ( OPR ( if ne 27 )) ( ( Array:C 120 ) ( FRAME ( LOCALS (ref 0) ) ) ) )"
 
-    parser = sexpr.Parser.from_string(str_test)
+    steps = [Step(e[1], e[2], e[3]) for e in sexpr.from_string(str_test)]
 
-    steps = []
-    current_expr = parser.sexpr()
-
-    while current_expr is not None:
-        steps.append(Step(current_expr[1], current_expr[2], current_expr[3]))
-        current_expr = parser.sexpr()
-
-    for i in range(len(steps) - 2):
+    for i in range(len(steps) - 1):
         assert check_step(steps[i], steps[i + 1]), (
             f"{steps[i].next_state} is not equal to {steps[i + 1].state}"
         )
+
+
+def test_pretty():
+    assert sexpr.pretty("ref 0") == "|ref 0|"
+    assert sexpr.pretty("hello") == "hello"
+    assert sexpr.pretty([[], ["hello", "world"]]) == "(() (hello world))"
+
+
+def st_sexpr():
+    return st.recursive(st.text(), extend=lambda xs: st.lists(xs))
+
+
+@given(st_sexpr())
+def test_tripping(expr):
+    string = sexpr.pretty(expr)
+    note(string)
+    items = sexpr.from_string(string)
+    assert len(items) == 1
+    assert items[0] == expr

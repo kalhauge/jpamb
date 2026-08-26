@@ -5,6 +5,40 @@ from dataclasses import dataclass
 from typing import Iterator
 
 
+type SExpr = list[SExpr] | str
+
+
+def sexpr(obj: object) -> SExpr:
+    if hasattr(obj, "__sexpr__"):
+        return obj.__sexpr__()
+    if isinstance(obj, str):
+        return obj
+    if isinstance(obj, Iterable):
+        return list(map(sexpr, obj))
+    raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
+
+
+BAD_SYMBOL = re.compile("[)(\n \t|]")
+
+
+def escape(symbol: str) -> str:
+    if symbol == "":
+        return "||"
+
+    if BAD_SYMBOL.search(symbol) is not None:
+        return f"|{symbol.replace('|', '||')}|"
+    else:
+        return symbol
+
+
+def pretty(expr: SExpr) -> str:
+    if isinstance(expr, list):
+        return f"({' '.join([pretty(s) for s in expr])})"
+    if isinstance(expr, str):
+        return escape(expr)
+    return pretty(sexpr(expr))
+
+
 class Token(NamedTuple):
     type: str
     value: int | float | str
@@ -18,7 +52,7 @@ def tokenize(code):
         ("CLOSE", r"\)"),  # Close Paren
         ("SYMBOL", r"[^)(\n \t|]+"),  # Symbol
         ("STEP", r"STEP"),  # Symbol
-        ("ESCAPED_SYMBOL", r"\|[^|]*\|"),  # Symbol
+        ("ESCAPED_SYMBOL", r"\|([^|]|\|\|)*\|"),  # Symbol
         ("NEWLINE", r"\n"),  # Line endings
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
         ("MISMATCH", r"."),  # Any other character
@@ -41,7 +75,13 @@ def tokenize(code):
         yield Token(kind, value, line_num, column)
 
 
-type SExpr = list[SExpr] | str
+def from_string(code: str) -> list[SExpr]:
+    parser = Parser.from_string(code)
+    expressions = []
+    while (val := parser.sexpr()) is not None:
+        expressions.append(val)
+
+    return expressions
 
 
 @dataclass
@@ -74,7 +114,7 @@ class Parser:
             return str(value)
 
         if self.head.type == "ESCAPED_SYMBOL":
-            value = str(self.head.value)[1:-1]
+            value = str(self.head.value)[1:-1].replace("||", "|")
             self.next()
             return value
 
@@ -97,16 +137,6 @@ class Parser:
         self.next()
 
         return output
-
-
-def sexpr(obj: object):
-    if hasattr(obj, "__sexpr__"):
-        return obj.__sexpr__()
-    if isinstance(obj, str):
-        return obj
-    if isinstance(obj, Iterable):
-        return list(map(sexpr, obj))
-        print("Failed to sexpr")
 
 
 @dataclass
