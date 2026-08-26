@@ -122,7 +122,7 @@ class Opcode(ABC):
         )
 
     def __sexpr__(self) -> SExpr:
-        return ["(", "OPR (", self.__str__(), "))"]
+        return self.__str__().split()
 
 
 @dataclass(frozen=True, order=True)

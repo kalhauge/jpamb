@@ -3,12 +3,9 @@ import jpamb_utils
 import copy
 from abc import abstractmethod
 from dataclasses import dataclass, field
-import logging
 import sys
 import jvm
-from sexpr import SExpr, pretty_print
-
-logger = logging.getLogger(__name__)
+import sexpr
 
 
 @dataclass
@@ -49,7 +46,8 @@ class Bytecode:
     def __contains__(self, pc: PC) -> bool:
         return pc.offset < len(self.getmethod(pc.method).opcodes)
 
-    def __sexpr__(self, pc) -> SExpr:
+    def __sexpr__(self, pc) -> sexpr.SExpr:
+        assert False
         opcode = self.getmethod(pc.method).opcodes[pc.offset]
         return opcode.__sexpr__()
 
@@ -79,6 +77,9 @@ class Stack[T]:
         if not self:
             return "ϵ"
         return "\n".join(f"{v}" for v in self.items)
+
+    def __sexpr__(self):
+        return sexpr.sexpr(self.items)
 
 
 @dataclass
@@ -112,26 +113,18 @@ class Frame:
             PC(method.id, 0),
         )
 
-    def __sexpr__(self) -> SExpr:
-        slocals = (
-            ["(", "LOCALS"]
-            + [ls.__sexpr__() for ls in self.locals if ls is not None]
-            + [")"]
-            if self.locals != []
-            else []
-        )
-        sstack = (
-            ["(", "STACK"] + [s.__sexpr__() for s in self.stack.items] + [")"]
-            if self.stack.items != []
-            else []
-        )
-        return slocals + sstack  # f"<{{{slocals}}}, {self.stack}, {self.pc}>"
+    def __sexpr__(self) -> sexpr.SExpr:
+        return [
+            "frame",
+            sexpr.data("locals", *self.locals),
+            sexpr.data("stack", *self.stack.items),
+        ]
 
 
 @dataclass
 class HeapValue:
     @abstractmethod
-    def __sexpr__(self) -> SExpr: ...
+    def __sexpr__(self) -> sexpr.SExpr: ...
 
     pass
 
@@ -141,8 +134,8 @@ class HeapArray(HeapValue):
     contains: jvm.Type
     values: list[jvm.Value]
 
-    def __sexpr__(self) -> SExpr:
-        type = [f"Array:{self.contains.__sexpr__()}"]
+    def __sexpr__(self) -> sexpr.SExpr:
+        type = [f"array:{self.contains.__sexpr__()}"]
         values = [v for v in self.values] if self.values != [] else []
         return type + values
 
@@ -152,19 +145,17 @@ class HeapObject(HeapValue):
     classname: jvm.ClassName
     fields: dict[jvm.FieldID, jvm.Value]
 
-    def __sexpr__(self) -> SExpr:
-        return (
-            ["(", f"Class:{self.classname}"]
-            + [item for v in self.fields for item in v.__sexpr__()]
-            + [")"]
-        )
+    def __sexpr__(self) -> sexpr.SExpr:
+        return [f"class:{self.classname}"] + [
+            item for v in self.fields for item in v.__sexpr__()
+        ]
 
 
 @dataclass
 class HeapString(HeapValue):
     content: str
 
-    def sexpr(self) -> SExpr:
+    def sexpr(self) -> sexpr.SExpr:
         return f"{self.content}"
 
 
@@ -182,18 +173,33 @@ class State:
     def __str__(self):
         return f"{''.join(f'{i:04x}: {x}\n' for i, x in enumerate(self.heap))}{self.frames}"
 
-    def __sexpr__(self) -> SExpr:
-        sexpr_heap = (
-            ["("] + [item for h in self.heap for item in h.__sexpr__()] + [")"]
-            if self.heap != []
-            else []
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "state",
+            sexpr.data("heap", *self.heap),
+            sexpr.data("callstack", self.frames),
         )
-        sexpr_stack = (
-            ["(", "FRAME"]
-            + [item for f in self.frames.items for item in f.__sexpr__()]
-            + [")"]
+
+    @classmethod
+    def from_sexpr(cls, expr) -> State:
+        if not isinstance(expr, list):
+            raise RuntimeError("...")
+
+        if expr[0] == "state":
+            raise RuntimeError("...")
+
+        return sexpr.data(
+            "state",
+            sexpr.data("heap", *self.heap),
+            sexpr.data("callstack", self.frames),
         )
-        return ["("] + sexpr_heap + sexpr_stack + [")"]
+
+    def display(self):
+        print(f"", file=sys.stderr)
+        print(f"Heap : {self.heap}", file=sys.stderr)
+        print(f"Depth: {len(self.frames.items)}", file=sys.stderr)
+        print(f"Top: {self.frames.items[-1].locals}", file=sys.stderr)
+        print(f"Top: {self.frames.items[-1].stack}", file=sys.stderr)
 
 
 def binary(op, v1: jvm.Value, v2: jvm.Value) -> jvm.Value | str:
@@ -242,7 +248,6 @@ def step(bc: Bytecode, state: State) -> State | str:
     frame = state.frames.peek()
     opr = bc[frame.pc]
     output = state
-    logger.debug(f"STEP {opr}\n{state}")
     match opr:
         case jvm.Push(value=v):
             if v.type == jvm.Object(jvm.ClassName("java/lang/String")):
@@ -410,10 +415,10 @@ def step(bc: Bytecode, state: State) -> State | str:
 
     assert isinstance(output, State) or isinstance(output, str)
 
-    return output
+    return opr, output
 
 
-def run(bc, methodid, input, MAX_STEPS=1000):
+def initial(bc, methodid, input):
     frame = Frame.from_method(bc.getmethod(methodid))
     state = State([], Stack.empty().push(frame))
     for i, v in enumerate(input):
@@ -438,48 +443,56 @@ def run(bc, methodid, input, MAX_STEPS=1000):
                     f"Do not know how to convert values of type {a!r} to a local value"
                 )
 
-    for x in range(MAX_STEPS):
-        frame = state.frames.peek()
-        opr = bc[frame.pc].__sexpr__()
-        sexpr_out = (
-            f"( STEP {' '.join([str(s) for s in state.__sexpr__()])} {' '.join(opr)}"
-        )
-
-        state = step(bc, state)
-        if isinstance(state, State):
-            try:
-                sexpr = (
-                    sexpr_out + f" {' '.join([str(s) for s in state.__sexpr__()])} )"
-                )
-                print(sexpr)
-            except ValueError:
-                print("Failed to sexpr")
-
-        if isinstance(state, str):
-            return state
-
-    else:
-        return "*"
+    return state
 
 
 def interpret():
     """The entry point for the interpreter"""
-    logging.basicConfig(level=logging.DEBUG, format="%(message)s")
+
+    methodid, input = jpamb.getcase()
 
     suite, eff = jpamb.setup()
     bc = Bytecode(suite, eff, dict())
 
-    methodid, input = jpamb.getcase()
-    output = run(suite, methodid, input.values)
-    if not isinstance(output, str):
-        print(output.__sexpr__())
-    else:
-        print(output)
+    MAX_STEPS = 20
+
+    state = initial(bc, methodid, input.values)
+
+    prev_state = sexpr.sexpr(state)
+
+    print(sexpr.pretty(["init", prev_state]))
+
+    for x in range(MAX_STEPS):
+        opr, state = step(bc, state)
+        next_state = sexpr.sexpr(state)
+
+        print(sexpr.pretty(["step", prev_state, opr, next_state]))
+
+        state.display()
+
+        if isinstance(state, str):
+            break
+
+        prev_state = next_state
+
+
+def fuzz_input(methodid):
+    input = []
+    # 1. come up with possible inputs
+    for p in methodid.extension.params:
+        match p:
+            case jvm.Int():
+                input.append(jvm.Value.int(random.randint(-(1 << 31), 1 << 31)))
+            case jvm.Boolean():
+                input.append(jvm.Value.boolean(1 == random.randint(0, 1)))
+            case a:
+                assert False, f"Do not know how generate random values for {a}"
+
+    return input
 
 
 def analyse():
     """The dynamic analysis, e.g. in this case a (dumb) fuzzer."""
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     methodid = jpamb.getmethodid(
         "dynamic",
@@ -492,6 +505,8 @@ def analyse():
     suite, eff = jpamb.setup()
     bc = Bytecode(suite, eff, dict())
 
+    MAX_STEPS = 200
+
     import random
 
     # Make the randomness deterministic
@@ -500,23 +515,14 @@ def analyse():
     behaviors = set()
     # Try 10 random inputs
     for i in range(10):
-        input = []
-        # 1. come up with possible inputs
-        for p in methodid.extension.params:
-            match p:
-                case jvm.Int():
-                    input.append(jvm.Value.int(random.randint(-(1 << 31), 1 << 31)))
-                case jvm.Boolean():
-                    input.append(jvm.Value.boolean(1 == random.randint(0, 1)))
-                case a:
-                    assert False, f"Do not know how generate random values for {a}"
+        input = fuzz_input(methodid)
+        state = initial(bc, methodid, input)
 
-        logger.info(f"Testing {input}")
-
-        output = run(bc, methodid, input)
-
-        logger.info(f"Got {output}")
-        behaviors.add(output)
+        for x in range(MAX_STEPS):
+            _, state = step(bc, state)
+            if isinstance(state, str):
+                behaviors.add(state)
+                break
 
     for query in jpamb.QUERIES:
         if query in behaviors:

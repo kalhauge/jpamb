@@ -17,6 +17,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Protocol, Self, Iterable, Optional, Iterator, NoReturn
 from sexpr import SExpr
+import sexpr
 
 
 @dataclass(frozen=True, order=True)
@@ -171,7 +172,7 @@ class Type(ABC):
         return self.encode()
 
     def __sexpr__(self) -> SExpr:
-        return self.encode()
+        return self.math()
 
 
 @dataclass(frozen=True)
@@ -666,10 +667,10 @@ class Value:
         return self.math()
 
     def __sexpr__(self) -> SExpr:
-        return self.math()
+        return [self.type.math(), self.value]
 
     def math(self) -> str:
-        return f"({self.type.math()} {self.value})"
+        return sexpr.pretty(self)
 
 
 @dataclass

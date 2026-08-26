@@ -92,3 +92,12 @@ def test_tripping(expr):
     items = sexpr.from_string(string)
     assert len(items) == 1
     assert items[0] == expr
+
+
+@given(st_sexpr())
+def test_tripping_indent(expr):
+    string = sexpr.pretty(expr, indent=1)
+    note(string)
+    items = sexpr.from_string(string)
+    assert len(items) == 1
+    assert items[0] == expr

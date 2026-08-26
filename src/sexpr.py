@@ -1,4 +1,5 @@
 import re
+import io
 from typing import NamedTuple, Iterable
 from dataclasses import dataclass
 
@@ -13,12 +14,20 @@ def sexpr(obj: object) -> SExpr:
         return obj.__sexpr__()
     if isinstance(obj, str):
         return obj
+    if isinstance(obj, int):
+        return str(obj)
+    if obj is None:
+        return "-"
     if isinstance(obj, Iterable):
         return list(map(sexpr, obj))
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
 BAD_SYMBOL = re.compile("[)(\n \t|]")
+
+
+def data(name: str, *args: object) -> list[SExpr]:
+    return [name] + [sexpr(a) for a in args]
 
 
 def escape(symbol: str) -> str:
@@ -31,12 +40,34 @@ def escape(symbol: str) -> str:
         return symbol
 
 
-def pretty(expr: SExpr) -> str:
+def pretty(expr: SExpr, indent=0) -> str:
+    if indent != 0:
+        output = io.StringIO()
+        pretty_indent(expr, output, 0, indent)
+        return output.getvalue()
+
     if isinstance(expr, list):
         return f"({' '.join([pretty(s) for s in expr])})"
     if isinstance(expr, str):
         return escape(expr)
     return pretty(sexpr(expr))
+
+
+def pretty_indent(expr: SExpr, output, current, indent) -> None:
+    if isinstance(expr, list):
+        output.write("(")
+        if len(expr) == 0:
+            output.write(")")
+            return
+        pretty_indent(expr[0], output, current, indent)
+        for e in expr[1:]:
+            output.write("\n" + " " * (current + indent))
+            pretty_indent(e, output, current + indent, indent)
+        output.write("\n" + (" " * current) + ")")
+    elif isinstance(expr, str):
+        output.write(escape(expr))
+    else:
+        return pretty_indent(sexpr(expr), output, current, indent)
 
 
 class Token(NamedTuple):
