@@ -17,11 +17,11 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "jpamb", directory = "../../" }]
+requires-dist = [{ name = "jpamb", editable = "../../" }]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "jpamb", directory = "../../" },
+    { name = "jpamb", editable = "../../" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 
@@ -58,7 +58,7 @@ wheels = [
 [[package]]
 name = "jpamb"
 version = "0.3.0"
-source = { directory = "../../" }
+source = { editable = "../../" }
 dependencies = [
     { name = "click" },
     { name = "pyyaml" },

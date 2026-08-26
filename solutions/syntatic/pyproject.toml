@@ -21,7 +21,7 @@ syntatic-regex = "syntatic_regex:main"
 syntatic-bytecode = "syntatic_bytecode:main"
 
 [tool.uv.sources]
-jpamb = { path = "../../" }
+jpamb = { path = "../../", editable = true }
 
 [dependency-groups]
 dev = [

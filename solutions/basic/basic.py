@@ -18,12 +18,12 @@ def main():
         classname, methodname, args = re.match(r"(.*)\.(.*):(.*)", sys.argv[1]).groups()
 
         # Make predictions (improve these by looking at the Java code!)
-        ok_chance = "90%"
-        divide_by_zero_chance = "10%"
-        assertion_error_chance = "5%"
-        out_of_bounds_chance = "0%"
-        null_pointer_chance = "0%"
-        infinite_loop_chance = "0%"
+        ok_chance = "yes"
+        divide_by_zero_chance = "no"
+        assertion_error_chance = "50%"
+        out_of_bounds_chance = "-1.23"
+        null_pointer_chance = "maybe"
+        infinite_loop_chance = "yes"
 
         # Output predictions for all 6 possible outcomes
         print(f"ok;{ok_chance}")

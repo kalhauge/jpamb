@@ -35,7 +35,7 @@ wheels = [
 [[package]]
 name = "jpamb"
 version = "0.3.0"
-source = { directory = "../../" }
+source = { editable = "../../" }
 dependencies = [
     { name = "click" },
     { name = "pyyaml" },
@@ -157,14 +157,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jpamb", directory = "../../" },
+    { name = "jpamb", editable = "../../" },
     { name = "tree-sitter", specifier = ">=0.26.0" },
     { name = "tree-sitter-java", specifier = ">=0.23.5" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "jpamb", directory = "../../" },
+    { name = "jpamb", editable = "../../" },
     { name = "pytest", specifier = ">=9.1.1" },
 ]
 

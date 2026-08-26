@@ -9,18 +9,16 @@ import json
 from inspect import getsourcelines, getsourcefile
 from collections import Counter
 
+from jpamb_utils import Effect, DockerRunner
+
 import runit
 
 import jpamb
 import jvm
-import logging
 
 import subprocess
 import dataclasses
 from contextlib import contextmanager
-from typing import IO
-
-log = logging.getLogger(__name__)
 
 
 class JpambScore:
@@ -34,117 +32,18 @@ class JpambScore:
         self.rel_time = rel_time
 
 
+@dataclasses.dataclass
+class Context:
+    eff: Effect
+    docker_image: str
+    suite: jpamb.Suite
+
+
 def re_parser(ctx_, parms_, expr):
     import re
 
     if expr:
         return re.compile(expr)
-
-
-class ColorFormatter(logging.Formatter):
-    COLORS = {
-        logging.DEBUG: "\033[36m",  # Cyan
-        25: "\033[32m",  # Green
-        logging.INFO: "",  # Green
-        logging.WARNING: "\033[33m",  # Yellow
-        logging.ERROR: "\033[31m",  # Red
-        logging.CRITICAL: "\033[1;31m",  # Bold red
-    }
-
-    RESET = "\033[0m"
-
-    def format(self, record):
-        message = super().format(record)
-        color = self.COLORS.get(record.levelno, self.RESET)
-        return f"{color}{message}{self.RESET}"
-
-
-def logger_initialize(verbose: int):
-    LEVELS = [25, logging.INFO, logging.DEBUG, 0]
-
-    lvl = LEVELS[verbose]
-
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        ColorFormatter(
-            "{relativeCreated:>8,.0f}ms [{levelname:^5}] {message}", style="{"
-        )
-    )
-
-    logging.addLevelName(25, "SUCCS")
-
-    log.setLevel(lvl)
-    log.addHandler(handler)
-
-    def success(self, msg, *args, **kwargs):
-        return self.log(25, msg, *args, **kwargs)
-
-    log.__class__.success = success
-
-
-def summary64(cmd):
-    import base64
-    import hashlib
-
-    return base64.b64encode(hashlib.sha256(str(cmd).encode()).digest()).decode()[:8]
-
-
-@dataclasses.dataclass
-class Reporter:
-    report: IO
-    prefix: str = ""
-
-    @contextmanager
-    def context(self, title):
-        old = self.prefix
-        print(f"{self.prefix[:-1]}┌ {title}", file=self.report)
-        self.prefix = f"{self.prefix[:-1]}│ "
-        try:
-            yield
-        finally:
-            self.prefix = old
-            print(f"{self.prefix[:-1]}└ {title}", file=self.report)
-
-    def output(self, msgs):
-        if not isinstance(msgs, str):
-            msgs = str(msgs)
-
-        for msg in msgs.splitlines():
-            print(f"{self.prefix}{msg}", file=self.report)
-
-    def run(self, args, **kwargs):
-        runner = runit.Runner(err_callback=self.output)
-        with self.context(f"Run {shlex.join(args)}"):
-            with self.context("Stderr"):
-                out, time = runner.run(args, **kwargs)
-            with self.context("Stdout"):
-                self.output(out)
-            return out
-
-
-def resolve_cmd(program, with_python=None):
-    if with_python is None:
-        if str(program[0]).lower().endswith(".py"):
-            log.warning(
-                "Automatically prepending the current python interpreter to the command. To disable this warning add the '--with-python' flag or prepend intented python interpreter to the command."
-            )
-            with_python = True
-        else:
-            with_python = False
-
-    if with_python:
-        try:
-            executable = str(Path(sys.executable).relative_to(Path.cwd()))
-        except ValueError:
-            log.warning(
-                "Python executable outside of current directory, might be a misconfiguration. "
-                "Run the tool with `uv run jpamb ...`."
-            )
-            executable = sys.executable
-
-        program = (executable,) + program
-
-    return program
 
 
 @click.group()
@@ -153,6 +52,12 @@ def resolve_cmd(program, with_python=None):
     "--verbose",
     count=True,
     help="sets the verbosity of the program, more means more information",
+)
+@click.option(
+    "-D",
+    "--docker-image",
+    help="the docker container to build with.",
+    default="ghcr.io/kalhauge/jvm2json:jdk-latest",
 )
 @click.option(
     "--workdir",
@@ -167,27 +72,29 @@ def resolve_cmd(program, with_python=None):
     help="the base of the jpamb folder.",
 )
 @click.pass_context
-def cli(ctx, workdir: Path, verbose):
+def cli(ctx, workdir: Path, verbose, docker_image):
     """This is the jpamb main entry point."""
-    logger_initialize(verbose)
-    log.debug(f"Setup suite in {workdir}")
-    ctx.obj = jpamb.Suite(workdir)
+    eff = Effect(sys.stderr)
+    suite = jpamb.Suite.from_workdir(workdir, eff=eff)
+    ctx.obj = Context(
+        eff=eff,
+        docker_image=docker_image,
+        suite=suite,
+    )
+    ctx.obj.eff.info(f"Setup suite in {workdir}")
 
 
 @cli.command()
 @click.pass_obj
-def checkhealth(suite):
+def checkhealth(ctx):
     """Check that the repository is setup correctly"""
-    suite.checkhealth()
+
+    docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
+
+    ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 
 
 @cli.command()
-@click.option(
-    "--with-python/--no-with-python",
-    "-W/-noW",
-    help="the analysis is a python script, which should run in the same interpreter as jpamb.",
-    default=None,
-)
 @click.option(
     "--fail-fast/--no-fail-fast",
     help="if we should stop after the first error.",
@@ -204,64 +111,50 @@ def checkhealth(suite):
     help="A regular expression which filter the methods to run on.",
     callback=re_parser,
 )
-@click.option(
-    "--report",
-    "-r",
-    default="-",
-    type=click.File(mode="w", encoding="utf-8"),
-    help="A file to write the report to. (Good for golden testing)",
-)
 @click.argument("PROGRAM", nargs=-1)
 @click.pass_obj
-def test(suite, program, report, filter, fail_fast, with_python, timeout):
+def test(ctx, program, filter, fail_fast, timeout):
     """Test run a PROGRAM."""
 
-    program = resolve_cmd(program, with_python)
-
-    if suite.workfolder != Path.cwd():
-        log.warning(f"Changing to {suite.workfolder}")
-        os.chdir(suite.workfolder)
-
-    r = Reporter(report)
+    if ctx.suite.workfolder != Path.cwd():
+        eff.warning(f"Changing to {ctx.suite.workfolder}")
+        os.chdir(ctx.suite.workfolder)
 
     if not filter:
-        with r.context("Info"):
-            out = r.run(program + ("info",), timeout=timeout)
+        with eff.context("Info"):
+            out = eff.run(program + ("info",), timeout=timeout)
             info = jpamb.AnalysisInfo.parse(out)
 
-            with r.context("Results"):
+            with eff.context("Results"):
                 for k, v in sorted(dataclasses.asdict(info).items()):
-                    r.output(f"- {k}: {v}")
+                    eff.output(f"- {k}: {v}")
 
     total = 0
     for methodid, correct in suite.case_methods().items():
         if filter and not filter.search(str(methodid)):
             continue
 
-        with r.context(f"Case {methodid}"):
+        with eff.context(f"Case {methodid}"):
             try:
-                out = r.run(program + (str(methodid),), timeout=timeout)
+                out = eff.run(program + (str(methodid),), timeout=timeout)
             except subprocess.CalledProcessError as e:
-                r.output(f"Got error {e}")
+                eff.output(f"Got error {e}")
                 continue
-            response = jpamb.Response.parse(out)
-            with r.context("Results"):
+            response, warnings = jpamb.Response.parse(out)
+            for warning in warnings:
+                eff.warning(warning)
+
+            with eff.context("Results"):
                 for k, v in sorted(response.predictions.items()):
-                    r.output(f"- {k}: {v} {v.wager:0.2f}")
+                    eff.output(f"- {k}: {v} {v.wager:0.2f}")
             score = response.score(correct)
-            r.output(f"Score {score:0.2f}")
+            eff.output(f"Score {score:0.2f}")
             total += score
 
-    r.output(f"Total {total:0.2f}")
+    eff.output(f"Total {total:0.2f}")
 
 
 @cli.command()
-@click.option(
-    "--with-python/--no-with-python",
-    "-W/-noW",
-    help="the analysis is a python script, which should run in the same interpreter as jpamb.",
-    default=None,
-)
 @click.option(
     "--stepwise / --no-stepwise",
     help="continue from last failure",
@@ -280,22 +173,21 @@ def test(suite, program, report, filter, fail_fast, with_python, timeout):
 )
 @click.option(
     "--report",
-    "-r",
+    "-eff",
     default="-",
     type=click.File(mode="w", encoding="utf-8"),
     help="A file to write the report to. (Good for golden testing)",
 )
 @click.argument("PROGRAM", nargs=-1)
 @click.pass_obj
-def interpret(suite, program, report, filter, with_python, timeout, stepwise):
+def interpret(ctx, program, report, filter, timeout, stepwise):
     """Use PROGRAM as an interpreter."""
 
-    r = Reporter(report)
-    program = resolve_cmd(program, with_python)
+    eff = ctx.eff
 
-    if suite.workfolder != Path.cwd():
-        log.warning(f"Changing to {suite.workfolder}")
-        os.chdir(suite.workfolder)
+    if ctx.suite.workfolder != Path.cwd():
+        eff.warning(f"Changing to {ctx.suite.workfolder}")
+        os.chdir(ctx.suite.workfolder)
 
     last_case = None
     if stepwise:
@@ -303,14 +195,14 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
             with open(".jpamb-stepwise", encoding="utf-8") as f:
                 last_case = jpamb.Case.decode(f.read())
         except ValueError as e:
-            log.warning(e)
+            eff.warning(e)
             last_case = None
         except IOError:
             last_case = None
 
     total = 0
     count = 0
-    for case in suite.cases:
+    for case in ctx.suite.cases:
         if last_case and last_case != case:
             continue
         last_case = None
@@ -318,9 +210,9 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
         if filter and not filter.search(str(case)):
             continue
 
-        with r.context(f"Case {case}"):
+        with eff.context(f"Case {case}"):
             try:
-                out = r.run(
+                out = eff.run(
                     program + (case.methodid.encode(), case.input.encode()),
                     timeout=timeout,
                 )
@@ -328,9 +220,9 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
             except subprocess.TimeoutExpired:
                 ret = "*"
             except subprocess.CalledProcessError as e:
-                log.error(e)
+                eff.error(e)
                 ret = "failure"
-            r.output(f"Expected {case.result!r} and got {ret!r}")
+            eff.output(f"Expected {case.result!r} and got {ret!r}")
             if case.result == ret:
                 total += 1
             elif stepwise:
@@ -341,17 +233,60 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
 
     Path(".jpamb-stepwise").unlink(True)
 
-    r.output(f"Total {total}/{count}")
+    eff.output(f"Total {total}/{count}")
+
+
+def run_analysis(
+    analysis: tuple[str],
+    methodid: jvm.AbsMethodID,
+    iterations: int,
+    eff: Effect,
+):
+    results = []
+
+    # _score = 0
+    _time = 0
+    _relative = 0
+    for i in range(iterations):
+        with eff.context(f"Iteration {i}"):
+            try:
+                experiment = eff.experiment(analysis + (methodid.encode(),))
+            except subprocess.CalledProcessError as e:
+                eff.output(
+                    f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}"
+                )
+                continue
+
+        response = jpamb.Response.parse(experiment.output)
+        # score = response.score(correct)
+
+        result = {k: v.__json__() for k, v in response.predictions.items()}
+
+        results.append(
+            {
+                "iteration": i,
+                "response": result,
+                # "score": score,
+                "time": experiment.time_ns,
+                "relative": experiment.time_relative,
+                "calibrates": experiment.calibrations_ns,
+            }
+        )
+
+        # _score += score
+        _relative += experiment.time_relative
+        _time += experiment.time_ns
+
+    return {
+        # "score": _score / iterations,
+        "time": _time / iterations,
+        "relative": _relative / iterations,
+        "iterations": results,
+    }
 
 
 @cli.command()
 @click.pass_obj
-@click.option(
-    "--with-python/--no-with-python",
-    "-W/-noW",
-    help="the analysis is a python script, which should run in the same interpreter as jpamb.",
-    default=None,
-)
 @click.option(
     "--iterations",
     "-N",
@@ -366,189 +301,139 @@ def interpret(suite, program, report, filter, with_python, timeout, stepwise):
     help="timeout in seconds.",
 )
 @click.option(
-    "--report",
-    "-r",
-    default="-",
-    type=click.File(mode="w", encoding="utf-8"),
-    help="A file to write the report to",
+    "--format",
+    default="table",
+    type=click.Choice(["table", "json"]),
+    show_default=True,
+    help="timeout in seconds.",
 )
 @click.argument("PROGRAM", nargs=-1)
-def evaluate(suite, program, report, timeout, iterations, with_python):
+def evaluate(suite, program, timeout, format, iterations):
     """Evaluate the PROGRAM."""
 
-    program = resolve_cmd(program, with_python)
+    eff = ctx.eff
 
     if suite.workfolder != Path.cwd():
-        log.warning(f"Changing to {suite.workfolder}")
+        eff.warning(f"Changing to {suite.workfolder}")
         os.chdir(suite.workfolder)
 
-    runner = runit.Runner(err_callback=log.info, out_callback=log.debug)
+    with eff.context("Getting info about analysis"):
+        try:
+            out = eff.run(
+                program + ("info",),
+                timeout=timeout,
+            )
+            info = jpamb.AnalysisInfo.parse(out)
+        except subprocess.CalledProcessError as e:
+            eff.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
+            sys.exit(1)
+        except ValueError:
+            eff.error("Expected info, but got:")
+            for o in out.splitlines():
+                eff.error(o)
 
-    try:
-        (out, _) = runner.run(
-            program + ("info",),
-            timeout=timeout,
-        )
-        info = jpamb.AnalysisInfo.parse(out)
-    except subprocess.CalledProcessError as e:
-        log.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
-        sys.exit(1)
-    except ValueError:
-        log.error("Expected info, but got:")
-        for o in out.splitlines():
-            log.error(o)
-
-    total_score = 0
-    total_time = 0
-    total_relative = 0
-    total_methods = 0
     bymethod = {}
 
-    for methodid, correct in suite.case_methods().items():
-        log.success(f"Running on {methodid}")
-        results = []
+    category_success = Counter()
+    category_count = Counter()
 
-        _score = 0
-        _time = 0
-        _relative = 0
-        for i in range(iterations):
-            log.info(f"Running on {methodid}, iter {i}")
-            try:
-                experiment = runner.experiment(program + (methodid.encode(),))
-            except subprocess.CalledProcessError as e:
-                log.warning(
-                    f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}"
-                )
-                continue
+    case_methods = suite.case_methods()
 
-            response = jpamb.Response.parse(experiment.output)
-            score = response.score(correct)
+    for methodid, correct in sorted(case_methods.items()):
+        with eff.context(f"Running on {methodid}"):
+            output = run_analysis(program, methodid, iterations=iterations, eff=eff)
 
-            result = {k: v.wager for k, v in response.predictions.items()}
+            bymethod[methodid] = output
 
-            results.append(
-                {
-                    "iteration": i,
-                    "response": result,
-                    "score": score,
-                    "time": experiment.time_ns,
-                    "relative": experiment.time_relative,
-                    "calibrates": experiment.calibrations_ns,
-                }
+            for it in output["iterations"]:
+                for key, value in it["response"].items():
+                    if isinstance(value, str):
+                        category_count.update([value])
+                        if key in correct:
+                            category_success.update([value])
+
+    category = {k: category_success[k] / v for k, v in category_count.items()}
+
+    with eff.context(f"Scoring"):
+        for methodid, correct in sorted(case_methods.items()):
+            output = bymethod[methodid]
+            _score = 0
+            for it in output["iterations"]:
+                resp = jpamb.Response.from_json(it["response"])
+                it["score"] = resp.score(correct, category)
+                _score += it["score"]
+
+            _score /= len(output["iterations"])
+
+            eff.output(f"{methodid}: {_score}")
+
+            output["score"] = _score
+
+    total_methods = len(bymethod)
+    total_time = sum(v["time"] for v in bymethod.values())
+    total_relative = sum(v["relative"] for v in bymethod.values())
+    total_score = sum(v["score"] for v in bymethod.values())
+
+    result = {
+        "info": dataclasses.asdict(info),
+        "bymethod": bymethod,
+        "category": {k: category_success[k] / v for k, v in category_count.items()},
+        "time": total_time / total_methods,
+        "score": total_score,
+        "relative": total_relative / total_methods,
+    }
+
+    match format:
+        case "table":
+            dump_table(result)
+        case "json":
+            dump_json(result)
+
+
+def dump_json(result):
+    json.dump(result, sys.stdout, indent=2)
+
+
+def dump_table(result):
+    bymethod = result["bymethod"]
+
+    classes = dict()
+    for m in bymethod:
+        classes.setdefault(m.classname, set()).add(m)
+
+    rows = []
+    for classname in sorted(classes):
+        class_methods = classes[classname]
+        rows.append(["", "", "", ""])
+        rows.append([str(classname), "", "", ""])
+        for methodid in sorted(class_methods):
+            output = bymethod[methodid]
+            rows.append(
+                [
+                    " " + str(methodid.extension),
+                    f"{output['score']:.2f}",
+                    f"{output['relative']:.3f}",
+                    f"{output['time'] / 10**9:0.3f}",
+                ]
             )
 
-            _score += score
-            _relative += experiment.time_relative
-            _time += experiment.time_ns
+    sizes = [max(map(len, col)) for col in zip(*rows)]
 
-        bymethod[str(methodid)] = {
-            "score": _score / iterations,
-            "time": _time / iterations,
-            "relative": _relative / iterations,
-            "iterations": results,
-        }
+    align = "<>>>"
 
-        total_score += _score / iterations
-        total_time += _time / iterations
-        total_relative += _relative / iterations
+    for row in rows:
+        print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)))
 
-        total_methods += 1
-
-    json.dump(
-        {
-            "info": dataclasses.asdict(info),
-            "bymethod": bymethod,
-            "score": total_score,
-            "time": total_time / total_methods,
-            "relative": total_relative / total_methods,
-        },
-        report,
-        indent=2,
-    )
-
-
-@dataclasses.dataclass
-class DockerRunner:
-    """Encapsulates Docker/Podman execution with platform-specific handling."""
-
-    docker_cmd: list[str]  # The base docker command (e.g., ["docker"] or ["wsl", ...])
-    image: str  # Docker image to use
-    workfolder: str  # Path to mount (already WSL-converted if needed)
-    runner: runit.Runner = dataclasses.field(default_factory=runit.Runner)
-
-    @classmethod
-    def create(cls, workfolder: Path, image: str):
-        """Factory method that handles platform detection and path conversion."""
-        import os
-
-        # Get docker command
-        if os.environ.get("USE_WSL_DOCKER") == "1":
-            log.info("Using Docker in WSL (Ubuntu)")
-            docker_cmd = ["wsl", "-d", "Ubuntu", "--exec", "sudo", "docker"]
-            # Convert path for WSL
-            path_str = str(workfolder).replace("\\", "/")
-            if len(path_str) >= 2 and path_str[1] == ":":
-                drive = path_str[0].lower()
-                rest = path_str[2:]
-                workfolder_str = f"/mnt/{drive}{rest}"
-            else:
-                workfolder_str = str(workfolder)
-        else:
-            dockerbin = shutil.which("podman") or shutil.which("docker")
-            if not dockerbin:
-                raise click.UsageError("No docker or podman on PATH")
-            log.info(f"Using docker: {dockerbin}")
-            docker_cmd = [dockerbin]
-            workfolder_str = str(workfolder)
-
-        return cls(
-            docker_cmd,
-            image,
-            workfolder_str,
-            runner=runit.Runner(out_callback=log.info, err_callback=log.debug),
-        )
-
-    def run(self, command: list[str], **kwargs):
-        """
-        Run a command inside the Docker container.
-
-        Args:
-            command: The command to run (e.g., ["javac", "-d", "target/classes", ...])
-            **kwargs: Additional arguments passed to the run() function
-                     (timeout, logerr, logout, etc.)
-
-        Returns:
-            The result from run() function
-        """
-        full_cmd = (
-            self.docker_cmd
-            + [
-                "run",
-                "--rm",
-                "-v",
-                f"{self.workfolder}:/workspace",
-                self.image,
-            ]
-            + command
-        )
-        return self.runner.run(full_cmd, **kwargs)
+    print()
+    maxcat = max(map(len, result["category"]))
+    for category, value in result["category"].items():
+        print(f"{category:<{maxcat}}  {value:6.2%}")
 
 
 @cli.command()
 @click.option(
-    "-D",
-    "--docker",
-    help="the docker container to build with.",
-    default="ghcr.io/kalhauge/jvm2json:jdk-latest",
-)
-@click.option(
     "--compile / --no-compile",
-    help="compile the java source files.",
-    default=None,
-)
-@click.option(
-    "--decompile / --no-decompile",
-    help="decompile the classfiles using jvm2json.",
+    help="compile and decompile the java source files.",
     default=None,
 )
 @click.option(
@@ -562,132 +447,24 @@ class DockerRunner:
     default=None,
 )
 @click.pass_obj
-def build(suite, compile, decompile, document, test, docker):
+def build(ctx, compile, document, test):
     """Rebuild all benchmarks."""
 
-    if not any(s for s in [compile, decompile, document, test]):
+    if not any(s for s in [compile, document, test]):
         compile = compile is None
-        decompile = decompile is None
         document = document is None
         test = test is None
 
-    docker_runner = DockerRunner.create(suite.workfolder, docker)
+    docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
 
     if compile:
-        log.info("Compiling")
-        docker_runner.run(
-            ["javac", "-g", "-d", "target/classes"]
-            + [a.relative_to(suite.workfolder).as_posix() for a in suite.sourcefiles()],
-            timeout=600,
-        )
-
-        log.info("Building Stats")
-
-        res, x = docker_runner.run(
-            ["java", "-cp", "target/classes", "jpamb.Runtime"],
-            timeout=60,
-        )
-        suite.case_file.parent.mkdir(exist_ok=True, parents=True)
-        suite.case_file.write_text("\n".join(sorted(res.splitlines())))
-
-        # TODO: Compute distribution.csv
-
-    if decompile:
-        log.info("Decompiling")
-        for cl in suite.classes():
-            log.info(f"Decompiling {cl}")
-            res, t = docker_runner.run(
-                [
-                    "jvm2json",
-                    "-s",
-                    suite.classfile(cl).relative_to(suite.workfolder).as_posix(),
-                ],
-            )
-            file = suite.decompiledfile(cl)
-            file.parent.mkdir(exist_ok=True, parents=True)
-            with open(file, "w", encoding="utf-8") as f:
-                json.dump(json.loads(res), f, indent=2, sort_keys=True)
-        log.success("Done decompiling")
+        ctx.suite.build(docker=docker, eff=ctx.eff)
 
     if document:
-        log.info("Documenting")
-        opcode_counts = Counter()
-        opcode_urls = {}
-        class_opcodes = {}
-        for case in suite.cases:
-            class_opcodes[str(case.methodid.classname).split(".")[-1]] = set()
-            list_ops = []
-            for opcode in suite.method_opcodes(case.methodid):
-                index = opcode.mnemonic()  # opcode.real().split()[0]
-                list_ops.append(index)
-
-                opcode_urls[index] = (
-                    opcode.mnemonic(),
-                    opcode.url(),
-                    opcode,
-                )
-
-                opcode_counts[index] += 1
-
-            for o in list_ops:
-                class_opcodes[str(case.methodid.classname).split(".")[-1]].add(o)
-
-        with open("OPCODES.md", "w", encoding="utf-8") as document:
-            log.info(f"Writing OPCODES.md")
-            document.write("#Bytecode instructions\n")
-            document.write("| Mnemonic | Opcode Name |  Exists in |  Count |\n")
-            document.write("| :---- | :---- | :----- | -----: |\n")
-
-            for op, count in opcode_counts.most_common():
-                log.debug(f"Handeling {op} {count}")
-                (mnemonic, url, opcode) = opcode_urls[op]
-                in_classes = ""
-
-                for classname in class_opcodes:
-                    if op in class_opcodes[classname]:
-                        in_classes += " " + classname
-
-                source = Path(getsourcefile(opcode.__class__))
-                rel = Path("utils") / source.relative_to(source.parent.parent)
-                giturl = (
-                    f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
-                )
-
-                document.write(
-                    f"| [{mnemonic}]({url}) | [{opcode.__class__.__name__}]({giturl})"
-                    f" | {in_classes} | {count} |\n"
-                )
+        ctx.suite.document(eff=ctx.eff)
 
     if test:
-        log.info("Testing")
-
-        for case in suite.cases:
-            log.info(f"Testing {case}")
-
-            folder = suite.classfiles_folder
-
-            try:
-                res, x = docker_runner.run(
-                    [
-                        "java",
-                        "-cp",
-                        folder.relative_to(suite.workfolder).as_posix(),
-                        "-ea",
-                        "jpamb.Runtime",
-                        case.methodid.encode(),
-                        case.input.encode(),
-                    ],
-                    timeout=5,
-                )
-            except subprocess.TimeoutExpired:
-                res = "*"
-
-            if case.result == res.strip():
-                log.success(f"Correct {case}")
-            else:
-                log.error(f"Incorrect (got {res.strip()}) expected {case}")
-
-        log.success("Done testing")
+        ctx.suite.test(docker=docker, eff=ctx.eff)
 
 
 @cli.command()

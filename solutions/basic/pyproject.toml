@@ -16,7 +16,7 @@ dependencies = [
 basic = "basic:main"
 
 [tool.uv.sources]
-jpamb = { path = "../../" }
+jpamb = { path = "../../", editable = true }
 
 [dependency-groups]
 dev = [

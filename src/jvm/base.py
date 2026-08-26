@@ -482,6 +482,9 @@ class MethodID:
         rt = self.return_type.encode() if self.return_type is not None else "V"
         return f"{self.name}:({self.params.encode()}){rt}"
 
+    def __str__(self) -> str:
+        return self.encode()
+
 
 @dataclass(frozen=True, order=True)
 class FieldID:

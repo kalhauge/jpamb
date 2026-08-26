@@ -14,15 +14,15 @@ import re
 import os
 import shutil
 import subprocess
-import logging
+from collections import Counter
+
+from jpamb_utils import Effect, DockerRunner
 
 import runit
 
 from typing import Iterable, NoReturn
 
 import jvm
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, order=True)
@@ -91,24 +91,6 @@ class Case:
         return sorted(cases_by_id.items())
 
 
-@contextmanager
-def _check(reason, failfast=False):
-    """Used in the checkhealth command"""
-    logger.info(reason)
-    try:
-        yield
-    except AssertionError as e:
-        msg = str(e)
-        if msg:
-            logger.error(f"{reason} FAILED: {e}")
-        else:
-            logger.error(f"{reason} FAILED")
-        if failfast:
-            raise AssertionError(f"{reason} {str(e.args)}") from e
-    else:
-        logger.success(f"{reason} ok")
-
-
 @dataclass(frozen=True)
 class AnalysisInfo:
     name: str
@@ -137,16 +119,21 @@ class AnalysisInfo:
 
 
 @dataclass(frozen=True)
+class Classification:
+    name: str
+
+    def __json__(self):
+        return self.name
+
+    def score(self, happens: bool, categories):
+        return Prediction.from_probability(categories[self.name]).score(
+            happens, categories
+        )
+
+
+@dataclass(frozen=True)
 class Prediction:
     wager: float
-
-    @staticmethod
-    def parse(string: str) -> "Prediction":
-        if m := re.match(r"([^%]*)\%", string):
-            p = float(m.group(1)) / 100
-            return Prediction.from_probability(p)
-        else:
-            return Prediction(float(string))
 
     @staticmethod
     def from_probability(p: float) -> "Prediction":
@@ -169,7 +156,7 @@ class Prediction:
         r = (w + 1) / (w + 2)
         return r if self.wager > 0 else 1 - r
 
-    def score(self, happens: bool):
+    def score(self, happens: bool, categories):
         wager = (-1 if not happens else 1) * self.wager
         if wager > 0:
             if wager == float("inf"):
@@ -181,6 +168,9 @@ class Prediction:
 
     def __str__(self):
         return f"{self.to_probability():0.2%}"
+
+    def __json__(self):
+        return self.wager
 
 
 QUERIES = (
@@ -195,46 +185,58 @@ QUERIES = (
 
 @dataclass(frozen=True)
 class Response:
-    predictions: dict[str, Prediction]
+    predictions: dict[str, Prediction | Classification]
+
+    @staticmethod
+    def parse_prediction(string: str) -> Prediction | Classification:
+        if m := re.match(r"([^%]*)\%", string):
+            p = float(m.group(1)) / 100
+            return Prediction.from_probability(p)
+        else:
+            try:
+                return Prediction(float(string))
+            except ValueError:
+                return Classification(string)
 
     @staticmethod
     def parse(out):
         predictions = {}
+        warnings = []
         for line in out.splitlines():
             try:
                 query, pred = line.split(";")
-                logger.debug(f"response: {line}")
             except ValueError:
-                logger.warning(line)
+                warnings.append(f"bad line: {line}")
                 continue
             if query not in QUERIES:
-                logger.warning(f"{query!r} not a known query")
+                warnings.append(f"{query!r} not a known query")
                 continue
-            prediction = Prediction.parse(pred)
+            prediction = Response.parse_prediction(pred)
             predictions[query] = prediction
-        return Response(predictions)
+        return Response(predictions), warnings
 
-    def score(self, correct):
+    def score(self, correct, categories):
         total = 0
         for q, prd in self.predictions.items():
-            total += prd.score(q in correct)
+            total += prd.score(q in correct, categories)
         return total
 
+    @classmethod
+    def from_json(cls, json):
+        return cls(
+            {
+                k: Prediction(v) if isinstance(v, float) else Classification(v)
+                for k, v in json.items()
+            }
+        )
 
+
+@dataclass(frozen=True)
 class Suite:
-    """The suite!
+    """The suite!"""
 
-    Note that only one instance per abstract path exist to be able to cache
-    information about the suite on read.
-
-    """
-
-    _instances = dict()
-
-    def __new__(cls, workfolder: Path):
-        if workfolder not in cls._instances:
-            cls._instances[workfolder] = super().__new__(cls)
-        return cls._instances[workfolder]
+    workdir: Path
+    cases: tuple[Case]
 
     @classmethod
     def from_cwd(cls):
@@ -242,28 +244,37 @@ class Suite:
 
     @classmethod
     def from_env(cls):
-        return cls(Path(os.environ.get("JPAMB_WORKFOLDER")).absolute())
+        return cls(Path(os.environ.get("JPAMB_WORKDIR")).absolute())
 
-    def __init__(self, workfolder: Path):
-        assert workfolder.is_absolute(), f"Assuming that {workfolder} is absolute."
-        self.workfolder = workfolder
-        self.invalidate_cache()
+    @classmethod
+    def from_workdir(cls, workdir: Path, *, eff: Effect):
+        cases = []
 
-    def invalidate_cache(self):
-        """Invalidate the case, and require a recomputation of the cached values."""
-        self._cases = None
+        case_file = workdir / "target" / "stats" / "cases.txt"
+        with eff.context(f"Reading cases from {case_file}"):
+            with open(case_file, encoding="utf-8") as f:
+                cases = tuple(Case.decode(line) for line in f)
+
+        return cls(workdir, cases)
+
+    def __post_init__(self):
+        assert self.workdir.is_absolute(), f"Assuming that {workdir} is absolute."
+        assert self.cases, "Expected cases"
+
+        for case in self.cases:
+            assert isinstance(case, Case), f"Expected Case but got {case!r}"
 
     @property
     def stats_folder(self) -> Path:
         """The folder to place the statistics about the repository"""
-        return self.workfolder / "target" / "stats"
+        return self.workdir / "target" / "stats"
 
     @property
     def classfiles_folder(self) -> Path:
         """The folder containing the class files"""
-        return self.workfolder / "target" / "classes"
+        return self.workdir / "target" / "classes"
 
-    def classfiles(self) -> Iterable[Path]:
+    def classfiles(self, *, eff: Effect) -> Iterable[Path]:
         yield from self.classfiles_folder.glob("**/*.class")
 
     def classfile(self, cn: jvm.ClassName) -> Path:
@@ -274,7 +285,7 @@ class Suite:
     @property
     def sourcefiles_folder(self) -> Path:
         """The folder containing the class files"""
-        return self.workfolder / "cases"
+        return self.workdir / "cases"
 
     def sourcefiles(self) -> Iterable[Path]:
         yield from self.sourcefiles_folder.glob("**/*.java")
@@ -286,7 +297,7 @@ class Suite:
 
     @property
     def decompiled_folder(self) -> Path:
-        return self.workfolder / "target" / "decompiled"
+        return self.workdir / "target" / "decompiled"
 
     def decompiledfiles(self) -> Iterable[Path]:
         yield from self.decompiled_folder.glob("**/*.json")
@@ -296,14 +307,14 @@ class Suite:
             ".json"
         )
 
-    def findclass(self, cn: jvm.ClassName) -> dict:
+    def findclass(self, cn: jvm.ClassName, *, eff: Effect) -> dict:
         import json
 
         with open(self.decompiledfile(cn), encoding="utf-8") as fp:
             return json.load(fp)
 
-    def findmethod(self, methodid: jvm.Absolute[jvm.MethodID]) -> dict:
-        methods = self.findclass(methodid.classname)["methods"]
+    def findmethod(self, methodid: jvm.Absolute[jvm.MethodID], *, eff: Effect) -> dict:
+        methods = self.findclass(methodid.classname, eff=eff)["methods"]
         for method in methods:
             if method["name"] != methodid.extension.name:
                 continue
@@ -318,19 +329,21 @@ class Suite:
             raise IndexError(f"Could not find {methodid}")
         return method
 
-    def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
+    def getmethod(self, methodid: jvm.AbsMethodID, *, eff: Effect) -> jvm.Method:
         """Get the json for a method and covert it to a Method"""
-        return jvm.Method.from_json(methodid, self.findmethod(methodid))
+        return jvm.Method.from_json(methodid, self.findmethod(methodid, eff=eff))
 
-    def method_opcodes(self, method: jvm.Absolute[jvm.MethodID]) -> list[jvm.Opcode]:
-        for op in self.findmethod(method)["code"]["bytecode"]:
+    def method_opcodes(
+        self, method: jvm.Absolute[jvm.MethodID], *, eff: Effect
+    ) -> list[jvm.Opcode]:
+        for op in self.findmethod(method, eff=eff)["code"]["bytecode"]:
             yield jvm.Opcode.from_json(op)
 
     def method_max_locals(self, method: jvm.Absolute[jvm.MethodID]) -> int:
         return self.findmethod(method)["code"]["max_locals"]
 
-    def classes(self) -> Iterable[jvm.ClassName]:
-        for file in self.classfiles():
+    def classes(self, *, eff: Effect) -> Iterable[jvm.ClassName]:
+        for file in self.classfiles(eff=eff):
             yield jvm.ClassName.from_parts(
                 *file.relative_to(self.classfiles_folder).with_suffix("").parts
             )
@@ -341,18 +354,10 @@ class Suite:
 
     @property
     def version(self):
-        with open(self.workfolder / "CITATION.cff", encoding="utf-8") as f:
+        with open(self.workdir / "CITATION.cff", encoding="utf-8") as f:
             import yaml
 
             return yaml.safe_load(f)["version"]
-
-    @property
-    def cases(self) -> tuple[Case, ...]:
-        if self._cases is None:
-            logger.debug(f"Loading cases from {self.case_file}")
-            with open(self.case_file, encoding="utf-8") as f:
-                self._cases = tuple(Case.decode(line) for line in f)
-        return self._cases
 
     def case_methods(self) -> dict[jvm.Absolute[jvm.MethodID], set[str]]:
         methods = defaultdict(set)
@@ -366,24 +371,14 @@ class Suite:
         for m in self.case_methods().keys():
             yield from self.method_opcodes(m)
 
-    def checkhealth(self, failfast=False):
+    def checkhealth(self, docker, *, eff: Effect, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
 
         def check(msg):
-            return _check(msg, failfast)
+            return _check(msg, failfast=failfast, eff=eff)
 
-        with check("The path"):
-            with check("docker"):
-                dockerbin = shutil.which("podman") or shutil.which("docker")
-                assert dockerbin is not None, "java not on path"
-                res = subprocess.run(
-                    [dockerbin, "--version"],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    text=True,
-                )
-                logger.debug(f"{dockerbin} --version\n{res}")
-                assert res.returncode == 0, "dockerbin --version failed"
+        with check("docker"):
+            docker.run(["java", "--version"], eff=eff)
 
         with check("The timer"):
             x = runit.timer.sieve(1000)
@@ -394,40 +389,174 @@ class Suite:
             assert self.sourcefiles_folder.is_dir(), "should be a folder"
             files = list(self.sourcefiles())
             assert len(files) > 0, "should contain source files"
-            logger.info(f"Found {len(files)} files")
+            eff.info(f"Found {len(files)} files")
 
         with check(f"The classfiles folder [{self.classfiles_folder}]"):
             assert self.classfiles_folder.exists(), "should exists"
             assert self.classfiles_folder.is_dir(), "should be a folder"
-            files = list(self.classfiles())
+            files = list(self.classfiles(eff=eff))
             assert len(files) > 0, "should contain class files"
-            logger.info(f"Found {len(files)} files")
+            eff.info(f"Found {len(files)} files")
 
         with check(f"The decompiled folder [{self.decompiled_folder}]"):
             assert self.decompiled_folder.exists(), "should exists"
             assert self.decompiled_folder.is_dir(), "should be a folder"
             files = list(self.decompiledfiles())
             assert len(files) > 0, "should contain decompiled class files"
-            logger.info(f"Found {len(files)} files")
+            eff.info(f"Found {len(files)} files")
 
-            for cn in self.classes():
-                x = self.findclass(cn)
-                logger.info(f"Checking if {cn.dotted()} is decompiled.")
+            for cn in self.classes(eff=eff):
+                x = self.findclass(cn, eff=eff)
+                eff.info(f"Checking if {cn.dotted()} is decompiled.")
                 assert x["name"] == cn.slashed(), f"could not decompile {cn.dotted()}"
 
         with check(f"The case file [{self.case_file}]"):
             assert self.case_file.exists(), "should exist"
             assert len(self.cases) > 0, "cases should be parsable and at least one"
-            logger.info(f"Found {len(self.cases)} cases")
+            eff.info(f"Found {len(self.cases)} cases")
 
-        for method in self.case_methods().keys():
-            with check(f"The method: [{method}]"):
-                try:
-                    for opr in self.method_opcodes(method):
-                        str(opr)
-                        str(opr.real())
-                except NotImplementedError as e:
-                    raise AssertionError("All operations should be supported") from e
+        with check("Opcodes"):
+            for method in self.case_methods().keys():
+                with check(f"The method: [{method}]"):
+                    try:
+                        for opr in self.method_opcodes(method, eff=eff):
+                            str(opr)
+                            str(opr.real())
+                    except NotImplementedError as e:
+                        raise AssertionError(
+                            "All operations should be supported"
+                        ) from e
+
+    def build(self, *, docker: DockerRunner, eff: Effect):
+        with eff.context("Compiling"):
+            docker.run(
+                ["javac", "-g", "-d", "target/classes"]
+                + [a.relative_to(self.workdir).as_posix() for a in self.sourcefiles()],
+                timeout=600,
+                eff=eff,
+            )
+
+        with eff.context("Building Stats"):
+            res = docker.run(
+                ["java", "-cp", "target/classes", "jpamb.Runtime"], timeout=60, eff=eff
+            )
+            self.case_file.parent.mkdir(exist_ok=True, parents=True)
+            self.case_file.write_text("\n".join(sorted(res.splitlines())))
+
+        with eff.context("Decompiling"):
+            import json
+
+            for cl in self.classes(eff=eff):
+                eff.info(f"Decompiling {cl}")
+                res = docker.run(
+                    [
+                        "jvm2json",
+                        "-s",
+                        self.classfile(cl).relative_to(self.workdir).as_posix(),
+                    ],
+                    eff=eff,
+                )
+                file = self.decompiledfile(cl)
+                file.parent.mkdir(exist_ok=True, parents=True)
+                with open(file, "w", encoding="utf-8") as f:
+                    json.dump(json.loads(res), f, indent=2, sort_keys=True)
+
+    def test(self, *, docker: DockerRunner, eff: Effect):
+        with eff.context("Testing"):
+            for case in self.cases:
+                with eff.context(f"{case}"):
+                    folder = self.classfiles_folder
+
+                    try:
+                        res = docker.run(
+                            [
+                                "java",
+                                "-cp",
+                                folder.relative_to(self.workdir).as_posix(),
+                                "-ea",
+                                "jpamb.Runtime",
+                                case.methodid.encode(),
+                                case.input.encode(),
+                            ],
+                            timeout=5,
+                            eff=eff,
+                        )
+                    except subprocess.TimeoutExpired:
+                        res = "*"
+
+                    if case.result == res.strip():
+                        eff.success(f"Correct")
+                    else:
+                        eff.error(f"Incorrect (got {res.strip()}) expected {case}")
+
+    def document(self, *, eff: Effect):
+        with eff.context("Documenting"):
+            opcode_counts = Counter()
+            opcode_urls = {}
+            class_opcodes = {}
+            for case in self.cases:
+                class_opcodes[str(case.methodid.classname).split(".")[-1]] = set()
+                list_ops = []
+                for opcode in self.method_opcodes(case.methodid, eff=eff):
+                    index = opcode.mnemonic()  # opcode.real().split()[0]
+                    list_ops.append(index)
+
+                    opcode_urls[index] = (
+                        opcode.mnemonic(),
+                        opcode.url(),
+                        opcode,
+                    )
+
+                    opcode_counts[index] += 1
+
+                for o in list_ops:
+                    class_opcodes[str(case.methodid.classname).split(".")[-1]].add(o)
+
+            with (
+                eff.context(f"Writing OPCODES.md"),
+                open("OPCODES.md", "w", encoding="utf-8") as document,
+            ):
+                from inspect import getsourcelines, getsourcefile
+
+                document.write("#Bytecode instructions\n")
+                document.write("| Mnemonic | Opcode Name |  Exists in |  Count |\n")
+                document.write("| :---- | :---- | :----- | -----: |\n")
+
+                for op, count in opcode_counts.most_common():
+                    eff.debug(f"Handeling {op} {count}")
+                    (mnemonic, url, opcode) = opcode_urls[op]
+                    in_classes = ""
+
+                    for classname in class_opcodes:
+                        if op in class_opcodes[classname]:
+                            in_classes += " " + classname
+
+                    source = Path(getsourcefile(opcode.__class__))
+                    rel = Path("utils") / source.relative_to(source.parent.parent)
+                    giturl = f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
+
+                    document.write(
+                        f"| [{mnemonic}]({url}) | [{opcode.__class__.__name__}]({giturl})"
+                        f" | {in_classes} | {count} |\n"
+                    )
+
+
+@contextmanager
+def _check(reason, *, eff: Effect, failfast=False):
+    """Used in the checkhealth command"""
+    with eff.context(reason):
+        try:
+            yield
+        except AssertionError as e:
+            msg = str(e)
+            if msg:
+                eff.error(f"FAILED: {e}")
+            else:
+                eff.error(f"FAILED")
+            if failfast:
+                raise AssertionError(f"{reason} {str(e.args)}") from e
+        else:
+            eff.success(f"ok")
 
 
 def getmethodid(
