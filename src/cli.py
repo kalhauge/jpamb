@@ -74,6 +74,7 @@ def re_parser(ctx_, parms_, expr):
 def cli(ctx, workdir: Path, verbose, docker_image):
     """This is the jpamb main entry point."""
     eff = Effect(sys.stderr)
+    eff.level = 25 - verbose * 10
     suite = jpamb.Suite.from_workdir(workdir, eff=eff)
     ctx.obj = Context(
         eff=eff,
@@ -110,16 +111,9 @@ def checkhealth(ctx):
     help="A regular expression which filter the methods to run on.",
     callback=re_parser,
 )
-@click.option(
-    "--report",
-    "-eff",
-    default="-",
-    type=click.File(mode="w", encoding="utf-8"),
-    help="A file to write the report to. (Good for golden testing)",
-)
 @click.argument("PROGRAM", nargs=-1)
 @click.pass_obj
-def interpret(ctx, program, report, filter, timeout, stepwise):
+def interpret(ctx, program, filter, timeout, stepwise):
     """Use PROGRAM as an interpreter."""
 
     eff = ctx.eff

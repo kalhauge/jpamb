@@ -16,31 +16,36 @@ class Effect:
     """A trivial effect system. Pass to methods which need to do things with
     the environment"""
 
-    report: IO
+    report: IO | None
     prefix: str = ""
-    level: int = 0
-    levels: dict[int, str] = field(
+    level: int = 30
+    levels: dict[int, [str, str]] = field(
         default_factory=lambda: {
-            10: "DEBUG",
-            15: "SUCCESS",
-            20: "INFO",
-            30: "WARNING",
-            40: "ERROR",
+            10: ("DEBUG", "\033[36m"),
+            20: ("INFO", "\033[34m"),
+            25: ("SUCCESS", "\033[32m"),
+            30: ("WARNING", "\033[33m"),
+            40: ("ERROR", "\033[31m"),
         }
     )
 
     @contextmanager
     def context(self, title):
         old = self.prefix
-        print(f"{self.prefix[:-1]}┌ {title}", file=self.report)
+        if self.report:
+            print(f"{self.prefix[:-1]}┌ {title}", file=self.report)
         self.prefix = f"{self.prefix[:-1]}│ "
         try:
             yield
         finally:
             self.prefix = old
-            print(f"{self.prefix[:-1]}└ {title}", file=self.report)
+            if self.report:
+                print(f"{self.prefix[:-1]}└ {title}", file=self.report)
 
     def output(self, msgs):
+        if self.report is None:
+            return
+
         if not isinstance(msgs, str):
             msgs = str(msgs)
 
@@ -48,8 +53,9 @@ class Effect:
             print(f"{self.prefix}{msg}", file=self.report)
 
     def log(self, level, msg):
-        if level > self.level:
-            self.output(f"{self.levels[level]} {msg}")
+        if level >= self.level:
+            lvl = self.levels[level]
+            self.output(f"{lvl[1]}{lvl[0]}\033[0m {msg}")
 
     def info(self, msg):
         self.log(logging.INFO, msg)
@@ -64,26 +70,36 @@ class Effect:
         self.log(logging.WARNING, msg)
 
     def success(self, msg):
-        self.log(15, msg)
+        self.log(25, msg)
 
     def run(self, *args, **kwargs):
-        runner = runit.Runner(err_callback=self.output)
-        with self.context(f"Run {shlex.join(args[0])}"):
-            with self.context("Stderr"):
-                out, time = runner.run(*args, **kwargs)
-            with self.context("Stdout"):
-                self.output(out)
-            return out
+        if self.level <= 10:
+            runner = runit.Runner(err_callback=self.output)
+            with self.context(f"Run {shlex.join(args[0])}"):
+                with self.context("Stderr"):
+                    out, time = runner.run(*args, **kwargs)
+                with self.context("Stdout"):
+                    self.output(out)
+        else:
+            runner = runit.Runner()
+            out, time = runner.run(*args, **kwargs)
+            self.success(f"Ran {shlex.join(args[0])}")
+
+        return out
 
     def experiment(self, *args, **kwargs):
-        runner = runit.Runner(err_callback=self.output)
         with self.context(f"Run experiment {shlex.join(args[0])}"):
-            with self.context("Stderr"):
+            if self.level <= 10:
+                runner = runit.Runner(err_callback=self.output)
+                with self.context("Stderr"):
+                    experiment = runner.experiment(*args, **kwargs)
+                with self.context("Stdout"):
+                    self.output(experiment.output)
+            else:
+                runner = runit.Runner()
                 experiment = runner.experiment(*args, **kwargs)
-            with self.context("Stdout"):
-                self.output(experiment.output)
-            self.output(f"Time       : {experiment.time_ns / 10**9:0.2f}s")
-            self.output(f"Time (rel) : {experiment.time_relative:0.3f} Db")
+            self.info(f"Time       : {experiment.time_ns / 10**9:0.2f}s")
+            self.info(f"Time (rel) : {experiment.time_relative:0.3f} Db")
             return experiment
 
 

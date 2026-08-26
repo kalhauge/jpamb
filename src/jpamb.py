@@ -422,15 +422,15 @@ class Suite:
 
         with check("Opcodes"):
             for method in self.case_methods().keys():
-                with check(f"The method: [{method}]"):
-                    try:
-                        for opr in self.method_opcodes(method, eff=eff):
-                            str(opr)
-                            str(opr.real())
-                    except NotImplementedError as e:
-                        raise AssertionError(
-                            "All operations should be supported"
-                        ) from e
+                eff.info(f"Checking if the opcodes from {method} are handeled")
+                try:
+                    for opr in self.method_opcodes(method, eff=eff):
+                        str(opr)
+                        str(opr.real())
+                except NotImplementedError as e:
+                    raise AssertionError(
+                        f"All operations should be supported: {e}"
+                    ) from e
 
     def build(self, *, docker: DockerRunner, eff: Effect):
         with eff.context("Compiling"):
@@ -550,7 +550,7 @@ def setup() -> tuple[Suite, Effect]:
     """Get a suite in the current working directory"""
     import sys
 
-    eff = Effect(sys.stderr)
+    eff = Effect(None)
     return (Suite.from_workdir(Path.cwd(), eff=eff), eff)
 
 

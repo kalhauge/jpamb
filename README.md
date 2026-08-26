@@ -62,8 +62,6 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ### Step 3: Verify everything works
 
-*Note: It is **no longer recommended** that you install the tool with `uv tool install`.*
-
 ```bash
 uv run jpamb checkhealth
 ```
