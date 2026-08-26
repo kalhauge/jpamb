@@ -12,36 +12,44 @@ class TestPredictionParsing:
 
     def test_parse_percentage(self):
         """Test parsing percentage format predictions."""
-        pred = jpamb.Prediction.parse("75%")
+        pred = jpamb.Response.parse_prediction("75%")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.to_probability() == pytest.approx(0.75, abs=0.01)
 
         # Note: 100% confidence (wager=inf) returns 0 probability to discourage
         # students from being overly confident - teaches that you can't be 100% certain
-        pred = jpamb.Prediction.parse("100%")
+        pred = jpamb.Response.parse_prediction("100%")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Prediction.parse("0%")
+        pred = jpamb.Response.parse_prediction("0%")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.to_probability() == pytest.approx(0.0, abs=0.01)
 
     def test_parse_wager(self):
         """Test parsing wager format predictions."""
-        pred = jpamb.Prediction.parse("1.0")
+        pred = jpamb.Response.parse_prediction("1.0")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.wager == 1.0
 
-        pred = jpamb.Prediction.parse("0.5")
+        pred = jpamb.Response.parse_prediction("0.5")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.wager == 0.5
 
-        pred = jpamb.Prediction.parse("-1.0")
+        pred = jpamb.Response.parse_prediction("-1.0")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.wager == -1.0
 
     def test_parse_infinity(self):
         """Test parsing infinite confidence predictions."""
-        pred = jpamb.Prediction.parse("inf")
+        pred = jpamb.Response.parse_prediction("inf")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.wager == float("inf")
         # Returns 0 to discourage extreme confidence (pedagogical choice)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Prediction.parse("-inf")
+        pred = jpamb.Response.parse_prediction("-inf")
+        assert isinstance(pred, jpamb.Prediction)
         assert pred.wager == float("-inf")
         assert pred.to_probability() == 0.0
 
@@ -111,7 +119,8 @@ class TestResponseParsing:
     def test_parse_simple_response(self):
         """Test parsing a simple response."""
         output = "ok;1.0\ndivide by zero;-1.0"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
 
         assert "ok" in response.predictions
         assert "divide by zero" in response.predictions
@@ -121,7 +130,8 @@ class TestResponseParsing:
     def test_parse_percentage_response(self):
         """Test parsing responses with percentages."""
         output = "ok;75%\nassertion error;25%"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
 
         assert "ok" in response.predictions
         assert "assertion error" in response.predictions
@@ -129,7 +139,8 @@ class TestResponseParsing:
     def test_parse_ignores_invalid_queries(self):
         """Test that invalid queries are ignored."""
         output = "ok;1.0\ninvalid_query;1.0\ndivide by zero;0.5"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert warns == ["'invalid_query' not a known query"]
 
         assert "ok" in response.predictions
         assert "divide by zero" in response.predictions
@@ -138,7 +149,8 @@ class TestResponseParsing:
     def test_parse_handles_malformed_lines(self):
         """Test that malformed lines are skipped gracefully."""
         output = "ok;1.0\nthis is not valid\ndivide by zero;0.5"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert warns == ["bad line: this is not valid"]
 
         # Should still parse the valid lines
         assert "ok" in response.predictions
@@ -147,7 +159,8 @@ class TestResponseParsing:
     def test_parse_empty_response(self):
         """Test parsing an empty response."""
         output = ""
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
         assert len(response.predictions) == 0
 
 
@@ -157,14 +170,16 @@ class TestResponseScoring:
     def test_score_perfect_response(self):
         """Test scoring a perfect response."""
         output = "ok;inf"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
         score = response.score(["ok"])
         assert score == 1
 
     def test_score_multi_query_response(self):
         """Test scoring a response with multiple queries."""
         output = "ok;inf\ndivide by zero;-inf"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
         score = response.score(["ok"])
 
         # Should get points for correct "ok" and correct "not divide by zero"
@@ -173,7 +188,8 @@ class TestResponseScoring:
     def test_score_partial_response(self):
         """Test scoring when not all queries are answered."""
         output = "ok;1.0"
-        response = jpamb.Response.parse(output)
+        response, warns = jpamb.Response.parse(output)
+        assert not warns
         score = response.score(["ok", "divide by zero"])
 
         # Should only score the answered query

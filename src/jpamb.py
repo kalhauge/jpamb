@@ -156,7 +156,7 @@ class Prediction:
         r = (w + 1) / (w + 2)
         return r if self.wager > 0 else 1 - r
 
-    def score(self, happens: bool, categories):
+    def score(self, happens: bool, categories: dict[str, float] | None = None):
         wager = (-1 if not happens else 1) * self.wager
         if wager > 0:
             if wager == float("inf"):
@@ -215,7 +215,10 @@ class Response:
             predictions[query] = prediction
         return Response(predictions), warnings
 
-    def score(self, correct, categories):
+    def score(self, correct: set[str], categories: dict[str, float] | None = None):
+        if categories is None:
+            categories = dict()
+
         total = 0
         for q, prd in self.predictions.items():
             total += prd.score(q in correct, categories)
@@ -367,9 +370,9 @@ class Suite:
 
         return methods
 
-    def case_opcodes(self) -> list[jvm.Opcode]:
+    def case_opcodes(self, eff: Effect) -> list[jvm.Opcode]:
         for m in self.case_methods().keys():
-            yield from self.method_opcodes(m)
+            yield from self.method_opcodes(m, eff=eff)
 
     def checkhealth(self, docker, *, eff: Effect, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
@@ -539,6 +542,13 @@ class Suite:
                         f"| [{mnemonic}]({url}) | [{opcode.__class__.__name__}]({giturl})"
                         f" | {in_classes} | {count} |\n"
                     )
+
+
+def setup() -> Suite:
+    """Get a suite in the current working directory"""
+    import sys
+
+    return Suite.from_workdir(Path.cwd(), eff=Effect(sys.stderr))
 
 
 @contextmanager
