@@ -66,15 +66,20 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 uv run jpamb checkhealth
 ```
 
-You should see several green "ok" messages. If you see any red errors, check troubleshooting below!
+You should see several green "ok" messages. If you see any red errors, check the
+troubleshooting section below!
 
 ## How It Works
+
+JPAMB operates in two primary modes: the "evaluate" mode and the "interpret" mode.
+In evaluate mode, JPAMB assesses how effectively an analysis can classify different Java programs.
+In interpret mode, JPAMB functions as either a concrete or abstract interpreter to verify its correctness.
+
+## `evaluate` - Building an Program Analysis
 
 ### Your Task
 
 Build a program that analyzes Java methods and predicts what will happen when they run.
-
-### Your Program Must Support Two Commands:
 
 Here we use `./your_analyzer` to be name of the program you are going to
 write.
@@ -105,9 +110,9 @@ Given the encoded name of a method (see [`cases.txt`](target/stats/cases.txt) fo
 
 You can rely on the following assumptions:
 
-1. Your program will always run in the JPAMB folder. This means that you can access files like `src/main/java/jpamb/cases/Simple.java` from your program.
+1. Your program will always run in the JPAMB folder. This means that you can access files like `cases/jpamb/cases/Simple.java` from your program.
 
-2. All methods presented to the analysis comes from files in the `src/main/java/jpamb/cases/` folder, and can be uniquely identified by their method name.
+2. All methods presented to the analysis comes from files in the `cases/jpamb/cases` folder, and can be uniquely identified by their method name.
 
 3. Only the stdout is captured by JPAMB, so you can output debug information in the stderr.
 
@@ -117,7 +122,7 @@ Your analyzer need to predict if there exist an input to the method where
 one of these possible outcomes can happen:
 
 | Outcome | What it means |
-|---------|---------------|
+| :-------- | :-------------- |
 | `ok` | Method runs and finishes normally |
 | `divide by zero` | Method tries to divide by zero |
 | `assertion error` | Method fails an assertion (like `assert x > 0`) |
@@ -131,16 +136,17 @@ For each outcome, you give either:
 
 - **A percentage**: `75%` means "75% of all methods that looks like this will have this outcome"
 - **A wager**: `5` means "bet 5 points this will happen", `-10` means "bet 10 points this WON'T happen"
+- **A category** (preferred): `yes` means "group all my yes predictions, and give a wager which maximizes my score across the benchmark suite". For example you can give all outcomes you deem likely a `yes` and all unlikely a `no`. If you have done so correctly all `yes` outcomes will get a large positive wager, and all unlikely get a large negative wager.
 
 **Example output:**
 
 ```
 ok;80%
-divide by zero;20%
+divide by zero;yes
 assertion error;0%
 out of bounds;5
-null pointer;0%
-*;0%
+null pointer;no
+*;maybe
 ```
 
 ## Your First Analyzer

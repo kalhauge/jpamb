@@ -4,9 +4,7 @@ import sys
 
 from hypothesis import given, strategies as st
 
-suite = jpamb.setup()
-
-eff = jpamb_utils.Effect(sys.stderr)
+suite, eff = jpamb.setup()
 
 
 def st_casemethods():
