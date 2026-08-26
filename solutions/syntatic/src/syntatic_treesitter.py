@@ -24,7 +24,7 @@ def main():
     log = logging
     log.basicConfig(level=logging.DEBUG)
 
-    suite = jpamb.Suite.from_cwd()
+    suite, eff = jpamb.setup()
 
     srcfile = suite.sourcefile(methodid.classname).relative_to(Path.cwd())
 
@@ -109,11 +109,16 @@ def main():
         capture_name == "assert"
         for capture_name, _ in tree_sitter.QueryCursor(assert_q).captures(body).items()
     )
+
     if assert_found:
         log.debug("Found assertion")
-        print("assertion error;80%")
+        print("assertion error;found")
     else:
         log.debug("No assertion")
-        print("assertion error;20%")
+        print("assertion error;not-found")
+
+    for q in jpamb.QUERIES:
+        if q != "assertion error":
+            print(f"{q};skip")
 
     sys.exit(0)

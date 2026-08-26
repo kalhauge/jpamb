@@ -19,22 +19,28 @@ def main():
     log = logging
     log.basicConfig(level=logging.DEBUG)
 
+    suite, eff = jpamb.setup()
+
     log.debug("looking up method")
-    m = jpamb.Suite.from_cwd().findmethod(methodid)
+    m = suite.findmethod(methodid, eff=eff)
 
     log.debug("trying to find an assertion error being created")
+    assert_found = False
     for inst in m["code"]["bytecode"]:
         if (
             inst["opr"] == "invoke"
             and inst["method"]["ref"]["name"] == "java/lang/AssertionError"
         ):
+            assert_found = True
             break
-    else:
-        # I'm pretty sure the answer is no
-        log.debug("did not find it")
-        print("assertion error;20%")
-        sys.exit(0)
 
-    log.debug("Found it")
-    # I'm kind of sure the answer is yes.
-    print("assertion error;80%")
+    if assert_found:
+        log.debug("Found assertion")
+        print("assertion error;found")
+    else:
+        log.debug("No assertion")
+        print("assertion error;not-found")
+
+    for q in jpamb.QUERIES:
+        if q != "assertion error":
+            print(f"{q};skip")

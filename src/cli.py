@@ -334,7 +334,7 @@ def evaluate(ctx, program, timeout, format, iterations):
     result = {
         "info": dataclasses.asdict(info),
         "bymethod": bymethod,
-        "category": {k: category_success[k] / v for k, v in category_count.items()},
+        "category": category,
         "time": total_time / total_methods,
         "score": total_score,
         "relative": total_relative / total_methods,
@@ -404,7 +404,10 @@ def dump_table(result):
         print("Categories:")
         maxcat = max(map(len, result["category"]))
         for category, value in result["category"].items():
-            print(f"{category:<{maxcat}}  {value:7.2%}")
+            print(
+                f" {category:<{maxcat}}  {value:7.2%}"
+                f"  wager: {jpamb.Prediction.from_probability(value).wager:7.2}"
+            )
 
 
 @cli.command()
