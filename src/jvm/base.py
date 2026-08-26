@@ -16,6 +16,7 @@ import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable, Protocol, Self, Iterable, Optional, Iterator, NoReturn
+from sexpr import SExpr
 
 
 @dataclass(frozen=True, order=True)
@@ -167,6 +168,9 @@ class Type(ABC):
         raise NotImplementedError(f"Type.from_json: {json!r}")
 
     def __str__(self) -> str:
+        return self.encode()
+
+    def __sexpr__(self) -> SExpr:
         return self.encode()
 
 
@@ -509,6 +513,9 @@ class FieldID:
     def __str__(self) -> str:
         return self.encode()
 
+    def __sexpr__(self) -> str:
+        return self.encode()
+
 
 class Encodable(Protocol):
     def encode(self) -> str: ...
@@ -641,7 +648,7 @@ class Value:
         return cls(Array(type), tuple(content))
 
     @classmethod
-    def reference(cls, index: int) -> Self:
+    def reference(cls, index: Int) -> Self:
         return cls(Reference(), index)
 
     @classmethod
@@ -656,6 +663,9 @@ class Value:
         return cls(type, json["value"])
 
     def __str__(self) -> str:
+        return self.math()
+
+    def __sexpr__(self) -> SExpr:
         return self.math()
 
     def math(self) -> str:
@@ -708,7 +718,7 @@ class ValueParser:
     def expected(self, expected) -> NoReturn:
         raise ValueError(f"Expected {expected} but got {self.head} in {self.input}")
 
-    def expect(self, expect) -> Token:
+    def expect(self, expect) -> Token | None:
         head = self.head
         if head is None:
             self.expected(repr(expect))

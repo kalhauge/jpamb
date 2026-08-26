@@ -14,6 +14,7 @@ import enum
 import sys
 from jvm import base as jvm
 import logging
+from sexpr import SExpr
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,9 @@ class Opcode(ABC):
         raise NotImplementedError(f"Unhandled real {self!r}")
 
     @abstractmethod
+    def __str__(self) -> str: ...
+
+    @abstractmethod
     def mnemonic(self) -> str: ...
 
     @abstractmethod
@@ -116,6 +120,9 @@ class Opcode(ABC):
             "https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-6.html#jvms-6.5."
             + self.mnemonic()
         )
+
+    def __sexpr__(self) -> SExpr:
+        return ["(", "OPR (", self.__str__(), "))"]
 
 
 @dataclass(frozen=True, order=True)

@@ -1,5 +1,5 @@
 import re
-from typing import NamedTuple
+from typing import NamedTuple, Iterable
 from dataclasses import dataclass
 
 from typing import Iterator
@@ -17,6 +17,7 @@ def tokenize(code):
         ("OPEN", r"\("),  # Open Paren
         ("CLOSE", r"\)"),  # Close Paren
         ("SYMBOL", r"[^)(\n \t|]+"),  # Symbol
+        ("STEP", r"STEP"),  # Symbol
         ("ESCAPED_SYMBOL", r"\|[^|]*\|"),  # Symbol
         ("NEWLINE", r"\n"),  # Line endings
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
@@ -53,33 +54,33 @@ class Parser:
         stream = tokenize(code)
         return cls(next(stream), stream)
 
-    def next(self) -> SExpr:
+    def next(self):
         try:
             self.head = next(self.stream)
         except StopIteration:
             self.head = Token(type="EOF", value="", line=0, column=0)
 
-    def sexpr(self) -> SExpr:
+    def sexpr(self) -> SExpr | None:
         if (a := self.list()) is not None:
             return a
         if (a := self.atom()) is not None:
             return a
         return None
 
-    def atom(self) -> str:
+    def atom(self) -> str | None:
         if self.head.type == "SYMBOL":
             value = self.head.value
             self.next()
-            return value
+            return str(value)
 
         if self.head.type == "ESCAPED_SYMBOL":
-            value = self.head.value[1:-1]
+            value = str(self.head.value)[1:-1]
             self.next()
             return value
 
         return None
 
-    def list(self) -> list[SExpr]:
+    def list(self) -> list[SExpr] | None:
         if self.head.type != "OPEN":
             return None
 
@@ -96,3 +97,24 @@ class Parser:
         self.next()
 
         return output
+
+
+def sexpr(obj: object):
+    if hasattr(obj, "__sexpr__"):
+        return obj.__sexpr__()
+    if isinstance(obj, str):
+        return obj
+    if isinstance(obj, Iterable):
+        return list(map(sexpr, obj))
+        print("Failed to sexpr")
+
+
+@dataclass
+class Step:
+    state: SExpr
+    opr: SExpr
+    next_state: SExpr
+
+
+def check_step(step1: Step, step2: Step) -> bool:
+    return step1.next_state == step2.state
