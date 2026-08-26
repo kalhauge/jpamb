@@ -1,9 +1,11 @@
+import copy
+from abc import abstractmethod
 import jpamb
 from dataclasses import dataclass, field
 import logging
 import sys
 import jvm
-
+from sexpr import SExpr, pretty_print
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,10 @@ class Bytecode:
 
     def __contains__(self, pc: PC) -> bool:
         return pc.offset < len(self.getmethod(pc.method).opcodes)
+
+    def __sexpr__(self, pc) -> SExpr:
+        opcode = self.getmethod(pc.method).opcodes[pc.offset]
+        return opcode.__sexpr__()
 
 
 @dataclass
@@ -104,9 +110,27 @@ class Frame:
             PC(method.id, 0),
         )
 
+    def __sexpr__(self) -> SExpr:
+        slocals = (
+            ["(", "LOCALS"]
+            + [ls.__sexpr__() for ls in self.locals if ls is not None]
+            + [")"]
+            if self.locals != []
+            else []
+        )
+        sstack = (
+            ["(", "STACK"] + [s.__sexpr__() for s in self.stack.items] + [")"]
+            if self.stack.items != []
+            else []
+        )
+        return slocals + sstack  # f"<{{{slocals}}}, {self.stack}, {self.pc}>"
+
 
 @dataclass
 class HeapValue:
+    @abstractmethod
+    def __sexpr__(self) -> SExpr: ...
+
     pass
 
 
@@ -115,16 +139,31 @@ class HeapArray(HeapValue):
     contains: jvm.Type
     values: list[jvm.Value]
 
+    def __sexpr__(self) -> SExpr:
+        type = [f"Array:{self.contains.__sexpr__()}"]
+        values = [v for v in self.values] if self.values != [] else []
+        return type + values
+
 
 @dataclass
 class HeapObject(HeapValue):
     classname: jvm.ClassName
     fields: dict[jvm.FieldID, jvm.Value]
 
+    def __sexpr__(self) -> SExpr:
+        return (
+            ["(", f"Class:{self.classname}"]
+            + [item for v in self.fields for item in v.__sexpr__()]
+            + [")"]
+        )
+
 
 @dataclass
 class HeapString(HeapValue):
     content: str
+
+    def sexpr(self) -> SExpr:
+        return f"{self.content}"
 
 
 @dataclass
@@ -140,6 +179,19 @@ class State:
 
     def __str__(self):
         return f"{''.join(f'{i:04x}: {x}\n' for i, x in enumerate(self.heap))}{self.frames}"
+
+    def __sexpr__(self) -> SExpr:
+        sexpr_heap = (
+            ["("] + [item for h in self.heap for item in h.__sexpr__()] + [")"]
+            if self.heap != []
+            else []
+        )
+        sexpr_stack = (
+            ["(", "FRAME"]
+            + [item for f in self.frames.items for item in f.__sexpr__()]
+            + [")"]
+        )
+        return ["("] + sexpr_heap + sexpr_stack + [")"]
 
 
 def binary(op, v1: jvm.Value, v2: jvm.Value) -> jvm.Value | str:
@@ -387,9 +439,25 @@ def run(suite, methodid, input, MAX_STEPS=100000):
                 )
 
     for x in range(MAX_STEPS):
+        frame = state.frames.peek()
+        opr = bc[frame.pc].__sexpr__()
+        sexpr_out = (
+            f"( STEP {' '.join([str(s) for s in state.__sexpr__()])} {' '.join(opr)}"
+        )
+
         state = step(bc, state)
+        if isinstance(state, State):
+            try:
+                sexpr = (
+                    sexpr_out + f" {' '.join([str(s) for s in state.__sexpr__()])} )"
+                )
+                print(sexpr)
+            except ValueError:
+                print("Failed to sexpr")
+
         if isinstance(state, str):
             return state
+
     else:
         return "*"
 
@@ -400,7 +468,10 @@ def interpret():
     suite = jpamb.Suite.from_cwd()
     methodid, input = jpamb.getcase()
     output = run(suite, methodid, input.values)
-    print(output)
+    if not isinstance(output, str):
+        print(output.__sexpr__())
+    else:
+        print(output)
 
 
 def analyse():
