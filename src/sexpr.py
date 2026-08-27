@@ -34,8 +34,8 @@ def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
 
     for a in args:
         assert isinstance(a, list | str), f"expected s-expr but got {a!r}"
-        assert not (isinstance(a, str) and a_.startswith(":"))
-        exp += [a_]
+        assert not (isinstance(a, str) and a.startswith(":"))
+        exp += [a]
 
     for k, v in kwargs.items():
         assert isinstance(k, str)
@@ -114,7 +114,7 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
         e = expr[0]
         left = list(expr[1:])
 
-        if isinstance(e, str) and e.startswith(":"):
+        if isinstance(e, str) and e.startswith(":") and len(left) > 0:
             e2 = left.pop(0)
             output.write("\n" + " " * (current + indent))
             output.write(escape(e))
@@ -126,7 +126,7 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
 
         while left:
             e = left.pop(0)
-            if isinstance(e, str) and e.startswith(":"):
+            if isinstance(e, str) and e.startswith(":") and len(left) > 0:
                 e2 = left.pop(0)
                 output.write("\n" + " " * (current + indent))
                 output.write(escape(e))
