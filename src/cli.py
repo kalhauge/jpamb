@@ -182,9 +182,9 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                         return
             else:
                 eff.success(f"Did find behaviour: {case.result}")
-                total += 1
+                count += 1
 
-            count += 1
+            total += 1
     eff.info(f"Total: {count}/{total}")
 
 

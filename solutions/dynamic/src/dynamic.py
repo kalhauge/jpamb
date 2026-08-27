@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 import sys
 import jvm
 import sexpr
+from abc import ABC
 
 
 @dataclass
@@ -77,7 +78,10 @@ class Stack[T]:
         return "\n".join(f"{v}" for v in self.items)
 
     def __sexpr__(self):
-        return sexpr.sexpr(self.items)
+        x = len(self.items)
+        return sum(
+            ([f":{x - k}", sexpr.sexpr(v)] for k, v in enumerate(self.items)), start=[]
+        )
 
 
 @dataclass
@@ -114,20 +118,16 @@ class Frame:
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
             "frame",
-            locals=sexpr.data(
-                "locals", **{str(k): v for k, v in enumerate(self.locals)}
-            ),
-            stack=self.stack,
-            pc=self.pc,
+            locals=sexpr.sequence((sexpr.sexpr(a) for a in self.locals)),
+            stack=sexpr.sexpr(self.stack),
+            pc=sexpr.sexpr(self.pc),
         )
 
 
 @dataclass
-class HeapValue:
+class HeapValue(ABC):
     @abstractmethod
     def __sexpr__(self) -> sexpr.SExpr: ...
-
-    pass
 
 
 @dataclass
@@ -156,7 +156,7 @@ class HeapObject(HeapValue):
 class HeapString(HeapValue):
     content: str
 
-    def sexpr(self) -> sexpr.SExpr:
+    def __sexpr__(self) -> sexpr.SExpr:
         return f"{self.content}"
 
 
@@ -180,24 +180,29 @@ class State:
         return sexpr.data(
             "state",
             heap=sexpr.data(
-                "heap", **{f"0x{k + 1:04x}": v for k, v in enumerate(self.heap)}
+                "heap",
+                **{f"0x{k + 1:04x}": sexpr.sexpr(v) for k, v in enumerate(self.heap)},
             ),
-            callstack=self.frames,
+            callstack=sexpr.sexpr(self.frames),
         )
 
     @classmethod
-    def from_sexpr(cls, expr) -> "State":
+    def from_sexpr(cls, expr, context=list[str]) -> "State":
         if not isinstance(expr, list):
+            raise ParseError("...", context)
+
+        (key, args, kwargs) = sexpr.undata(expr)
+
+        if not key == "state":
             raise RuntimeError("...")
 
-        if expr[0] == "state":
+        if not args == []:
             raise RuntimeError("...")
 
-        return sexpr.data(
-            "state",
-            sexpr.data("heap", *self.heap),
-            sexpr.data("callstack", self.frames),
-        )
+        heap = sexpr.getkey("heap", kwargs, context, handler=Heap.from_sexpr)
+        callstack = sexpr.getkey("callstack", kwargs, context, handler=Stack.from_sexpr)
+
+        return cls(heap=heap, callstack=callstack)
 
     def display(self):
         print(f"", file=sys.stderr)
@@ -477,7 +482,12 @@ def interpret():
 
         print(
             sexpr.pretty(
-                sexpr.data("step", before=prev_state, op=opr, after=next_state),
+                sexpr.data(
+                    "step",
+                    before=prev_state,
+                    op=sexpr.sexpr(opr),
+                    after=next_state,
+                ),
                 indent=2,
             )
         )

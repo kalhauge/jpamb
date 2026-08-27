@@ -11,7 +11,9 @@ type SExpr = list[SExpr] | str
 
 def sexpr(obj: object) -> SExpr:
     if hasattr(obj, "__sexpr__"):
-        return obj.__sexpr__()
+        v = obj.__sexpr__()
+        assert isinstance(v, list | str), f"expected s-expr from {obj!r} but got {v!r}"
+        return v
     if isinstance(obj, str):
         return obj
     if isinstance(obj, int):
@@ -20,6 +22,7 @@ def sexpr(obj: object) -> SExpr:
         return "-"
     if isinstance(obj, Iterable):
         return list(map(sexpr, obj))
+
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
@@ -30,12 +33,22 @@ def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
     exp = [name]
 
     for a in args:
-        a_ = sexpr(a)
+        assert isinstance(a, list | str), f"expected s-expr but got {a!r}"
         assert not (isinstance(a, str) and a_.startswith(":"))
         exp += [a_]
 
     for k, v in kwargs.items():
-        exp += [":" + k, sexpr(v)]
+        assert isinstance(k, str)
+        assert isinstance(v, list | str), f"expected s-expr at :{k} but got {v!r}"
+        exp += [":" + k, v]
+    return exp
+
+
+def sequence(values: Iterable[object]) -> list[SExpr]:
+    exp = []
+    for k, v in enumerate(values):
+        assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
+        exp += [f":{k}", v]
     return exp
 
 
@@ -98,14 +111,19 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
 
         indented = False
 
-        if isinstance(expr[0], list):
-            indented = True
+        e = expr[0]
+        left = list(expr[1:])
+
+        if isinstance(e, str) and e.startswith(":"):
+            e2 = left.pop(0)
             output.write("\n" + " " * (current + indent))
-            pretty_indent(expr[0], output, current + indent, indent)
+            output.write(escape(e))
+            output.write(" ")
+            indented = True
+            pretty_indent(e2, output, current + indent, indent)
         else:
             pretty_indent(expr[0], output, current, indent)
 
-        left = list(expr[1:])
         while left:
             e = left.pop(0)
             if isinstance(e, str) and e.startswith(":"):
