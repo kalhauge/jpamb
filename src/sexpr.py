@@ -27,13 +27,19 @@ BAD_SYMBOL = re.compile("[)(\n \t|]")
 
 
 def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
-    exp = [name] + [sexpr(a) for a in args]
+    exp = [name]
+
+    for a in args:
+        a_ = sexpr(a)
+        assert not (isinstance(a, str) and a_.startswith(":"))
+        exp += [a_]
+
     for k, v in kwargs.items():
         exp += [":" + k, sexpr(v)]
     return exp
 
 
-def undata[T](handlers: dict[str, Callable[..., T]], sexpr: list[SExpr]) -> T:
+def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
         raise RuntimeError(f"Unexpected expression: {sexpr}")
 
@@ -51,13 +57,13 @@ def undata[T](handlers: dict[str, Callable[..., T]], sexpr: list[SExpr]) -> T:
         if isinstance(a, str) and a.startswith(":"):
             k = a[1:]
             assert not k in kwargs
-            v = items.pop()
+            v = items.pop(0)
             kwargs[k] = v
             continue
 
         args.append(a)
 
-    return handlers[key](*args, **kwargs)
+    return key, args, kwargs
 
 
 def escape(symbol: str) -> str:
@@ -89,11 +95,35 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
         if len(expr) == 0:
             output.write(")")
             return
-        pretty_indent(expr[0], output, current, indent)
-        for e in expr[1:]:
+
+        indented = False
+
+        if isinstance(expr[0], list):
+            indented = True
             output.write("\n" + " " * (current + indent))
-            pretty_indent(e, output, current + indent, indent)
-        output.write("\n" + (" " * current) + ")")
+            pretty_indent(expr[0], output, current + indent, indent)
+        else:
+            pretty_indent(expr[0], output, current, indent)
+
+        left = list(expr[1:])
+        while left:
+            e = left.pop(0)
+            if isinstance(e, str) and e.startswith(":"):
+                e2 = left.pop(0)
+                output.write("\n" + " " * (current + indent))
+                output.write(escape(e))
+                output.write(" ")
+                indented = True
+                pretty_indent(e2, output, current + indent, indent)
+            elif indented:
+                output.write("\n" + " " * (current + indent))
+                pretty_indent(e, output, current + indent, indent)
+            else:
+                output.write(" ")
+                pretty_indent(e, output, current, indent)
+        if indented:
+            output.write("\n" + (" " * current))
+        output.write(")")
     elif isinstance(expr, str):
         output.write(escape(expr))
     else:

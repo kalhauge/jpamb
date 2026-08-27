@@ -118,12 +118,30 @@ def test_data():
     assert sexpr.data("hello", key="value") == ["hello", ":key", "value"]
 
 
-@given(st.lists(st_sexpr()))
-def test_data_tripping(expr):
-    assert (
-        sexpr.undata(
-            {"data": lambda *args, **kwargs: sexpr.data("data", *args, **kwargs)},
-            ["data"] + expr,
-        )
-        == ["data"] + expr
+@given(st.text(), st.lists(st_sexpr()), st.dictionaries(st.text(), st_sexpr()))
+def test_data_tripping(key, args, kwargs):
+    for a in args:
+        assert not (isinstance(a, str) and a.startswith(":"))
+
+    data = sexpr.data(key, *args, **kwargs)
+
+    note(data)
+
+    (key2, args2, kwargs2) = sexpr.undata(data)
+
+    assert key == key2
+    assert args == args2
+    assert kwargs == kwargs2
+
+
+def test_pretty_printer():
+    x = sexpr.data(
+        "key",
+        "value",
+        child=sexpr.data("example", 1, 2, 3, 4),
+        child2=sexpr.data("example", child1="hello"),
     )
+
+    out = sexpr.pretty(x, indent=2)
+
+    assert out == ""

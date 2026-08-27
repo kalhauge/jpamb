@@ -667,7 +667,14 @@ class Value:
         return self.math()
 
     def __sexpr__(self) -> SExpr:
-        return [self.type.math(), self.value]
+        match self.type:
+            case Reference():
+                return [
+                    "ref",
+                    f"0x{self.value + 1 if self.value is not None else 0:04x}",
+                ]
+            case t:
+                return [t.math(), self.value]
 
     def math(self) -> str:
         return sexpr.pretty(self)

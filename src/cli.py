@@ -14,6 +14,7 @@ import runit
 
 import jpamb
 import jvm
+import sexpr
 
 import subprocess
 import dataclasses
@@ -96,8 +97,16 @@ def checkhealth(ctx):
 
 @cli.command()
 @click.option(
-    "--stepwise / --no-stepwise",
-    help="continue from last failure",
+    "--max-steps",
+    show_default=True,
+    default=100,
+    help="how many steps to execute",
+)
+@click.option(
+    "--fail-fast / --no-fail-fast",
+    show_default=True,
+    default=False,
+    help="stop at first failure",
 )
 @click.option(
     "--timeout",
@@ -113,7 +122,7 @@ def checkhealth(ctx):
 )
 @click.argument("PROGRAM", nargs=-1)
 @click.pass_obj
-def interpret(ctx, program, filter, timeout, stepwise):
+def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
     """Use PROGRAM as an interpreter."""
 
     eff = ctx.eff
@@ -122,51 +131,61 @@ def interpret(ctx, program, filter, timeout, stepwise):
         eff.warning(f"Changing to {ctx.suite.workdir}")
         os.chdir(ctx.suite.workdir)
 
-    last_case = None
-    if stepwise:
-        try:
-            with open(".jpamb-stepwise", encoding="utf-8") as f:
-                last_case = jpamb.Case.decode(f.read())
-        except ValueError as e:
-            eff.warning(e)
-            last_case = None
-        except IOError:
-            last_case = None
-
     total = 0
     count = 0
     for case in ctx.suite.cases:
-        if last_case and last_case != case:
-            continue
-        last_case = None
-
         if filter and not filter.search(str(case)):
             continue
 
         with eff.context(f"Case {case}"):
             try:
                 out = eff.run(
-                    program + (case.methodid.encode(), case.input.encode()),
+                    program
+                    + (case.methodid.encode(), case.input.encode(), str(max_steps)),
                     timeout=timeout,
                 )
-                ret = out.splitlines()[-1].strip()
             except subprocess.TimeoutExpired:
-                ret = "*"
+                eff.error("timed out")
+                behaviors = set("timed out")
+                if fail_fast:
+                    return
             except subprocess.CalledProcessError as e:
                 eff.error(e)
-                ret = "failure"
-            eff.output(f"Expected {case.result!r} and got {ret!r}")
-            if case.result == ret:
+                behaviors = set("failure")
+                if fail_fast:
+                    return
+
+            else:
+                steps = sexpr.from_string(out)
+
+                no_steps = 0
+                behaviors = set()
+                for step in steps:
+                    (k, args, kwargs) = sexpr.undata(step)
+                    if k == "step":
+                        no_steps += 1
+
+                        after = kwargs["after"]
+                        if isinstance(after, str):
+                            behaviors.add(after)
+
+                eff.info(
+                    f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
+                )
+
+            if case.result not in behaviors:
+                if no_steps == max_steps:
+                    eff.warning(f"Terminated before finding behaviour: {case.result}")
+                else:
+                    eff.error(f"Did not find behaviour: {case.result}")
+                    if fail_fast:
+                        return
+            else:
+                eff.success(f"Did find behaviour: {case.result}")
                 total += 1
-            elif stepwise:
-                with open(".jpamb-stepwise", "w", encoding="utf-8") as f:
-                    f.write(case.encode())
-                sys.exit(-1)
+
             count += 1
-
-    Path(".jpamb-stepwise").unlink(True)
-
-    eff.output(f"Total {total}/{count}")
+    eff.info(f"Total: {count}/{total}")
 
 
 def run_analysis(

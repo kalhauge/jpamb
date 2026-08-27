@@ -114,7 +114,9 @@ class Frame:
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
             "frame",
-            locals=self.locals,
+            locals=sexpr.data(
+                "locals", **{str(k): v for k, v in enumerate(self.locals)}
+            ),
             stack=self.stack,
             pc=self.pc,
         )
@@ -134,7 +136,7 @@ class HeapArray(HeapValue):
     values: list[jvm.Value]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        type = [f"array:{self.contains.__sexpr__()}"]
+        type = [f"array:{self.contains}"]
         values = [v for v in self.values] if self.values != [] else []
         return type + values
 
@@ -170,12 +172,16 @@ class State:
         return jvm.Value.reference(index)
 
     def __str__(self):
-        return f"{''.join(f'{i:04x}: {x}\n' for i, x in enumerate(self.heap))}{self.frames}"
+        return (
+            f"{''.join(f'{i:0}: {x}\n' for i, x in enumerate(self.heap))}{self.frames}"
+        )
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
             "state",
-            heap=self.heap,
+            heap=sexpr.data(
+                "heap", **{f"0x{k + 1:04x}": v for k, v in enumerate(self.heap)}
+            ),
             callstack=self.frames,
         )
 
@@ -448,24 +454,33 @@ def initial(bc, methodid, input):
 def interpret():
     """The entry point for the interpreter"""
 
-    methodid, input = jpamb.getcase()
+    methodid, input, max_steps = jpamb.getcase(
+        "dynamic",
+        "1.0",
+        "The Rice Theorem Cookers",
+        ["dynamic", "python"],
+        for_science=True,
+    )
 
     suite, eff = jpamb.setup()
     bc = Bytecode(suite, eff, dict())
-
-    MAX_STEPS = 20
 
     state = initial(bc, methodid, input.values)
 
     prev_state = sexpr.sexpr(state)
 
-    print(sexpr.pretty(["init", prev_state]))
+    print(sexpr.pretty(["init", prev_state], indent=2))
 
-    for x in range(MAX_STEPS):
+    for x in range(max_steps):
         opr, state = step(bc, state)
         next_state = sexpr.sexpr(state)
 
-        print(sexpr.pretty(["step", prev_state, opr, next_state]))
+        print(
+            sexpr.pretty(
+                sexpr.data("step", before=prev_state, op=opr, after=next_state),
+                indent=2,
+            )
+        )
 
         #  state.display()
 

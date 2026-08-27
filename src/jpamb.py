@@ -22,6 +22,7 @@ import runit
 
 from typing import Iterable, NoReturn
 
+import sexpr
 import jvm
 
 
@@ -232,6 +233,17 @@ class Response:
                 for k, v in json.items()
             }
         )
+
+
+@dataclass(frozen=True)
+class Step:
+    before: sexpr.SExpr
+    opr: jvm.Opcode
+    after: sexpr.SExpr
+
+    @classmethod
+    def parse_many(cls, code: str) -> "list[Step]":
+        return [Step(b, opr, a) for [b, opr, a] in sexpr.from_string(code)]
 
 
 @dataclass(frozen=True)
@@ -583,25 +595,37 @@ def getmethodid(
 
     import sys
 
+    if len(sys.argv) == 2 and sys.argv[1] == "info":
+        printinfo(name, version, group, tags, for_science)
+
     assert len(sys.argv) == 2, f"expected only one argument but got {sys.argv[1:]}"
 
     mid = sys.argv[1]
-    if mid == "info":
-        printinfo(name, version, group, tags, for_science)
-
     return parse_methodid(mid)
 
 
-def getcase() -> tuple[jvm.AbsMethodID, Input]:
+def getcase(
+    name: str,
+    version: str,
+    group: str,
+    tags: list[str],
+    for_science: bool,
+) -> tuple[jvm.AbsMethodID, Input, int]:
     """Get the case from the program arguments."""
     import sys
 
-    assert len(sys.argv) == 3, f"expected exactly two arguments but got {sys.argv[1:]}"
+    if len(sys.argv) == 2 and sys.argv[1] == "info":
+        printinfo(name, version, group, tags, for_science)
 
-    mid = sys.argv[1]
-    i = sys.argv[2]
+    assert len(sys.argv) == 4, (
+        f"expected exactly three arguments but got {sys.argv[1:]}"
+    )
 
-    return parse_methodid(mid), parse_input(i)
+    mid = parse_methodid(sys.argv[1])
+    i = parse_input(sys.argv[2])
+    max_iter = int(sys.argv[3])
+
+    return mid, i, max_iter
 
 
 def printinfo(
