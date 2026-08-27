@@ -6,7 +6,7 @@ This module provides the basic data model for working with the JPAMB.
 """
 
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import collections
 from collections import defaultdict
@@ -554,6 +554,29 @@ class Suite:
                         f"| [{mnemonic}]({url}) | [{opcode.__class__.__name__}]({giturl})"
                         f" | {in_classes} | {count} |\n"
                     )
+
+
+@dataclass
+class Bytecode:
+    suite: Suite
+    eff: Effect
+    methods: dict[jvm.AbsMethodID, jvm.Method] = field(default_factory=dict)
+
+    def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
+        try:
+            method = self.methods[methodid]
+        except KeyError:
+            opcodes = list(self.suite.method_opcodes(methodid, eff=self.eff))
+            max_locals = self.suite.method_max_locals(methodid, eff=self.eff)
+            method = jvm.Method(methodid, opcodes, max_locals)
+            self.methods[methodid] = method
+        return method
+
+    def __getitem__(self, pc: jvm.state.PC) -> jvm.Opcode:
+        return self.getmethod(pc.method).opcodes[pc.offset]
+
+    def __contains__(self, pc: jvm.state.PC) -> bool:
+        return pc.offset < len(self.getmethod(pc.method).opcodes)
 
 
 def setup() -> tuple[Suite, Effect]:

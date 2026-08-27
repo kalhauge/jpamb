@@ -1,8 +1,6 @@
 from abc import abstractmethod, ABC
 from dataclasses import dataclass, field
 import jvm
-import jpamb
-import jpamb_utils
 import sexpr
 import sys
 
@@ -24,29 +22,6 @@ class PC:
 
     def __sexpr__(self):
         return str(self)
-
-
-@dataclass
-class Bytecode:
-    suite: jpamb.Suite
-    eff: jpamb_utils.Effect
-    methods: dict[jvm.AbsMethodID, jvm.Method] = field(default_factory=dict)
-
-    def getmethod(self, methodid: jvm.AbsMethodID) -> jvm.Method:
-        try:
-            method = self.methods[methodid]
-        except KeyError:
-            opcodes = list(self.suite.method_opcodes(methodid, eff=self.eff))
-            max_locals = self.suite.method_max_locals(methodid, eff=self.eff)
-            method = jvm.Method(methodid, opcodes, max_locals)
-            self.methods[methodid] = method
-        return method
-
-    def __getitem__(self, pc: PC) -> jvm.Opcode:
-        return self.getmethod(pc.method).opcodes[pc.offset]
-
-    def __contains__(self, pc: PC) -> bool:
-        return pc.offset < len(self.getmethod(pc.method).opcodes)
 
 
 @dataclass

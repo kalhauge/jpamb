@@ -3,7 +3,7 @@ import jpamb
 import sys
 import jvm
 import sexpr
-import jvm_classes as jvmc
+import jvm.state as jvmc
 
 
 def binary(op, v1: jvm.Value, v2: jvm.Value) -> jvm.Value | str:
@@ -264,7 +264,7 @@ def interpret():
     )
 
     suite, eff = jpamb.setup()
-    bc = jvmc.Bytecode(suite, eff, dict())
+    bc = jpamb.Bytecode(suite, eff, dict())
 
     state = initial(bc, methodid, input.values)
 
@@ -323,7 +323,7 @@ def analyse():
     )
 
     suite, eff = jpamb.setup()
-    bc = jvmc.Bytecode(suite, eff, dict())
+    bc = jpamb.Bytecode(suite, eff, dict())
 
     MAX_STEPS = 200
 
