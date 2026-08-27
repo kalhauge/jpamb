@@ -1,12 +1,9 @@
 # JPAMB: Java Program Analysis Micro Benchmarks
 
-JPAMB is a collection of small Java programs with various behaviors (crashes, infinite loops, normal completion). Your task is to build a program analysis tool that can predict what will happen when these programs run.
-
-Check out the test cases in `cases/jpamb/cases/Simple.java` - these are
-(some of) the methods your analyzer will predict the behavior of.
-
-For example, `assertBoolean` has two known outcomes. If given `false` it throws
-an `assertion error`, and if given `true` it finishes normally `ok`.
+JPAMB is a collection of small Java programs with various behaviors (crashes, infinite loops, and normal completion).
+Your task is to build a program analysis tool that can predict what will happen when these programs run.
+This benchmark is centered around Java methods with @Case annotations.
+Consider the following method:
 
 ```java
 @Case("(false) -> assertion error")
@@ -15,6 +12,11 @@ public static void assertBoolean(boolean shouldFail) {
     assert shouldFail;
 }
 ```
+
+`assertBoolean` has two known outcomes.
+If given `false`, it throws an `assertion error`.
+If given `true`, it finishes normally (`ok`).
+The goal of the analysis is to predict which behaviors can happen in the method (e.g., `ok` and `assertion error`) without predicting behaviors that cannot happen (e.g., `divide by zero`).
 
 ## Getting Started
 
