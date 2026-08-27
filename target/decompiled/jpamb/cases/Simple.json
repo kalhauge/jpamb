@@ -190,6 +190,100 @@
       "annotations": [
         {
           "is_runtime_visible": true,
+          "type": "jpamb/utils/Case",
+          "values": {
+            "value": {
+              "type": "string",
+              "value": "() -> ok"
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 15,
+            "offset": 0
+          }
+        ],
+        "max_locals": 0,
+        "max_stack": 0,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "assertTrue",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Case",
+          "values": {
+            "value": {
+              "type": "string",
+              "value": "() -> ok"
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 18,
+            "offset": 0
+          }
+        ],
+        "max_locals": 0,
+        "max_stack": 0,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "doNothing",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
           "type": "jpamb/utils/Cases",
           "values": {
             "value": {
@@ -293,11 +387,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 15,
+            "line": 23,
             "offset": 0
           },
           {
-            "line": 16,
+            "line": 24,
             "offset": 8
           }
         ],
@@ -440,11 +534,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 21,
+            "line": 29,
             "offset": 0
           },
           {
-            "line": 22,
+            "line": 30,
             "offset": 8
           }
         ],
@@ -587,11 +681,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 27,
+            "line": 35,
             "offset": 0
           },
           {
-            "line": 28,
+            "line": 36,
             "offset": 8
           }
         ],
@@ -674,7 +768,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 32,
+            "line": 40,
             "offset": 0
           }
         ],
@@ -768,7 +862,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 38,
+            "line": 46,
             "offset": 0
           }
         ],
@@ -869,7 +963,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 44,
+            "line": 52,
             "offset": 0
           }
         ],
@@ -1039,11 +1133,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 50,
+            "line": 58,
             "offset": 0
           },
           {
-            "line": 51,
+            "line": 59,
             "offset": 8
           }
         ],
@@ -1114,7 +1208,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 57,
+            "line": 65,
             "offset": 0
           }
         ],
@@ -1265,11 +1359,11 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 66,
+            "line": 74,
             "offset": 0
           },
           {
-            "line": 67,
+            "line": 75,
             "offset": 8
           }
         ],
@@ -1311,36 +1405,11 @@
       "annotations": [
         {
           "is_runtime_visible": true,
-          "type": "jpamb/utils/Cases",
+          "type": "jpamb/utils/Case",
           "values": {
             "value": {
-              "type": "array",
-              "value": [
-                {
-                  "type": "annotation",
-                  "value": {
-                    "type": "jpamb/utils/Case",
-                    "values": {
-                      "value": {
-                        "type": "string",
-                        "value": "(0) -> ok"
-                      }
-                    }
-                  }
-                },
-                {
-                  "type": "annotation",
-                  "value": {
-                    "type": "jpamb/utils/Case",
-                    "values": {
-                      "value": {
-                        "type": "string",
-                        "value": "(1) -> ok"
-                      }
-                    }
-                  }
-                }
-              ]
+              "type": "string",
+              "value": "(0) -> ok"
             }
           }
         }
@@ -1467,19 +1536,19 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 73,
+            "line": 80,
             "offset": 0
           },
           {
-            "line": 74,
+            "line": 81,
             "offset": 2
           },
           {
-            "line": 76,
+            "line": 83,
             "offset": 6
           },
           {
-            "line": 77,
+            "line": 84,
             "offset": 15
           }
         ],
@@ -1659,19 +1728,19 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 83,
+            "line": 90,
             "offset": 0
           },
           {
-            "line": 84,
+            "line": 91,
             "offset": 2
           },
           {
-            "line": 86,
+            "line": 93,
             "offset": 3
           },
           {
-            "line": 87,
+            "line": 94,
             "offset": 13
           }
         ],
@@ -1744,7 +1813,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 91,
+            "line": 98,
             "offset": 0
           }
         ],
@@ -1811,7 +1880,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 96,
+            "line": 103,
             "offset": 0
           }
         ],
@@ -1895,7 +1964,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 101,
+            "line": 108,
             "offset": 0
           }
         ],
@@ -1961,7 +2030,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 106,
+            "line": 113,
             "offset": 0
           }
         ],
@@ -2067,7 +2136,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 112,
+            "line": 119,
             "offset": 0
           }
         ],

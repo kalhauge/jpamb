@@ -10,11 +10,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786613447,
-        "narHash": "sha256-rU721qriCeWNnjTVjt+pcy+gzjokV6hyn25Q4t67XPA=",
+        "lastModified": 1787820309,
+        "narHash": "sha256-OV5laNr4hIWHQ0+Ca0UwbirBWop3Nna5DZSUJ40HeXM=",
         "owner": "kalhauge",
         "repo": "a.sh",
-        "rev": "59089be29fe19892bbd83bca54f75a789e47e491",
+        "rev": "a5e9e8147cd465e077ed83b5fbe526573bee929a",
         "type": "github"
       },
       "original": {

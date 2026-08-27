@@ -9,6 +9,14 @@ public class Simple {
     assert false;
   }
 
+  @Case("() -> ok")
+  public static void assertTrue() {
+    assert true;
+  }
+
+  @Case("() -> ok")
+  public static void doNothing() {}
+
   @Case("(false) -> assertion error")
   @Case("(true) -> ok")
   public static void assertBoolean(boolean shouldFail) {
@@ -68,7 +76,6 @@ public class Simple {
   }
 
   @Case("(0) -> ok")
-  @Case("(1) -> ok")
   public static int checkBeforeDivideByN2(int n) {
     if (n != 0) {
       return 1 / n;

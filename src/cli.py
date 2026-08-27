@@ -270,8 +270,8 @@ def run_analysis(
     help="timeout in seconds.",
 )
 @click.argument("PROGRAM", nargs=-1)
-def evaluate(ctx, program, timeout, format, iterations):
-    """Evaluate the PROGRAM."""
+def analyse(ctx, program, timeout, format, iterations):
+    """Evaluate the PROGRAM as an analysis."""
 
     eff = ctx.eff
 
