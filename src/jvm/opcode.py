@@ -11,7 +11,6 @@ from dataclasses import dataclass, fields
 from abc import ABC, abstractmethod
 
 import enum
-import sys
 from jvm import base as jvm
 import logging
 from sexpr import SExpr
@@ -621,9 +620,6 @@ class Store(Opcode):
 
     def __str__(self):
         return f"store:{self.type} {self.index}"
-
-
-import enum
 
 
 class CmpOpr(enum.Enum):

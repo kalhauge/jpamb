@@ -674,10 +674,10 @@ class Value:
                     f"0x{self.value + 1 if self.value is not None else 0:04x}",
                 ]
             case t:
-                return [t.math(), self.value]
+                return [sexpr.sexpr(t.math()), sexpr.sexpr(self.value)]
 
     def math(self) -> str:
-        return sexpr.pretty(self)
+        return sexpr.pretty(sexpr.sexpr(self))
 
 
 @dataclass

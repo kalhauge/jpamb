@@ -12,12 +12,10 @@ import collections
 from collections import defaultdict
 import re
 import os
-import shutil
 import subprocess
 from collections import Counter
 
 from jpamb_utils import Effect, DockerRunner
-
 import runit
 
 from typing import Iterable, NoReturn
@@ -273,7 +271,7 @@ class Suite:
         return cls(workdir, cases)
 
     def __post_init__(self):
-        assert self.workdir.is_absolute(), f"Assuming that {workdir} is absolute."
+        assert self.workdir.is_absolute(), f"Assuming that {self.workdir} is absolute."
         assert self.cases, "Expected cases"
 
         for case in self.cases:
@@ -577,11 +575,11 @@ def _check(reason, *, eff: Effect, failfast=False):
             if msg:
                 eff.error(f"FAILED: {e}")
             else:
-                eff.error(f"FAILED")
+                eff.error("FAILED")
             if failfast:
                 raise AssertionError(f"{reason} {str(e.args)}") from e
         else:
-            eff.success(f"ok")
+            eff.success("ok")
 
 
 def getmethodid(

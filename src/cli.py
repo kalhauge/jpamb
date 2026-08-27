@@ -173,16 +173,18 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                     f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
                 )
 
-            if case.result not in behaviors:
-                if no_steps == max_steps:
-                    eff.warning(f"Terminated before finding behaviour: {case.result}")
+                if case.result not in behaviors:
+                    if no_steps == max_steps:
+                        eff.warning(
+                            f"Terminated before finding behaviour: {case.result}"
+                        )
+                    else:
+                        eff.error(f"Did not find behaviour: {case.result}")
+                        if fail_fast:
+                            return
                 else:
-                    eff.error(f"Did not find behaviour: {case.result}")
-                    if fail_fast:
-                        return
-            else:
-                eff.success(f"Did find behaviour: {case.result}")
-                count += 1
+                    eff.success(f"Did find behaviour: {case.result}")
+                    count += 1
 
             total += 1
     eff.info(f"Total: {count}/{total}")
