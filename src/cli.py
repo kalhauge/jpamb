@@ -1,24 +1,19 @@
-import click
-from pathlib import Path
-import shlex
-import shutil
-import os
-import math
-import sys
+import dataclasses
 import json
+import math
+import os
+import shlex
+import subprocess
+import sys
 from collections import Counter
+from pathlib import Path
 
-from jpamb_utils import Effect, DockerRunner
-
-import runit
+import click
 
 import jpamb
 import jvm
 import sexpr
-
-import subprocess
-import dataclasses
-from contextlib import contextmanager
+from jpamb_utils import DockerRunner, Effect
 
 
 class JpambScore:
@@ -86,11 +81,20 @@ def cli(ctx, workdir: Path, verbose, docker_image):
 
 
 @cli.command()
+@click.option(
+    "--docker / --no-docker",
+    show_default=True,
+    default=False,
+    help="test docker container as well",
+)
 @click.pass_obj
-def checkhealth(ctx):
+def checkhealth(ctx, docker):
     """Check that the repository is setup correctly"""
 
-    docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
+    if docker:
+        docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
+    else:
+        docker = None
 
     ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 
@@ -162,8 +166,8 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                 behaviors = set()
                 for step in steps:
                     if not isinstance(step, list):
-                        raise RuntimeError(f"expected list, not {step}")
-                    (k, args, kwargs) = sexpr.undata(step)
+                        raise TypeError(f"expected list, not {step}")
+                    (k, _, kwargs) = sexpr.undata(step)
                     if k == "step":
                         no_steps += 1
 
@@ -324,7 +328,7 @@ def analyse(ctx, program, timeout, format, iterations):
 
     category = {k: category_success[k] / v for k, v in category_count.items()}
 
-    with eff.context(f"Scoring"):
+    with eff.context("Scoring"):
         for methodid, correct in sorted(case_methods.items()):
             output = bymethod[methodid]
             _score = 0
@@ -376,7 +380,7 @@ def mean(results):
 def dump_table(result):
     bymethod = result["bymethod"]
 
-    classes = dict()
+    classes = {}
     for m in bymethod:
         classes.setdefault(m.classname, set()).add(m)
 

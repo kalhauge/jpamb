@@ -1,6 +1,9 @@
-import sexpr
-from hypothesis import given, assume, note, strategies as st
 from dataclasses import dataclass
+
+from hypothesis import assume, given, note
+from hypothesis import strategies as st
+
+import sexpr
 
 
 def test_small_frame():

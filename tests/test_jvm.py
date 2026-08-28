@@ -1,6 +1,7 @@
-from jpamb import jvm
+from hypothesis import given
+from hypothesis import strategies as st
 
-from hypothesis import given, strategies as st
+from jpamb import jvm
 
 
 def test_singletons():

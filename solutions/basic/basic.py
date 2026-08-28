@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import sys
 import re
+import sys
 
 
 def main():
@@ -15,7 +15,9 @@ def main():
         print("no")  # Use any other string to share system info
     else:
         # Get the method we need to analyze
-        classname, methodname, args = re.match(r"(.*)\.(.*):(.*)", sys.argv[1]).groups()
+        _classname, _methodname, _args = re.match(
+            r"(.*)\.(.*):(.*)", sys.argv[1]
+        ).groups()
 
         # Make predictions (improve these by looking at the Java code!)
         ok_chance = "yes"

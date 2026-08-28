@@ -7,12 +7,12 @@ each instruction.
 
 """
 
-from dataclasses import dataclass, fields
-from abc import ABC, abstractmethod
-
 import enum
-from jvm import base as jvm
 import logging
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, fields
+
+from jvm import base as jvm
 from sexpr import SExpr
 
 logger = logging.getLogger(__name__)

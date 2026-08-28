@@ -3,9 +3,10 @@ Reliability tests for the jpamb CLI.
 Tests error handling, timeouts, crashes, and edge cases.
 """
 
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 from click.testing import CliRunner
 
 import cli
