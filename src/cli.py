@@ -81,11 +81,20 @@ def cli(ctx, workdir: Path, verbose, docker_image):
 
 
 @cli.command()
+@click.option(
+    "--docker / --no-docker",
+    show_default=True,
+    default=False,
+    help="test docker container as well",
+)
 @click.pass_obj
-def checkhealth(ctx):
+def checkhealth(ctx, docker):
     """Check that the repository is setup correctly"""
 
-    docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
+    if docker:
+        docker = DockerRunner.create(ctx.suite.workdir, ctx.docker_image, eff=ctx.eff)
+    else:
+        docker = None
 
     ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 

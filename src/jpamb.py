@@ -18,6 +18,7 @@ from typing import NoReturn
 import runit
 
 import jvm
+import jvm.state
 from jpamb_utils import DockerRunner, Effect
 
 
@@ -378,8 +379,9 @@ class Suite:
         def check(msg):
             return _check(msg, failfast=failfast, eff=eff)
 
-        with check("docker"):
-            docker.run(["java", "--version"], eff=eff)
+        if docker is not None:
+            with check("docker"):
+                docker.run(["java", "--version"], eff=eff)
 
         with check("The timer"):
             x = runit.timer.sieve(1000)
