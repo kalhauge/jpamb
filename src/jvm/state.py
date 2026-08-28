@@ -5,14 +5,13 @@ import sexpr
 import sys
 
 
-@dataclass
+@dataclass(frozen=True)
 class PC:
     method: jvm.AbsMethodID
     offset: int
 
     def __iadd__(self, delta):
-        self.offset += delta
-        return self
+        return self + delta
 
     def __add__(self, delta):
         return PC(self.method, self.offset + delta)
@@ -45,10 +44,13 @@ class Stack[T]:
         self.items.append(value)
         return self
 
-    def __str__(self):
-        if not self:
-            return "ϵ"
-        return "\n".join(f"{v}" for v in self.items)
+
+@dataclass
+class OperandStack(Stack[jvm.Value]):
+    def push(self, value):
+        assert isinstance(value, jvm.Value)
+        assert isinstance(value.type, jvm.StackType)
+        return super().push(value)
 
     def __sexpr__(self):
         x = len(self.items)
@@ -58,23 +60,9 @@ class Stack[T]:
 
 
 @dataclass
-class OperantStack(Stack[jvm.Value]):
-    def push(self, value):
-        assert isinstance(value, jvm.Value)
-        assert isinstance(value.type, jvm.StackType)
-
-        return super().push(value)
-
-    def __str__(self):
-        if not self:
-            return "ϵ"
-        return "".join(f"{v}" for v in self.items)
-
-
-@dataclass
 class Frame:
-    locals: list[jvm.Value]
-    stack: OperantStack
+    locals: list[jvm.Value | None]
+    stack: OperandStack
     pc: PC
 
     def __str__(self):
@@ -84,7 +72,7 @@ class Frame:
     def from_method(method: jvm.Method) -> "Frame":
         return Frame(
             [None] * method.max_locals,
-            OperantStack.empty(),
+            OperandStack.empty(),
             PC(method.id, 0),
         )
 
@@ -94,6 +82,19 @@ class Frame:
             locals=sexpr.sequence((sexpr.sexpr(a) for a in self.locals)),
             stack=sexpr.sexpr(self.stack),
             pc=sexpr.sexpr(self.pc),
+        )
+
+
+@dataclass
+class CallStack(Stack[Frame]):
+    def push(self, value):
+        assert isinstance(value, Frame)
+        return super().push(value)
+
+    def __sexpr__(self):
+        x = len(self.items)
+        return sum(
+            ([f":{x - k}", sexpr.sexpr(v)] for k, v in enumerate(self.items)), start=[]
         )
 
 
@@ -110,7 +111,7 @@ class HeapArray(HeapValue):
 
     def __sexpr__(self) -> sexpr.SExpr:
         type = [f"array:{self.contains}"]
-        values = [v for v in self.values] if self.values != [] else []
+        values = [sexpr.sexpr(v) for v in self.values] if self.values != [] else []
         return type + values
 
 
@@ -136,7 +137,7 @@ class HeapString(HeapValue):
 @dataclass
 class State:
     heap: list[HeapValue]
-    frames: Stack[Frame]
+    frames: CallStack
 
     def create(self, value: HeapValue) -> jvm.Value:
         assert isinstance(value, HeapValue)
@@ -158,28 +159,3 @@ class State:
             ),
             callstack=sexpr.sexpr(self.frames),
         )
-
-    @classmethod
-    def from_sexpr(cls, expr, context=list[str]) -> "State":
-        # if not isinstance(expr, list):
-        #     raise ParseError("...", context)
-
-        (key, args, kwargs) = sexpr.undata(expr)
-
-        if not key == "state":
-            raise RuntimeError("...")
-
-        if not args == []:
-            raise RuntimeError("...")
-
-        # heap = sexpr.getkey("heap", kwargs, context, handler=Heap.from_sexpr)
-        # callstack = sexpr.getkey("callstack", kwargs, context, handler=Stack.from_sexpr)
-
-        # return cls(heap=heap, callstack=callstack)
-
-    def display(self):
-        print("", file=sys.stderr)
-        print(f"Heap : {self.heap}", file=sys.stderr)
-        print(f"Depth: {len(self.frames.items)}", file=sys.stderr)
-        print(f"Top: {self.frames.items[-1].locals}", file=sys.stderr)
-        print(f"Top: {self.frames.items[-1].stack}", file=sys.stderr)

@@ -14,8 +14,8 @@ class Method:
 
     @classmethod
     def from_json(cls, id: jvm.base.AbsMethodID, json) -> "Method":
-        opcodes = [Opcode.from_json(op) for op in json["code"]["bytecode"]]
-        max_locals = jsom["code"]["max_locals"]
+        opcodes = [jvm.opcode.Opcode.from_json(op) for op in json["code"]["bytecode"]]
+        max_locals = json["code"]["max_locals"]
 
         return Method(
             id=id,

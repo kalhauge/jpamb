@@ -3,14 +3,22 @@ import io
 from typing import NamedTuple, Iterable
 from dataclasses import dataclass
 
-from typing import Iterator, Callable
+from typing import Iterator, Callable, Protocol, runtime_checkable
 
 
 type SExpr = list[SExpr] | str
 
 
-def sexpr(obj: object) -> SExpr:
-    if hasattr(obj, "__sexpr__"):
+@runtime_checkable
+class ToSExpr(Protocol):
+    def __sexpr__(self) -> SExpr: ...
+
+
+type LikeSExpr = ToSExpr | str | int | Iterable[LikeSExpr] | None
+
+
+def sexpr(obj: LikeSExpr) -> SExpr:
+    if isinstance(obj, ToSExpr):
         v = obj.__sexpr__()
         assert isinstance(v, list | str), f"expected s-expr from {obj!r} but got {v!r}"
         return v
@@ -150,7 +158,7 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
 
 class Token(NamedTuple):
     type: str
-    value: int | float | str
+    value: str
     line: int
     column: int
 
@@ -171,6 +179,9 @@ def tokenize(code):
     line_start = 0
     for mo in re.finditer(tok_regex, code):
         kind = mo.lastgroup
+
+        assert kind is not None
+
         value = mo.group()
         column = mo.start() - line_start
         if kind == "NEWLINE":

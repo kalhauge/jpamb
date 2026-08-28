@@ -18,7 +18,7 @@ from collections import Counter
 from jpamb_utils import Effect, DockerRunner
 import runit
 
-from typing import Iterable, NoReturn
+from typing import Iterable, NoReturn, Iterator
 
 import sexpr
 import jvm
@@ -95,7 +95,7 @@ class AnalysisInfo:
     name: str
     version: str
     group: str
-    tags: tuple[str]
+    tags: tuple[str, ...]
     system: str | None
 
     @staticmethod
@@ -114,7 +114,13 @@ class AnalysisInfo:
         else:
             system = lsystem.strip()
 
-        return AnalysisInfo(name.strip(), version.strip(), group.strip(), tags, system)
+        return AnalysisInfo(
+            name.strip(),
+            version.strip(),
+            group.strip(),
+            tuple(tags),
+            system,
+        )
 
 
 @dataclass(frozen=True)
@@ -234,30 +240,11 @@ class Response:
 
 
 @dataclass(frozen=True)
-class Step:
-    before: sexpr.SExpr
-    opr: jvm.Opcode
-    after: sexpr.SExpr
-
-    @classmethod
-    def parse_many(cls, code: str) -> "list[Step]":
-        return [Step(b, opr, a) for [b, opr, a] in sexpr.from_string(code)]
-
-
-@dataclass(frozen=True)
 class Suite:
     """The suite!"""
 
     workdir: Path
     cases: tuple[Case]
-
-    @classmethod
-    def from_cwd(cls):
-        return cls(Path.cwd())
-
-    @classmethod
-    def from_env(cls):
-        return cls(Path(os.environ.get("JPAMB_WORKDIR")).absolute())
 
     @classmethod
     def from_workdir(cls, workdir: Path, *, eff: Effect):
@@ -348,7 +335,7 @@ class Suite:
 
     def method_opcodes(
         self, method: jvm.Absolute[jvm.MethodID], *, eff: Effect
-    ) -> list[jvm.Opcode]:
+    ) -> Iterator[jvm.Opcode]:
         for op in self.findmethod(method, eff=eff)["code"]["bytecode"]:
             yield jvm.Opcode.from_json(op)
 
@@ -382,7 +369,7 @@ class Suite:
 
         return methods
 
-    def case_opcodes(self, eff: Effect) -> list[jvm.Opcode]:
+    def case_opcodes(self, eff: Effect) -> Iterator[jvm.Opcode]:
         for m in self.case_methods().keys():
             yield from self.method_opcodes(m, eff=eff)
 
@@ -545,8 +532,9 @@ class Suite:
                     for classname in class_opcodes:
                         if op in class_opcodes[classname]:
                             in_classes += " " + classname
-
-                    source = Path(getsourcefile(opcode.__class__))
+                    file = getsourcefile(opcode.__class__)
+                    assert file is not None
+                    source = Path(file)
                     rel = Path("utils") / source.relative_to(source.parent.parent)
                     giturl = f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
 

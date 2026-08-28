@@ -161,6 +161,8 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                 no_steps = 0
                 behaviors = set()
                 for step in steps:
+                    if not isinstance(step, list):
+                        raise RuntimeError(f"expected list, not {step}")
                     (k, args, kwargs) = sexpr.undata(step)
                     if k == "step":
                         no_steps += 1

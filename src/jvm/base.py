@@ -19,6 +19,8 @@ from typing import Callable, Protocol, Self, Iterable, Optional, Iterator, NoRet
 from sexpr import SExpr
 import sexpr
 
+type JSON = list[JSON] | dict[str, JSON] | str | int | None | float
+
 
 @dataclass(frozen=True, order=True)
 class ClassName:
@@ -136,7 +138,7 @@ class Type(ABC):
         return self.encode() <= other.encode()
 
     @staticmethod
-    def from_json(json: str) -> "Type":
+    def from_json(json: JSON) -> "Type":
         if isinstance(json, str):
             match json:
                 case "integer":
@@ -153,6 +155,9 @@ class Type(ABC):
                     return Boolean()
                 case "string":
                     return Object(ClassName("java/lang/String"))
+
+        json = json_dict(json)
+
         if "base" in json:
             return Type.from_json(json["base"])
         if "kind" in json:
@@ -160,7 +165,7 @@ class Type(ABC):
                 case "array":
                     return Array(Type.from_json(json["type"]))
                 case "class":
-                    return Object(ClassName.decode(json["name"]))
+                    return Object(ClassName.decode(json_str(json["name"])))
                 case kind:
                     raise NotImplementedError(
                         f"Unknown kind {kind}, in Type.from_json: {json!r}"
@@ -437,9 +442,14 @@ class ParameterType:
         return ParameterType(tuple(params))
 
     @staticmethod
-    def from_json(inputs: list[dict], annotated=False) -> "ParameterType":
+    def from_json(json: JSON, annotated=False) -> "ParameterType":
+        if not isinstance(json, list):
+            raise NotImplementedError(f"Cannot handle {json!r}")
+
         params: list[Type] = []
-        for t in inputs:
+        for t in json:
+            t = json_dict(t)
+
             if annotated:
                 assert "annotations" in t, f"parameters should be annotated was: {t}"
                 params.append(Type.from_json(t["type"]))
@@ -525,7 +535,7 @@ class Encodable(Protocol):
 ABSOLUTE_RE = re.compile(r"(?P<class_name>.+)\.(?P<rest>.*)")
 
 
-@dataclass(frozen=True, order=True)
+@dataclass(frozen=True)
 class Absolute[T: Encodable](ABC):
     classname: ClassName
     extension: T
@@ -536,7 +546,7 @@ class Absolute[T: Encodable](ABC):
         )
 
     @classmethod
-    def decode(cls, input, decode: Callable[[str], T]) -> "Self":
+    def decode_with(cls, input, decode: Callable[[str], T]) -> "Self":
         if (match := ABSOLUTE_RE.match(input)) is None:
             raise ValueError("invalid absolute method name: %r", input)
 
@@ -549,21 +559,36 @@ class Absolute[T: Encodable](ABC):
         return self.encode()
 
 
-class AbsMethodID(Absolute[MethodID]):
+def json_str(json: JSON) -> str:
+    if not isinstance(json, str):
+        raise NotImplementedError(f"Cannot handle {json!r}")
+    return json
+
+
+def json_dict(json: JSON) -> dict[str, JSON]:
+    if not isinstance(json, dict):
+        raise NotImplementedError(f"Cannot handle {json!r}")
+    return json
+
+
+class AbsMethodID(Absolute[MethodID], order=True):
     @classmethod
     def decode(cls, input) -> "Self":
-        return super().decode(input, MethodID.decode)
+        return cls.decode_with(input, MethodID.decode)
 
     @property
     def methodid(self):
         return self.extension
 
     @classmethod
-    def from_json(cls, json: dict) -> "Self":
+    def from_json(cls, json: JSON) -> "Self":
+        if not isinstance(json, dict):
+            raise NotImplementedError(f"Cannot handle {json!r}")
+
         return cls(
-            classname=ClassName.decode(json["ref"]["name"]),
+            classname=ClassName.decode(json_str(json_dict(json["ref"])["name"])),
             extension=MethodID(
-                name=json["name"],
+                name=json_str(json["name"]),
                 params=ParameterType.from_json(json["args"]),
                 return_type=(
                     Type.from_json(json["returns"])
@@ -574,14 +599,17 @@ class AbsMethodID(Absolute[MethodID]):
         )
 
 
-class AbsFieldID(Absolute[FieldID]):
+class AbsFieldID(Absolute[FieldID], order=True):
     @classmethod
-    def decode(cls, input) -> "Self":
-        return super().decode(input, FieldID.decode)
+    def decode(cls, input: str) -> "Self":
+        return cls.decode_with(input, FieldID.decode)
 
     @property
     def fieldid(self):
         return self.extension
+
+
+_t_int = int
 
 
 @dataclass(frozen=True, order=True)
@@ -628,7 +656,7 @@ class Value:
                 raise NotImplementedError(f"Cannot encode {self.type}")
 
     @classmethod
-    def int(cls, n: int) -> Self:
+    def int(cls, n: _t_int) -> Self:
         return cls(Int(), n)
 
     @classmethod
@@ -649,19 +677,25 @@ class Value:
         return cls(Array(type), tuple(content))
 
     @classmethod
-    def reference(cls, index: Int) -> Self:
+    def reference(cls, index: _t_int) -> Self:
         return cls(Reference(), index)
 
     @classmethod
-    def from_json(cls, json: dict | None) -> Self:
+    def from_json(cls, json: JSON) -> Self:
         if json is None:
             return cls(Reference(), None)
+
+        if not isinstance(json, dict):
+            raise NotImplementedError(f"Cannot handle {json!r}")
+
         try:
             type = Type.from_json(json["type"])
+            value = json["value"]
         except NotImplementedError as e:
             raise NotImplementedError(f"Cannot handle {json!r}") from e
 
-        return cls(type, json["value"])
+        assert isinstance(value, int)
+        return cls(type, value)
 
     def __str__(self) -> str:
         return self.math()
@@ -669,12 +703,14 @@ class Value:
     def __sexpr__(self) -> SExpr:
         match self.type:
             case Reference():
+                assert isinstance(self.value, int | None)
                 return [
                     "ref",
                     f"0x{self.value + 1 if self.value is not None else 0:04x}",
                 ]
             case t:
-                return [sexpr.sexpr(t.math()), sexpr.sexpr(self.value)]
+                res = sexpr.sexpr(self.value)  # ty: ignore
+                return [sexpr.sexpr(t.math()), res]
 
     def math(self) -> str:
         return sexpr.pretty(sexpr.sexpr(self))
@@ -726,7 +762,7 @@ class ValueParser:
     def expected(self, expected) -> NoReturn:
         raise ValueError(f"Expected {expected} but got {self.head} in {self.input}")
 
-    def expect(self, expect) -> Token | None:
+    def expect(self, expect) -> Token:
         head = self.head
         if head is None:
             self.expected(repr(expect))

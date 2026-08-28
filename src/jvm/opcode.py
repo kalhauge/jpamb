@@ -18,7 +18,7 @@ from sexpr import SExpr
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, order=True)
+@dataclass(frozen=True)
 class Opcode(ABC):
     """An opcode, as parsed from the jvm2json output."""
 
@@ -27,7 +27,7 @@ class Opcode(ABC):
     def __post_init__(self):
         for f in fields(self):
             v = getattr(self, f.name)
-            assert isinstance(v, f.type), (
+            assert isinstance(v, f.type), (  # ty: ignore
                 f"Expected {f.name!r} to be type {f.type}, but was {v!r}, in {self!r}"
             )
 
@@ -95,11 +95,12 @@ class Opcode(ABC):
         except NotImplementedError as e:
             raise NotImplementedError(f"Unhandled opcode {json!r}") from e
 
-    def help(self):
-        logger.warning(f"It seems {self!r} is not implemented!")
-        logger.warning("Instructions can be found at: " + self.url())
+    def help(self) -> str:
+        out = f"It seems {self!r} is not implemented!"
+        out += "Instructions can be found at: " + self.url()
         if self.semantics():
-            logger.debug(f"Semantics:\n {self.semantics()}")
+            out += f"Semantics:\n {self.semantics()}"
+        return out
 
     def real(self) -> str:
         """return the real opcode, as documented in the jvm spec."""
@@ -121,7 +122,8 @@ class Opcode(ABC):
         )
 
     def __sexpr__(self) -> SExpr:
-        return self.__str__().split()
+        value: SExpr = self.__str__().split()  # ty: ignore
+        return value
 
 
 @dataclass(frozen=True, order=True)
@@ -177,6 +179,8 @@ class Push(Opcode):
     def mnemonic(self) -> str:
         match self.value.type:
             case jvm.Int():
+                assert isinstance(self.value.value, int)
+
                 if -2 < self.value.value and self.value.value < 5:
                     return "iconst_i"
                 else:
@@ -215,6 +219,8 @@ class Negate(Opcode):
         match self.type:
             case jvm.Int():
                 return "ineg"
+
+        raise NotImplementedError(f"{self.type}")
 
     def __str__(self):
         return self.real()

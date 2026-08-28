@@ -19,7 +19,7 @@ class Effect:
     report: IO | None
     prefix: str = ""
     level: int = 30
-    levels: dict[int, [str, str]] = field(
+    levels: dict[int, tuple[str, str]] = field(
         default_factory=lambda: {
             10: ("DEBUG", "\033[36m"),
             20: ("INFO", "\033[34m"),
@@ -107,7 +107,9 @@ class Effect:
 class DockerRunner:
     """Encapsulates Docker/Podman execution with platform-specific handling."""
 
-    docker_cmd: tuple[str]  # The base docker command (e.g., ["docker"] or ["wsl", ...])
+    docker_cmd: tuple[
+        str, ...
+    ]  # The base docker command (e.g., ["docker"] or ["wsl", ...])
     image: str  # Docker image to use
     workfolder: str  # Path to mount (already WSL-converted if needed)
 
@@ -131,14 +133,14 @@ class DockerRunner:
         else:
             dockerbin = shutil.which("podman") or shutil.which("docker")
             if not dockerbin:
-                raise click.UsageError("No docker or podman on PATH")
+                raise RuntimeError("No docker or podman on PATH")
             eff.info(f"Using docker: {dockerbin}")
             docker_cmd = [dockerbin]
             workfolder_str = str(workfolder)
 
         return cls(tuple(docker_cmd), image, workfolder_str)
 
-    def run(self, *args: str, eff: Effect, **kwargs):
+    def run(self, *args, eff: Effect, **kwargs):
         """
         Run a command inside the Docker container.
 
