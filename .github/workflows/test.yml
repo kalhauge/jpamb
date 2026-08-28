@@ -63,4 +63,4 @@ jobs:
           git diff --exit-code
       - name: Run Python tests
         run: |
-          uv run pytest test/
+          uv run pytest
