@@ -434,26 +434,18 @@
           },
           {
             "line": 23,
-            "offset": 10
-          },
-          {
-            "line": 24,
             "offset": 13
           },
           {
-            "line": 25,
-            "offset": 15
-          },
-          {
-            "line": 26,
+            "line": 24,
             "offset": 18
           },
           {
-            "line": 27,
+            "line": 25,
             "offset": 21
           },
           {
-            "line": 29,
+            "line": 27,
             "offset": 25
           }
         ],
@@ -707,35 +699,27 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 36,
+            "line": 34,
             "offset": 0
           },
           {
-            "line": 37,
+            "line": 35,
             "offset": 4
           },
           {
-            "line": 38,
-            "offset": 6
-          },
-          {
-            "line": 39,
+            "line": 36,
             "offset": 9
           },
           {
-            "line": 40,
-            "offset": 11
-          },
-          {
-            "line": 41,
+            "line": 37,
             "offset": 14
           },
           {
-            "line": 42,
+            "line": 38,
             "offset": 17
           },
           {
-            "line": 44,
+            "line": 40,
             "offset": 21
           }
         ],
@@ -980,23 +964,23 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 51,
+            "line": 47,
             "offset": 0
           },
           {
-            "line": 52,
+            "line": 48,
             "offset": 5
           },
           {
-            "line": 51,
+            "line": 47,
             "offset": 9
           },
           {
-            "line": 54,
+            "line": 50,
             "offset": 11
           },
           {
-            "line": 55,
+            "line": 51,
             "offset": 20
           }
         ],

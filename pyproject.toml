@@ -2,27 +2,13 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-ext-modules = [
-  {name = "jpamb.timer", sources = ["jpamb/timer.c"]}
-]
-
-[tool.setuptools.packages.find]
-include = ["jpamb", "jpamb.jvm"]  
-
-
 [project]
 name = "jpamb"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
   "PyYAML==6.0.*",
   "click==8.1.*",
-  "hypothesis>=6.136",
-  "loguru==0.7.*",
-  "matplotlib==3.10.*",
-  "tree-sitter-java >= 0.23, <= 0.26",
-  "tree-sitter >= 0.23, < 0.26",
-  "z3-solver==4.15.*",
+  "runit==0.1.*",
 ]
 authors = [
   { name = "Christian Gram Kalhauge", email = "chrg@dtu.dk" }
@@ -35,26 +21,25 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-[project.optional-dependencies]
-stats = [
-  "numpy==2.1.1",
-  "pandas==2.2.2",
-  "plotly==5.24.0",
-]
-
 [project.scripts]
-jpamb = "jpamb.cli:cli"
+jpamb = "cli:cli"
 
 [dependency-groups]
 dev = [
+    "hypothesis>=6.165.5",
     "pytest>=8.3.4",
 ]
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 markers = [
   "slow: mark test as slow"
 ]
 
 [tool.ruff.lint]
 ignore = ["F841", "F403"]
+
+[tool.uv.sources]
+runit = { git = "https://github.com/kalhauge/runit.git" }
+
 

@@ -1,5 +1,0 @@
-loops:
-  test:
-    command: "uv run pytest --sw -m 'not slow'"
-    filter:
-      find: ". -name *.py"

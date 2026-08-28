@@ -10,11 +10,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786613447,
-        "narHash": "sha256-rU721qriCeWNnjTVjt+pcy+gzjokV6hyn25Q4t67XPA=",
+        "lastModified": 1787820309,
+        "narHash": "sha256-OV5laNr4hIWHQ0+Ca0UwbirBWop3Nna5DZSUJ40HeXM=",
         "owner": "kalhauge",
         "repo": "a.sh",
-        "rev": "59089be29fe19892bbd83bca54f75a789e47e491",
+        "rev": "a5e9e8147cd465e077ed83b5fbe526573bee929a",
         "type": "github"
       },
       "original": {
@@ -282,7 +282,34 @@
         "ash": "ash",
         "flake-parts": "flake-parts",
         "jvm2json": "jvm2json",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "runit": "runit"
+      }
+    },
+    "runit": {
+      "inputs": {
+        "ash": [
+          "ash"
+        ],
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1786630479,
+        "narHash": "sha256-KpMEnUTO4wIjZvgLIOfCQyXg7lsq1NCEw7KZFekOOzs=",
+        "owner": "kalhauge",
+        "repo": "runit",
+        "rev": "88d2418e387cf6ca433fdc59899579d4a5faa65d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kalhauge",
+        "repo": "runit",
+        "type": "github"
       }
     },
     "systems": {
