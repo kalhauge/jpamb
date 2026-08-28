@@ -2,9 +2,13 @@
 
 ## Version X.X.X
 
+## Version 0.4.0
+
 - Add Docker Image
 - Change official build version to be the one compiled through docker.
 - Add Dependent
+- Add Strings
+- Change structure repository
 
 ## Version 0.3.0
 
