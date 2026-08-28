@@ -1,8 +1,8 @@
-from abc import abstractmethod, ABC
-from dataclasses import dataclass, field
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
 import jvm
 import sexpr
-import sys
 
 
 @dataclass(frozen=True)
@@ -54,9 +54,10 @@ class OperandStack(Stack[jvm.Value]):
 
     def __sexpr__(self):
         x = len(self.items)
-        return sum(
-            ([f":{x - k}", sexpr.sexpr(v)] for k, v in enumerate(self.items)), start=[]
-        )
+        out = []
+        for k, v in enumerate(self.items):
+            out += [f":{x - k}", sexpr.sexpr(v)]
+        return out
 
 
 @dataclass
@@ -79,7 +80,7 @@ class Frame:
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
             "frame",
-            locals=sexpr.sequence((sexpr.sexpr(a) for a in self.locals)),
+            locals=sexpr.sequence(sexpr.sexpr(a) for a in self.locals),
             stack=sexpr.sexpr(self.stack),
             pc=sexpr.sexpr(self.pc),
         )
@@ -93,9 +94,10 @@ class CallStack(Stack[Frame]):
 
     def __sexpr__(self):
         x = len(self.items)
-        return sum(
-            ([f":{x - k}", sexpr.sexpr(v)] for k, v in enumerate(self.items)), start=[]
-        )
+        out = []
+        for k, v in enumerate(self.items):
+            out += [f":{x - k}", sexpr.sexpr(v)]
+        return out
 
 
 @dataclass

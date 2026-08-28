@@ -5,23 +5,20 @@ This module provides the basic data model for working with the JPAMB.
 
 """
 
+import collections
+import re
+import subprocess
+from collections import Counter, defaultdict
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-import collections
-from collections import defaultdict
-import re
-import os
-import subprocess
-from collections import Counter
+from typing import NoReturn
 
-from jpamb_utils import Effect, DockerRunner
 import runit
 
-from typing import Iterable, NoReturn, Iterator
-
-import sexpr
 import jvm
+from jpamb_utils import DockerRunner, Effect
 
 
 @dataclass(frozen=True, order=True)
@@ -105,7 +102,7 @@ class AnalysisInfo:
         except ValueError:
             raise ValueError(f"Expected 5 lines, but got {len(output.splitlines())}")
 
-        tags = list()
+        tags = []
         for t in ltags.split(","):
             tags.append(t.strip())
 
@@ -222,7 +219,7 @@ class Response:
 
     def score(self, correct: set[str], categories: dict[str, float] | None = None):
         if categories is None:
-            categories = dict()
+            categories = {}
 
         total = 0
         for q, prd in self.predictions.items():
@@ -251,9 +248,11 @@ class Suite:
         cases = []
 
         case_file = workdir / "target" / "stats" / "cases.txt"
-        with eff.context(f"Reading cases from {case_file}"):
-            with open(case_file, encoding="utf-8") as f:
-                cases = tuple(Case.decode(line) for line in f)
+        with (
+            eff.context(f"Reading cases from {case_file}"),
+            open(case_file, encoding="utf-8") as f,
+        ):
+            cases = tuple(Case.decode(line) for line in f)
 
         return cls(workdir, cases)
 
@@ -370,7 +369,7 @@ class Suite:
         return methods
 
     def case_opcodes(self, eff: Effect) -> Iterator[jvm.Opcode]:
-        for m in self.case_methods().keys():
+        for m in self.case_methods():
             yield from self.method_opcodes(m, eff=eff)
 
     def checkhealth(self, docker, *, eff: Effect, failfast=False):
@@ -418,7 +417,7 @@ class Suite:
             eff.info(f"Found {len(self.cases)} cases")
 
         with check("Opcodes"):
-            for method in self.case_methods().keys():
+            for method in self.case_methods():
                 eff.info(f"Checking if the opcodes from {method} are handeled")
                 try:
                     for opr in self.method_opcodes(method, eff=eff):
@@ -487,7 +486,7 @@ class Suite:
                         res = "*"
 
                     if case.result == res.strip():
-                        eff.success(f"Correct")
+                        eff.success("Correct")
                     else:
                         eff.error(f"Incorrect (got {res.strip()}) expected {case}")
 
@@ -515,10 +514,10 @@ class Suite:
                     class_opcodes[str(case.methodid.classname).split(".")[-1]].add(o)
 
             with (
-                eff.context(f"Writing OPCODES.md"),
+                eff.context("Writing OPCODES.md"),
                 open("OPCODES.md", "w", encoding="utf-8") as document,
             ):
-                from inspect import getsourcelines, getsourcefile
+                from inspect import getsourcefile, getsourcelines
 
                 document.write("#Bytecode instructions\n")
                 document.write("| Mnemonic | Opcode Name |  Exists in |  Count |\n")
@@ -529,8 +528,8 @@ class Suite:
                     (mnemonic, url, opcode) = opcode_urls[op]
                     in_classes = ""
 
-                    for classname in class_opcodes:
-                        if op in class_opcodes[classname]:
+                    for classname, opcodes in class_opcodes.items():
+                        if op in opcodes:
                             in_classes += " " + classname
                     file = getsourcefile(opcode.__class__)
                     assert file is not None
@@ -569,7 +568,6 @@ class Bytecode:
 
 def setup() -> tuple[Suite, Effect]:
     """Get a suite in the current working directory"""
-    import sys
 
     eff = Effect(None)
     return (Suite.from_workdir(Path.cwd(), eff=eff), eff)
@@ -588,7 +586,7 @@ def _check(reason, *, eff: Effect, failfast=False):
             else:
                 eff.error("FAILED")
             if failfast:
-                raise AssertionError(f"{reason} {str(e.args)}") from e
+                raise AssertionError(f"{reason} {e.args!s}") from e
         else:
             eff.success("ok")
 

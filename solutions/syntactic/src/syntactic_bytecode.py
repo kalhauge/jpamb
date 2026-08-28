@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """A very stupid syntatic bytecode analysis, that only checks for assertion errors."""
 
-import sys
 import logging
 
 import jpamb

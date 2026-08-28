@@ -1,12 +1,10 @@
-from dataclasses import dataclass, field
-from typing import IO
-import shlex
-from pathlib import Path
-import shutil
-
-from contextlib import contextmanager
-
 import logging
+import shlex
+import shutil
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import IO
 
 import runit
 
@@ -77,12 +75,12 @@ class Effect:
             runner = runit.Runner(err_callback=self.output)
             with self.context(f"Run {shlex.join(args[0])}"):
                 with self.context("Stderr"):
-                    out, time = runner.run(*args, **kwargs)
+                    out, _time = runner.run(*args, **kwargs)
                 with self.context("Stdout"):
                     self.output(out)
         else:
             runner = runit.Runner()
-            out, time = runner.run(*args, **kwargs)
+            out, _time = runner.run(*args, **kwargs)
             self.success(f"Ran {shlex.join(args[0])}")
 
         return out

@@ -10,14 +10,16 @@ import jvm
 
 """
 
-from collections import namedtuple
-from functools import total_ordering
 import re
 from abc import ABC, abstractmethod
+from collections import namedtuple
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
-from typing import Callable, Protocol, Self, Iterable, Optional, Iterator, NoReturn
-from sexpr import SExpr
+from functools import total_ordering
+from typing import ClassVar, NoReturn, Optional, Protocol, Self
+
 import sexpr
+from sexpr import SExpr
 
 type JSON = list[JSON] | dict[str, JSON] | str | int | None | float
 
@@ -194,7 +196,7 @@ class Boolean(Type):
 
     _instance = None
 
-    def __new__(cls) -> "Boolean":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -214,7 +216,7 @@ class Int(StackType):
 
     _instance = None
 
-    def __new__(cls) -> "Int":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -234,7 +236,7 @@ class Byte(Type):
 
     _instance = None
 
-    def __new__(cls) -> "Byte":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -254,7 +256,7 @@ class Char(Type):
 
     _instance = None
 
-    def __new__(cls) -> "Char":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -274,7 +276,7 @@ class Short(Type):
 
     _instance = None
 
-    def __new__(cls) -> "Short":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -292,7 +294,7 @@ class Reference(StackType):
 
     _instance = None
 
-    def __new__(cls) -> "Reference":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -310,9 +312,9 @@ class Object(Type):
     A reference to an object of an known class.
     """
 
-    _instance = dict()
+    _instance: ClassVar = {}
 
-    def __new__(cls, subtype) -> "Object":
+    def __new__(cls, subtype) -> "Self":
         if subtype not in cls._instance:
             cls._instance[subtype] = super().__new__(cls)
         return cls._instance[subtype]
@@ -335,9 +337,9 @@ class Array(Type):
     A reference to an array of known type
     """
 
-    _instance = dict()
+    _instance: ClassVar = {}
 
-    def __new__(cls, subtype) -> "Array":
+    def __new__(cls, subtype) -> "Self":
         if subtype not in cls._instance:
             cls._instance[subtype] = super().__new__(cls)
         return cls._instance[subtype]
@@ -362,7 +364,7 @@ class Long(StackType):
 
     _instance = None
 
-    def __new__(cls) -> "Long":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -382,7 +384,7 @@ class Float(Type):
 
     _instance = None
 
-    def __new__(cls) -> "Float":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -402,7 +404,7 @@ class Double(StackType):
 
     _instance = None
 
-    def __new__(cls) -> "Double":
+    def __new__(cls) -> "Self":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
@@ -649,7 +651,7 @@ class Value:
                         ints = ", ".join(map(str, self.value))
                         return f"[I:{ints}]"
                     case Char():
-                        chars = ", ".join(map(lambda a: f"'{a}'", self.value))
+                        chars = ", ".join(f"'{a}'" for a in self.value)
                         return f"[C:{chars}]"
                     case _:
                         raise NotImplementedError()
@@ -764,9 +766,7 @@ class ValueParser:
 
     def expect(self, expect) -> Token:
         head = self.head
-        if head is None:
-            self.expected(repr(expect))
-        elif expect != head.kind:
+        if head is None or expect != head.kind:
             self.expected(repr(expect))
         self.next()
         return head

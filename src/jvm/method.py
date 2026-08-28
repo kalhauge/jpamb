@@ -1,7 +1,7 @@
+from dataclasses import dataclass
+
 import jvm.base
 import jvm.opcode
-
-from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

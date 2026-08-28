@@ -1,5 +1,3 @@
-from jpamb import jvm
-import jpamb
 
 
 # def test_sourcefile():

@@ -2,11 +2,11 @@
 """A very stupid syntatic analysis, that only checks for assertion errors."""
 
 import logging
-import jpamb
+import re
 import sys
 from pathlib import Path
 
-import re
+import jpamb
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     log.basicConfig(level=logging.DEBUG)
     log.debug(Path.cwd())
 
-    suite, eff = jpamb.setup()
+    suite, _ = jpamb.setup()
 
     srcfile = suite.sourcefile(absmethodid.classname).relative_to(Path.cwd())
 

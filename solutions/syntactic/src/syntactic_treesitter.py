@@ -2,11 +2,13 @@
 """A very stupid syntatic analysis, that only checks for assertion errors."""
 
 import logging
-import tree_sitter
-import tree_sitter_java
-import jpamb
 import sys
 from pathlib import Path
+
+import tree_sitter
+import tree_sitter_java
+
+import jpamb
 
 
 def main():
@@ -24,7 +26,7 @@ def main():
     log = logging
     log.basicConfig(level=logging.DEBUG)
 
-    suite, eff = jpamb.setup()
+    suite, _ = jpamb.setup()
 
     srcfile = suite.sourcefile(methodid.classname).relative_to(Path.cwd())
 
@@ -67,8 +69,8 @@ def main():
     """,
     )
 
-    for node in tree_sitter.QueryCursor(method_q).captures(node)["method"]:
-        if not (p := node.child_by_field_name("parameters")):
+    for snode in tree_sitter.QueryCursor(method_q).captures(node)["method"]:
+        if not (p := snode.child_by_field_name("parameters")):
             log.debug(f"Could not find parameteres of {method_name}")
             continue
 

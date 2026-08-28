@@ -1,8 +1,8 @@
-import jvm, jpamb, jpamb_utils
+from hypothesis import given
+from hypothesis import strategies as st
 
-import sys
-
-from hypothesis import given, strategies as st
+import jpamb
+import jvm
 
 suite, eff = jpamb.setup()
 

@@ -1,10 +1,8 @@
-import re
 import io
-from typing import NamedTuple, Iterable
+import re
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-
-from typing import Iterator, Callable, Protocol, runtime_checkable
-
+from typing import NamedTuple, Protocol, runtime_checkable
 
 type SExpr = list[SExpr] | str
 
@@ -67,7 +65,7 @@ def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     key = sexpr[0]
 
     if not isinstance(key, str):
-        raise RuntimeError(f"Unexpected expression: {key} in {sexpr}")
+        raise TypeError(f"Unexpected expression: {key} in {sexpr}")
 
     items = list(sexpr[1:])
     args = []
@@ -174,7 +172,7 @@ def tokenize(code):
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
         ("MISMATCH", r"."),  # Any other character
     ]
-    tok_regex = "|".join("(?P<%s>%s)" % pair for pair in token_specification)
+    tok_regex = "|".join(f"(?P<{n}>{r})" for n, r in token_specification)
     line_num = 1
     line_start = 0
     for mo in re.finditer(tok_regex, code):
