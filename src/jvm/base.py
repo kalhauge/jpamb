@@ -448,9 +448,8 @@ class ParameterType:
 
         params: list[Type] = []
         for t in json:
-            t = json_dict(t)
-
             if annotated:
+                t = json_dict(t)
                 assert "annotations" in t, f"parameters should be annotated was: {t}"
                 params.append(Type.from_json(t["type"]))
             else:
@@ -571,7 +570,8 @@ def json_dict(json: JSON) -> dict[str, JSON]:
     return json
 
 
-class AbsMethodID(Absolute[MethodID], order=True):
+@dataclass(frozen=True, order=True)
+class AbsMethodID(Absolute[MethodID]):
     @classmethod
     def decode(cls, input) -> "Self":
         return cls.decode_with(input, MethodID.decode)
@@ -599,7 +599,8 @@ class AbsMethodID(Absolute[MethodID], order=True):
         )
 
 
-class AbsFieldID(Absolute[FieldID], order=True):
+@dataclass(frozen=True, order=True)
+class AbsFieldID(Absolute[FieldID]):
     @classmethod
     def decode(cls, input: str) -> "Self":
         return cls.decode_with(input, FieldID.decode)
@@ -694,7 +695,6 @@ class Value:
         except NotImplementedError as e:
             raise NotImplementedError(f"Cannot handle {json!r}") from e
 
-        assert isinstance(value, int)
         return cls(type, value)
 
     def __str__(self) -> str:
