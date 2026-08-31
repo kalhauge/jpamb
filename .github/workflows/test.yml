@@ -5,7 +5,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   python-tests:
-    name: Python Tests
+    name: Python Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -19,56 +19,23 @@ jobs:
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      # Note: GitHub Windows runners have the WSL feature but no distro
-      # installed, and no Docker. We install Ubuntu in WSL and run the
-      # Docker daemon there (USE_WSL_DOCKER=1 tells jpamb to use it).
-      - name: Verify Docker installation (Linux only)
+      # Docker is only needed for `build` and `checkhealth --docker`, both of
+      # which run on the Linux leg. The Windows leg runs the Python tool
+      # natively (checkhealth without docker + pytest) against the committed
+      # benchmark artifacts in target/, so no Docker/WSL is required.
+      - name: Verify Docker installation
         if: runner.os == 'Linux'
         run: docker --version
-      - name: Check WSL status (Windows only)
-        if: runner.os == 'Windows'
-        continue-on-error: true
-        run: |
-          wsl --version
-          wsl --list --online
-          wsl --list --verbose
-      - name: Install WSL Ubuntu (Windows only)
-        if: runner.os == 'Windows'
-        timeout-minutes: 10
-        run: wsl --install Ubuntu --no-launch
-      - name: Set up Docker in WSL (Windows only)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # Keep WSL alive
-          wsl -d Ubuntu --exec dbus-launch true
-
-          # Install Docker
-          wsl -d Ubuntu -u root bash -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io"
-
-          # Start Docker daemon
-          wsl -d Ubuntu -u root service docker start
-
-          # Wait for Docker to be ready (retry instead of a fixed sleep)
-          $deadline = (Get-Date).AddMinutes(3)
-          do {
-            wsl -d Ubuntu sudo docker ps
-            if ($LASTEXITCODE -eq 0) { break }
-            Start-Sleep -Seconds 5
-          } while ((Get-Date) -lt $deadline)
-          if ($LASTEXITCODE -ne 0) { throw "Docker daemon in WSL did not become ready" }
-
-          # Tell jpamb to use WSL Docker
-          echo "USE_WSL_DOCKER=1" >> $env:GITHUB_ENV
       - name: Run checkhealth
         run: |
           uv run jpamb -vv checkhealth
-      - name: Run build
+      - name: Run build (Linux only, requires Docker)
+        if: runner.os == 'Linux'
         run: |
           uv run jpamb -vv build
 
-          # Check if something was changed (ignore CR differences from Windows)
-          git diff --ignore-cr-at-eol --exit-code
+          # Check if something was changed
+          git diff --exit-code
       - name: Run Python tests
         run: |
           uv run pytest
