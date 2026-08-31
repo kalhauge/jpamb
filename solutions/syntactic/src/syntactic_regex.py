@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A very stupid syntatic analysis, that only checks for assertion errors."""
+"""A very stupid syntactic analysis, that only checks for assertion errors."""
 
 import logging
 import re
@@ -14,7 +14,7 @@ def main():
         "syntaxer",
         "1.0",
         "The Rice Theorem Cookers",
-        ["syntatic", "python"],
+        ["syntactic", "python"],
         for_science=True,
     )
 

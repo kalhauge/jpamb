@@ -124,7 +124,7 @@ This should output 5 lines:
 bytecoder
 1.0
 The Rice Theorem Cookers
-syntatic,python
+syntactic,python
 Linux-6.18.43-x86_64-with-glibc2.42
 ```
 

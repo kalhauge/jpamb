@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A very stupid syntatic bytecode analysis, that only checks for assertion errors."""
+"""A very stupid syntactic bytecode analysis, that only checks for assertion errors."""
 
 import logging
 
@@ -11,7 +11,7 @@ def main():
         "bytecoder",
         "1.0",
         "The Rice Theorem Cookers",
-        ["syntatic", "python"],
+        ["syntactic", "python"],
         for_science=True,
     )
 
