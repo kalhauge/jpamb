@@ -25,7 +25,7 @@ For example to run any of the solution in [](solution/), you can do the followin
 
 ```bash
 $ uv pip install --editable . # Installs JPAMB
-$ uv pip install --editable solutions/* # Installs all solutions
+$ uv pip install --editable solutions/syntactic # Installs the syntatic solution
 ```
 
 Now you should be able to run JPAMB on any of the installed programs:
