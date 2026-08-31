@@ -1,5 +1,3 @@
-
-
 # def test_sourcefile():
 #     mid = jvm.AbsMethodID.decode("jpamb.cases.Simple.divideByZero:()I")
 #     assert jpamb.sourcefile(mid).absolute(), "should be absolute"

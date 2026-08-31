@@ -1,24 +1,29 @@
 name: Test Suite
-on:
-  push:
-    branches: ["*"]
+on: [push, pull_request]
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   python-tests:
     name: Python Tests
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2025]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
       - name: Install uv
         uses: astral-sh/setup-uv@v6
-      - name: Verify Docker installation
+        with:
+          enable-cache: true
+      # Note: GitHub Windows runners have the WSL feature but no distro
+      # installed, and no Docker. We install Ubuntu in WSL and run the
+      # Docker daemon there (USE_WSL_DOCKER=1 tells jpamb to use it).
+      - name: Verify Docker installation (Linux only)
+        if: runner.os == 'Linux'
         run: docker --version
       - name: Check WSL status (Windows only)
         if: runner.os == 'Windows'
@@ -44,11 +49,14 @@ jobs:
           # Start Docker daemon
           wsl -d Ubuntu -u root service docker start
 
-          # Wait for Docker to be ready
-          Start-Sleep -Seconds 5
-
-          # Test Docker connection
-          wsl -d Ubuntu sudo docker ps
+          # Wait for Docker to be ready (retry instead of a fixed sleep)
+          $deadline = (Get-Date).AddMinutes(3)
+          do {
+            wsl -d Ubuntu sudo docker ps
+            if ($LASTEXITCODE -eq 0) { break }
+            Start-Sleep -Seconds 5
+          } while ((Get-Date) -lt $deadline)
+          if ($LASTEXITCODE -ne 0) { throw "Docker daemon in WSL did not become ready" }
 
           # Tell jpamb to use WSL Docker
           echo "USE_WSL_DOCKER=1" >> $env:GITHUB_ENV
@@ -59,8 +67,8 @@ jobs:
         run: |
           uv run jpamb -vv build
 
-          # Check if something was changed
-          git diff --exit-code
+          # Check if something was changed (ignore CR differences from Windows)
+          git diff --ignore-cr-at-eol --exit-code
       - name: Run Python tests
         run: |
           uv run pytest

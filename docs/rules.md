@@ -92,7 +92,9 @@ This is calculated like this:
 
 ```python
 sign = 1
-if p < 0.5: p = 1 - p; sign = -1
+if p < 0.5:
+    p = 1 - p
+    sign = -1
 if p == 1:
     return sign * float("inf")
 else:
