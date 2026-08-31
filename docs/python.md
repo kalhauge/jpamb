@@ -49,6 +49,7 @@ stats and parses the method and (potential inputs for you:
 ```python
 import jpamb
 
+
 def analysis():
     methodid = jpamb.getmethodid(
         "apriori",

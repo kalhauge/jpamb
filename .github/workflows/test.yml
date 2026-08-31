@@ -1,61 +1,36 @@
 name: Test Suite
-on:
-  push:
-    branches: ["*"]
+on: [push, pull_request]
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   python-tests:
-    name: Python Tests
+    name: Python Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-2025]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      # Docker is only needed for `build` and `checkhealth --docker`, both of
+      # which run on the Linux leg. The Windows leg runs the Python tool
+      # natively (checkhealth without docker + pytest) against the committed
+      # benchmark artifacts in target/, so no Docker/WSL is required.
       - name: Verify Docker installation
+        if: runner.os == 'Linux'
         run: docker --version
-      - name: Check WSL status (Windows only)
-        if: runner.os == 'Windows'
-        continue-on-error: true
-        run: |
-          wsl --version
-          wsl --list --online
-          wsl --list --verbose
-      - name: Install WSL Ubuntu (Windows only)
-        if: runner.os == 'Windows'
-        timeout-minutes: 10
-        run: wsl --install Ubuntu --no-launch
-      - name: Set up Docker in WSL (Windows only)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          # Keep WSL alive
-          wsl -d Ubuntu --exec dbus-launch true
-
-          # Install Docker
-          wsl -d Ubuntu -u root bash -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io"
-
-          # Start Docker daemon
-          wsl -d Ubuntu -u root service docker start
-
-          # Wait for Docker to be ready
-          Start-Sleep -Seconds 5
-
-          # Test Docker connection
-          wsl -d Ubuntu sudo docker ps
-
-          # Tell jpamb to use WSL Docker
-          echo "USE_WSL_DOCKER=1" >> $env:GITHUB_ENV
       - name: Run checkhealth
         run: |
           uv run jpamb -vv checkhealth
-      - name: Run build
+      - name: Run build (Linux only, requires Docker)
+        if: runner.os == 'Linux'
         run: |
           uv run jpamb -vv build
 
