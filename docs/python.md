@@ -31,7 +31,7 @@ $ uv pip install --editable solutions/* # Installs all solutions
 Now you should be able to run JPAMB on any of the installed programs:
 
 ```bash
-$ jpamb -v analyse syntatic-bytecode
+$ jpamb -v analyse syntactic-bytecode
 ```
 
 ## Library

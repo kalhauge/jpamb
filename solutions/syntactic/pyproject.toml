@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "syntatic"
+name = "syntactic"
 version = "0.1.0"
 description = "A very stupid syntatic analysis, that only checks for assertion errors."
 readme = "README.md"
@@ -16,9 +16,9 @@ dependencies = [
 
 
 [project.scripts]
-syntatic-treesitter = "syntatic_treesitter:main"
-syntatic-regex = "syntatic_regex:main"
-syntatic-bytecode = "syntatic_bytecode:main"
+syntactic-treesitter = "syntactic_treesitter:main"
+syntactic-regex = "syntactic_regex:main"
+syntactic-bytecode = "syntactic_bytecode:main"
 
 [tool.uv.sources]
 jpamb = { path = "../../", editable = true }
