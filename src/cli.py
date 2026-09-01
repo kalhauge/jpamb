@@ -188,60 +188,6 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
     eff.info(f"Total: {count}/{total}")
 
 
-def run_analysis(
-    analysis: tuple[str],
-    methodid: jvm.AbsMethodID,
-    iterations: int,
-    timeout: float,
-    eff: Effect,
-) -> jpamb.AnalysisResult:
-    results = []
-
-    _time = 0
-    _relative = 0
-    _iterations = 0
-    for i in range(iterations):
-        with eff.context(f"Iteration {i}"):
-            try:
-                experiment = eff.experiment(
-                    analysis + (methodid.encode(),), timeout=timeout
-                )
-            except subprocess.CalledProcessError as e:
-                eff.warning(
-                    f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}"
-                )
-                continue
-            except subprocess.TimeoutExpired as e:
-                eff.warning(
-                    f"Ran {shlex.join(analysis)} info, and timed out after {e.timeout} seconds"
-                )
-                continue
-
-        response, warns = jpamb.Response.parse(experiment.output)
-        for warn in warns:
-            eff.warning(warn)
-
-        result = {k: v.__json__() for k, v in response.predictions.items()}
-
-        results.append(
-            jpamb.AnalysisIteration(
-                response,
-                experiment.time_ns,
-                experiment.time_relative,
-                experiment.calibrations_ns,
-            )
-        )
-
-        _relative += experiment.time_relative
-        _time += experiment.time_ns
-        _iterations += 1
-
-        analysis_time = _time / _iterations if _iterations else float("NaN")
-        analysis_rel = _relative / _iterations if _iterations else float("NaN")
-
-    return jpamb.AnalysisResult(analysis_time, analysis_rel, results)
-
-
 @cli.command()
 @click.pass_obj
 @click.option(
@@ -260,6 +206,7 @@ def run_analysis(
 @click.option(
     "--score-limit",
     "-l",
+    type=float,
     default=None,
     help="stop if score is below limit",
 )
@@ -322,128 +269,38 @@ def analyse(
             for o in out.splitlines():
                 eff.error(o)
 
-    bymethod = {}
+    # TODO Load State from file if step-wise.
 
-    cache = make_cache(ctx.suite.workdir, eff=eff)
-
-    with eff.context("Preloading categories"):
-        try:
-            with open(cache / "categories") as f:
-                categories = {
-                    r["category"]: (r["count"], r["success"]) for r in csv.DictReader(f)
-                }
-        except FileNotFoundError:
-            categories = {}
-
-        for q in jpamb.QUERIES:
-            if q not in categories:
-                categories[q] = (0, 0)
-
-    success = set()
-    if step_wise:
-        try:
-            success = set((cache / "analyse-success").read_text().splitlines())
-        except FileNotFoundError:
-            pass
-
-    all_case_methods = list(sorted(ctx.suite.case_methods().items()))
-    case_methods = []
+    all_case_methods = list(sorted(ctx.suite.case_methods()))
+    experiments = []
 
     eff.info(f"Found {len(all_case_methods)} case methods")
 
-    for methodid, correct in all_case_methods:
-        if str(methodid) in success and step_wise:
-            eff.info(f"Skipping {methodid}, succeeded")
-            continue
-
+    for methodid in all_case_methods:
         if not filter.search(str(methodid)):
             eff.info(f"Skipping {methodid}, excluded by filter")
             continue
 
-        case_methods.append((methodid, correct))
+        experiments.append(methodid)
 
-    for methodid, correct in case_methods:
-        with eff.context(f"Running on {methodid}"):
-            # Approximating correct value:
-            category = {
-                k: (hit + 1) / (count + 2) for k, (count, hit) in categories.items()
-            }
+    experiments = experiments * iterations
 
-            output = run_analysis(
-                program,
-                methodid,
-                timeout=timeout,
-                iterations=iterations if report else 1,
-                eff=eff,
-            )
+    state = jpamb.AnalysisState(program, experiments, timeout=timeout)
 
-            if step_wise and output["success"] != 1.0:
-                eff.error("Found error")
-                break
+    while state.experiments:
+        cont = state.step(
+            score_limit=score_limit,
+            suite=ctx.suite,
+            eff=eff,
+        )
+        if step_wise and not cont:
+            eff.error("Stopping early")
+            # TODO Save state to file if step-wise.
+            return
 
-            success.add(str(methodid))
-
-            bymethod[methodid] = output
-
-            for it in output.iterations:
-                for key, val in it.response.predictions.items():
-                    value = val.__json__()
-                    if isinstance(value, str):
-                        count, hits = categories[key]
-                        if key in correct:
-                            categories[key] = (count + 1, hits + 1)
-                        else:
-                            categories[key] = (count + 1, hits)
-    else:
-        if step_wise:
-            eff.success("All analyses succeeded")
-            (cache / "analyse-success").write_text("")
-
-    with open(cache / "categories", "w") as f:
-        w = csv.writer(f)
-        w.writerow(["category", "count", "hits"])
-        for c, (count, hits) in categories.items():
-            w.writerow([c, count, hits])
-
-    category = {k: hit / count for k, (count, hit) in categories.items()}
-
-    with eff.context("Scoring"):
-        for methodid, correct in case_methods:
-            output = bymethod[methodid]
-            _score = 0
-
-            if not output.iterations:
-                eff.warning(f"{methodid}: no iterations")
-            else:
-                for it in output.iterations:
-                    it.score = it.response.score(correct, category)
-                    _score += it.score
-
-                _score /= len(output.iterations)
-
-            eff.output(f"{methodid}: {_score}")
-
-            output.score = _score
-
-    total_methods = len(bymethod)
-    total_time = sum(v.time for v in bymethod.values())
-    total_relative = sum(v.relative for v in bymethod.values())
-    total_score = sum(v.score for v in bymethod.values())
-
-    summary = jpamb.AnalysisSummary(
-        info,
-        bymethod,
-        category,
-        total_time / total_methods,
-        total_score,
-        total_relative / total_methods,
-    )
-
-    match format:
-        case "table":
-            dump_table(summary)
-        case "json":
-            dump_json(summary)
+    # TODO Report summary
+    # summary = state.summary()
+    # summary.report()
 
 
 def make_cache(workdir: Path, *, eff: Effect) -> Path:

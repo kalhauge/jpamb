@@ -122,16 +122,17 @@ class AnalysisInfo:
 
 
 @dataclass(frozen=True)
-class Classification:
+class Category:
     name: str
 
     def __json__(self):
         return self.name
 
-    def score(self, happens: bool, categories):
-        return Prediction.from_probability(categories[self.name]).score(
-            happens, categories
-        )
+    def as_prediction(self, categories: "dict[str, Prediction]") -> "Prediction":
+        return categories[self.name]
+
+    def __str__(self):
+        return self.name
 
 
 @dataclass(frozen=True)
@@ -159,7 +160,10 @@ class Prediction:
         r = (w + 1) / (w + 2)
         return r if self.wager > 0 else 1 - r
 
-    def score(self, happens: bool, categories: dict[str, float] | None = None):
+    def as_prediction(self, categories: "dict[str, Prediction]") -> "Prediction":
+        return self
+
+    def score(self, happens: bool):
         wager = (-1 if not happens else 1) * self.wager
         if wager > 0:
             if wager == float("inf"):
@@ -188,10 +192,10 @@ QUERIES = (
 
 @dataclass(frozen=True)
 class Response:
-    predictions: dict[str, Prediction | Classification]
+    predictions: dict[str, Prediction | Category]
 
     @staticmethod
-    def parse_prediction(string: str) -> Prediction | Classification:
+    def parse_prediction(string: str) -> Prediction | Category:
         if m := re.match(r"([^%]*)\%", string):
             p = float(m.group(1)) / 100
             return Prediction.from_probability(p)
@@ -199,7 +203,7 @@ class Response:
             try:
                 return Prediction(float(string))
             except ValueError:
-                return Classification(string)
+                return Category(string)
 
     @staticmethod
     def parse(out):
@@ -224,14 +228,14 @@ class Response:
 
         total = 0
         for q, prd in self.predictions.items():
-            total += prd.score(q in correct, categories)
+            total += prd.as_prediction(categories).score(q in correct)
         return total
 
     @classmethod
     def from_json(cls, json):
         return cls(
             {
-                k: Prediction(v) if isinstance(v, float) else Classification(v)
+                k: Prediction(v) if isinstance(v, float) else Category(v)
                 for k, v in json.items()
             }
         )
@@ -673,16 +677,6 @@ class Time:
 
 
 @dataclass
-class AnalysisSummary:
-    info: AnalysisInfo
-    scorebymethod: dict[jvm.AbsMethodID, AnalysisResult]
-    category: dict[str, Prediction]
-    avg_time: float
-    total_score: float
-    avg_rel_time: float
-
-
-@dataclass
 class AnalysisIteration:
     response: Response
     time: float
@@ -695,3 +689,147 @@ class AnalysisResult:
     time: float
     relative: float
     iterations: list[AnalysisIteration]
+
+
+@dataclass
+class AnalysisSummary:
+    info: AnalysisInfo
+    scorebymethod: dict[jvm.AbsMethodID, AnalysisResult]
+    category: dict[str, Prediction]
+    avg_time: float
+    total_score: float
+    avg_rel_time: float
+
+
+@dataclass
+class Tracker:
+    hits: int = 0
+    counts: int = 0
+
+    def approximate(self) -> Prediction:
+        return Prediction.from_probability((self.hits + 1) / (self.counts + 2))
+
+    def prediction(self) -> Prediction:
+        return Prediction.from_probability(self.hits / self.counts)
+
+
+@dataclass
+class AnalysisState:
+    analysis: tuple[str]
+    experiments: list[jvm.AbsMethodID]
+    timeout: float
+    results: dict[jvm.AbsMethodID, list[AnalysisIteration]] = field(
+        default_factory=dict
+    )
+    categories: dict[str, Tracker] = field(default_factory=dict)
+
+    def step(
+        self,
+        *,
+        score_limit: float | None = None,
+        suite: Suite,
+        eff: Effect,
+    ) -> bool:
+        if not self.experiments:
+            return False
+
+        methodid = self.experiments.pop(0)
+
+        with eff.context(f"Running {methodid}"):
+            try:
+                experiment = eff.experiment(
+                    self.analysis + (methodid.encode(),),
+                    timeout=self.timeout,
+                )
+            except subprocess.CalledProcessError as e:
+                eff.warning(
+                    f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}"
+                )
+                return False
+            except subprocess.TimeoutExpired as e:
+                eff.warning(
+                    f"Ran {shlex.join(analysis)} info, and timed out after {e.timeout} seconds"
+                )
+                return False
+
+            response, warns = Response.parse(experiment.output)
+
+            if warns:
+                for warn in warns:
+                    eff.warning(warn)
+                return False
+
+            expected = suite.case_methods()[methodid]
+
+            for key, pred in response.predictions.items():
+                if isinstance(pred, Category):
+                    tracker = self.categories.setdefault(pred.name, Tracker())
+                    tracker.counts += 1
+                    if key in expected:
+                        tracker.hits += 1
+
+            approximate_categories = {
+                k: v.approximate() for k, v in self.categories.items()
+            }
+
+            total_score = 0
+            for key, pred in response.predictions.items():
+                real = pred.as_prediction(approximate_categories)
+                score = real.score(key in expected)
+                is_good = "Y" if key in expected else "N"
+                eff.info(
+                    f"{key!r:>20} = {pred!s:<10} [{is_good}] wager = {real.wager:>5.2} (approx) {score:5.2}"
+                )
+                total_score += score
+
+            eff.info(f"Total (approx) {total_score}")
+
+            if score_limit is not None and total_score <= score_limit:
+                eff.error(f"Total {total_score} below limit {score_limit}")
+                return False
+
+            self.results.setdefault(methodid, []).append(
+                AnalysisIteration(
+                    response,
+                    experiment.time_ns,
+                    experiment.time_relative,
+                    experiment.calibrations_ns,
+                )
+            )
+
+        return True
+
+    def summary(self) -> AnalysisSummary:
+        # with eff.context("Scoring"):
+        #     for methodid, correct in case_methods:
+        #         output = bymethod[methodid]
+        #         _score = 0
+
+        #         if not output.iterations:
+        #             eff.warning(f"{methodid}: no iterations")
+        #         else:
+        #             for it in output.iterations:
+        #                 it.score = it.response.score(correct, category)
+        #                 _score += it.score
+
+        #             _score /= len(output.iterations)
+
+        #         eff.output(f"{methodid}: {_score}")
+
+        #         output.score = _score
+
+        # total_methods = len(bymethod)
+        # total_time = sum(v.time for v in bymethod.values())
+        # total_relative = sum(v.relative for v in bymethod.values())
+        # total_score = sum(v.score for v in bymethod.values())
+
+        # summary = jpamb.AnalysisSummary(
+        #     info,
+        #     bymethod,
+        #     category,
+        #     total_time / total_methods,
+        #     total_score,
+        #     total_relative / total_methods,
+        # )
+        # TODO
+        pass
