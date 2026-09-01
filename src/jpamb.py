@@ -218,7 +218,7 @@ class Response:
             predictions[query] = prediction
         return Response(predictions), warnings
 
-    def score(self, correct: set[str], categories: dict[str, float] | None = None):
+    def score(self, correct: set[str], categories: dict[str, Prediction] | None = None):
         if categories is None:
             categories = {}
 
@@ -667,17 +667,16 @@ def parse_input(i) -> Input:
 
 
 @dataclass
-class Score:
-    score: float
-    time: float
-    rel_time: float
+class Time:
+    absolute: float
+    relative: float
 
 
 @dataclass
 class AnalysisSummary:
     info: AnalysisInfo
-    scorebymethod: dict[jvm.AbsMethodID, Score]
-    category: dict[str, int | float]
+    scorebymethod: dict[jvm.AbsMethodID, AnalysisResult]
+    category: dict[str, Prediction]
     avg_time: float
     total_score: float
     avg_rel_time: float
