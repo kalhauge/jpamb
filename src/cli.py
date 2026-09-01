@@ -344,37 +344,36 @@ def analyse(ctx, program, timeout, format, iterations):
             bymethod[methodid] = output
 
             for it in output.iterations:
-                for key, value in it.response.predictions.items():
+                for key, val in it.response.predictions.items():
+                    value = val.__json__()
                     if isinstance(value, str):
                         category_count.update([value])
                         if key in correct:
                             category_success.update([value])
 
     category = {k: category_success[k] / v for k, v in category_count.items()}
-
     with eff.context("Scoring"):
         for methodid, correct in sorted(case_methods.items()):
             output = bymethod[methodid]
             _score = 0
 
-            if not output["iterations"]:
+            if not output.iterations:
                 eff.warning(f"{methodid}: no iterations")
             else:
-                for it in output["iterations"]:
-                    resp = jpamb.Response.from_json(it["response"])
-                    it["score"] = resp.score(correct, category)
-                    _score += it["score"]
+                for it in output.iterations:
+                    it.score = it.response.score(correct, category)
+                    _score += it.score
 
-                _score /= len(output["iterations"])
+                _score /= len(output.iterations)
 
             eff.output(f"{methodid}: {_score}")
 
-            output["score"] = _score
+            output.score = _score
 
     total_methods = len(bymethod)
-    total_time = sum(v["time"] for v in bymethod.values())
-    total_relative = sum(v["relative"] for v in bymethod.values())
-    total_score = sum(v["score"] for v in bymethod.values())
+    total_time = sum(v.time for v in bymethod.values())
+    total_relative = sum(v.relative for v in bymethod.values())
+    total_score = sum(v.score for v in bymethod.values())
 
     summary = AnalysisSummary(
         info,
@@ -402,7 +401,7 @@ def mean(results):
 
 
 def dump_table(result):
-    bymethod = result["bymethod"]
+    bymethod = result.scorebymethod
 
     classes = {}
     for m in bymethod:
@@ -418,9 +417,9 @@ def dump_table(result):
             rows.append(
                 [
                     " " + str(methodid.extension),
-                    f"{output['score']:.2f}",
-                    f"{output['relative']:.3f}",
-                    f"{output['time'] / 10**9:.3f}",
+                    f"{output.score:.2f}",
+                    f"{output.relative:.3f}",
+                    f"{output.time / 10**9:.3f}",
                 ]
             )
 
@@ -428,9 +427,9 @@ def dump_table(result):
     rows.append(
         [
             "Total",
-            f"{sum(o['score'] for o in bymethod.values()):.2f}",
-            f"{mean(o['relative'] for o in bymethod.values()):.3f}",
-            f"{mean(o['time'] for o in bymethod.values()) / 10**9:.3f}",
+            f"{sum(o.score for o in bymethod.values()):.2f}",
+            f"{mean(o.relative for o in bymethod.values()):.3f}",
+            f"{mean(o.time for o in bymethod.values()) / 10**9:.3f}",
         ]
     )
     print(rows[-1])
@@ -443,12 +442,12 @@ def dump_table(result):
         print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)))
 
     print()
-    if not result["category"]:
+    if not result.category:
         print("No categories used")
     else:
         print("Categories:")
-        maxcat = max(map(len, result["category"]))
-        for category, value in result["category"].items():
+        maxcat = max(map(len, result.category))
+        for category, value in result.category.items():
             print(
                 f" {category:<{maxcat}}  {value:7.2%}"
                 f"  wager: {jpamb.Prediction.from_probability(value).wager:7.2}"
