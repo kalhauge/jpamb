@@ -3,6 +3,7 @@ from click.decorators import _AnyCallable
 import dataclasses
 import json
 import math
+import csv
 import os
 import shlex
 import subprocess
@@ -257,6 +258,29 @@ def run_analysis(
     help="timeout in seconds.",
 )
 @click.option(
+    "--score-limit",
+    "-l",
+    default=None,
+    help="stop if score is below limit",
+)
+@click.option(
+    "--filter",
+    "-f",
+    default=".*",
+    help="A regular expression which filter the methods to run on.",
+    callback=re_parser,
+)
+@click.option(
+    "--step-wise / --no-step-wise",
+    default=False,
+    help="in case of crash, restart from where we left off",
+)
+@click.option(
+    "--report",
+    type=click.File("w"),
+    help="write the report here (disables filter)",
+)
+@click.option(
     "--format",
     default="table",
     type=click.Choice(["table", "json"]),
@@ -264,7 +288,17 @@ def run_analysis(
     help="timeout in seconds.",
 )
 @click.argument("PROGRAM", nargs=-1)
-def analyse(ctx, program, timeout, format, iterations):
+def analyse(
+    ctx,
+    program,
+    timeout,
+    format,
+    iterations,
+    score_limit,
+    filter,
+    step_wise,
+    report,
+):
     """Evaluate the PROGRAM as an analysis."""
 
     eff = ctx.eff
@@ -290,20 +324,64 @@ def analyse(ctx, program, timeout, format, iterations):
 
     bymethod = {}
 
-    category_success = Counter()
-    category_count = Counter()
+    cache = make_cache(ctx.suite.workdir, eff=eff)
 
-    case_methods = ctx.suite.case_methods()
+    with eff.context("Preloading categories"):
+        try:
+            with open(cache / "categories") as f:
+                categories = {
+                    r["category"]: (r["count"], r["success"]) for r in csv.DictReader(f)
+                }
+        except FileNotFoundError:
+            categories = {}
 
-    for methodid, correct in sorted(case_methods.items()):
+        for q in jpamb.QUERIES:
+            if q not in categories:
+                categories[q] = (0, 0)
+
+    success = set()
+    if step_wise:
+        try:
+            success = set((cache / "analyse-success").read_text().splitlines())
+        except FileNotFoundError:
+            pass
+
+    all_case_methods = list(sorted(ctx.suite.case_methods().items()))
+    case_methods = []
+
+    eff.info(f"Found {len(all_case_methods)} case methods")
+
+    for methodid, correct in all_case_methods:
+        if str(methodid) in success and step_wise:
+            eff.info(f"Skipping {methodid}, succeeded")
+            continue
+
+        if not filter.search(str(methodid)):
+            eff.info(f"Skipping {methodid}, excluded by filter")
+            continue
+
+        case_methods.append((methodid, correct))
+
+    for methodid, correct in case_methods:
         with eff.context(f"Running on {methodid}"):
+            # Approximating correct value:
+            category = {
+                k: (hit + 1) / (count + 2) for k, (count, hit) in categories.items()
+            }
+
             output = run_analysis(
                 program,
                 methodid,
                 timeout=timeout,
-                iterations=iterations,
+                iterations=iterations if report else 1,
                 eff=eff,
             )
+
+            if step_wise and output["success"] != 1.0:
+                eff.error("Found error")
+                break
+
+            success.add(str(methodid))
 
             bymethod[methodid] = output
 
@@ -311,13 +389,26 @@ def analyse(ctx, program, timeout, format, iterations):
                 for key, val in it.response.predictions.items():
                     value = val.__json__()
                     if isinstance(value, str):
-                        category_count.update([value])
+                        count, hits = categories[key]
                         if key in correct:
-                            category_success.update([value])
+                            categories[key] = (count + 1, hits + 1)
+                        else:
+                            categories[key] = (count + 1, hits)
+    else:
+        if step_wise:
+            eff.success("All analyses succeeded")
+            (cache / "analyse-success").write_text("")
 
-    category = {k: category_success[k] / v for k, v in category_count.items()}
+    with open(cache / "categories", "w") as f:
+        w = csv.writer(f)
+        w.writerow(["category", "count", "hits"])
+        for c, (count, hits) in categories.items():
+            w.writerow([c, count, hits])
+
+    category = {k: hit / count for k, (count, hit) in categories.items()}
+
     with eff.context("Scoring"):
-        for methodid, correct in sorted(case_methods.items()):
+        for methodid, correct in case_methods:
             output = bymethod[methodid]
             _score = 0
 
@@ -355,6 +446,17 @@ def analyse(ctx, program, timeout, format, iterations):
             dump_json(summary)
 
 
+def make_cache(workdir: Path, *, eff: Effect) -> Path:
+    cache = Path.cwd() / ".cache" / "jpamb"
+    cache.mkdir(parents=True, exist_ok=True)
+
+    cache_gitignore = cache / ".gitignore"
+    if not cache_gitignore.exists():
+        (cache / ".gitignore").write_text("**/*\n")
+
+    return cache
+
+
 def dump_json(result):
     json.dump(result, sys.stdout, indent=2)
 
@@ -372,6 +474,16 @@ def dump_table(result):
         classes.setdefault(m.classname, set()).add(m)
 
     rows = []
+
+    rows.append(
+        [
+            "Method",
+            "Score",
+            "Rel. (Db)",
+            "Abs. (ms)",
+        ]
+    )
+
     for classname in sorted(classes):
         class_methods = classes[classname]
         rows.append(["", "", "", ""])
@@ -387,6 +499,14 @@ def dump_table(result):
                 ]
             )
 
+    rows.append(
+        [
+            "Method",
+            "Score",
+            "Rel. (Db)",
+            "Abs. (ms)",
+        ]
+    )
     rows.append(["", "", "", ""])
     rows.append(
         [

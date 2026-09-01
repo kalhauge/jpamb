@@ -20,7 +20,6 @@ def main():
 
     log = logging
     log.basicConfig(level=logging.DEBUG)
-    log.debug(Path.cwd())
 
     suite, _ = jpamb.setup()
 
