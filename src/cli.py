@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from click.decorators import _AnyCallable
 import dataclasses
 import json
 import math
@@ -196,13 +198,28 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
     eff.info(f"Total: {count}/{total}")
 
 
+@dataclass
+class AnalysisIteration:
+    response: jpamb.Response
+    time: float
+    relative: float
+    calibrates: float
+
+
+@dataclass
+class AnalysisResult:
+    time: float
+    relative: float
+    iterations: list[AnalysisIteration]
+
+
 def run_analysis(
     analysis: tuple[str],
     methodid: jvm.AbsMethodID,
     iterations: int,
     timeout: float,
     eff: Effect,
-):
+) -> AnalysisResult:
     results = []
 
     _time = 0
@@ -232,25 +249,32 @@ def run_analysis(
         result = {k: v.__json__() for k, v in response.predictions.items()}
 
         results.append(
-            {
-                "iteration": i,
-                "response": result,
-                "time": experiment.time_ns,
-                "relative": experiment.time_relative,
-                "calibrates": experiment.calibrations_ns,
-            }
+            AnalysisIteration(
+                response,
+                experiment.time_ns,
+                experiment.time_relative,
+                experiment.calibrations_ns,
+            )
         )
 
         _relative += experiment.time_relative
         _time += experiment.time_ns
         _iterations += 1
 
-    return {
-        # "score": _score / iterations,
-        "time": _time / _iterations if _iterations else float("NaN"),
-        "relative": _relative / _iterations if _iterations else float("NaN"),
-        "iterations": results,
-    }
+        analysis_time = _time / _iterations if _iterations else float("NaN")
+        analysis_rel = _relative / _iterations if _iterations else float("NaN")
+
+    return AnalysisResult(analysis_time, analysis_rel, results)
+
+
+@dataclass
+class AnalysisSummary:
+    info: jpamb.AnalysisInfo
+    scorebymethod: dict[jvm.Absolute[jvm.MethodID], JpambScore]
+    category: dict[str, int | float]
+    avg_time: float
+    total_score: float
+    avg_rel_time: float
 
 
 @cli.command()
@@ -319,8 +343,8 @@ def analyse(ctx, program, timeout, format, iterations):
 
             bymethod[methodid] = output
 
-            for it in output["iterations"]:
-                for key, value in it["response"].items():
+            for it in output.iterations:
+                for key, value in it.response.predictions.items():
                     if isinstance(value, str):
                         category_count.update([value])
                         if key in correct:
@@ -352,20 +376,20 @@ def analyse(ctx, program, timeout, format, iterations):
     total_relative = sum(v["relative"] for v in bymethod.values())
     total_score = sum(v["score"] for v in bymethod.values())
 
-    result = {
-        "info": dataclasses.asdict(info),
-        "bymethod": bymethod,
-        "category": category,
-        "time": total_time / total_methods,
-        "score": total_score,
-        "relative": total_relative / total_methods,
-    }
+    summary = AnalysisSummary(
+        info,
+        bymethod,
+        category,
+        total_time / total_methods,
+        total_score,
+        total_relative / total_methods,
+    )
 
     match format:
         case "table":
-            dump_table(result)
+            dump_table(summary)
         case "json":
-            dump_json(result)
+            dump_json(summary)
 
 
 def dump_json(result):
