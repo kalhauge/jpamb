@@ -664,3 +664,35 @@ def parse_methodid(mid) -> jvm.AbsMethodID:
 
 def parse_input(i) -> Input:
     return Input.decode(i)
+
+
+@dataclass
+class Score:
+    score: float
+    time: float
+    rel_time: float
+
+
+@dataclass
+class AnalysisSummary:
+    info: AnalysisInfo
+    scorebymethod: dict[jvm.AbsMethodID, Score]
+    category: dict[str, int | float]
+    avg_time: float
+    total_score: float
+    avg_rel_time: float
+
+
+@dataclass
+class AnalysisIteration:
+    response: Response
+    time: float
+    relative: float
+    calibrates: float
+
+
+@dataclass
+class AnalysisResult:
+    time: float
+    relative: float
+    iterations: list[AnalysisIteration]

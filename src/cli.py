@@ -18,17 +18,6 @@ import sexpr
 from jpamb_utils import DockerRunner, Effect
 
 
-class JpambScore:
-    score: float
-    time: float
-    rel_time: float
-
-    def __init__(self, score, time, rel_time):
-        self.score = score
-        self.time = time
-        self.rel_time = rel_time
-
-
 @dataclasses.dataclass
 class Context:
     eff: Effect
@@ -198,28 +187,13 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
     eff.info(f"Total: {count}/{total}")
 
 
-@dataclass
-class AnalysisIteration:
-    response: jpamb.Response
-    time: float
-    relative: float
-    calibrates: float
-
-
-@dataclass
-class AnalysisResult:
-    time: float
-    relative: float
-    iterations: list[AnalysisIteration]
-
-
 def run_analysis(
     analysis: tuple[str],
     methodid: jvm.AbsMethodID,
     iterations: int,
     timeout: float,
     eff: Effect,
-) -> AnalysisResult:
+) -> jpamb.AnalysisResult:
     results = []
 
     _time = 0
@@ -249,7 +223,7 @@ def run_analysis(
         result = {k: v.__json__() for k, v in response.predictions.items()}
 
         results.append(
-            AnalysisIteration(
+            jpamb.AnalysisIteration(
                 response,
                 experiment.time_ns,
                 experiment.time_relative,
@@ -264,17 +238,7 @@ def run_analysis(
         analysis_time = _time / _iterations if _iterations else float("NaN")
         analysis_rel = _relative / _iterations if _iterations else float("NaN")
 
-    return AnalysisResult(analysis_time, analysis_rel, results)
-
-
-@dataclass
-class AnalysisSummary:
-    info: jpamb.AnalysisInfo
-    scorebymethod: dict[jvm.Absolute[jvm.MethodID], JpambScore]
-    category: dict[str, int | float]
-    avg_time: float
-    total_score: float
-    avg_rel_time: float
+    return jpamb.AnalysisResult(analysis_time, analysis_rel, results)
 
 
 @cli.command()
@@ -375,7 +339,7 @@ def analyse(ctx, program, timeout, format, iterations):
     total_relative = sum(v.relative for v in bymethod.values())
     total_score = sum(v.score for v in bymethod.values())
 
-    summary = AnalysisSummary(
+    summary = jpamb.AnalysisSummary(
         info,
         bymethod,
         category,
