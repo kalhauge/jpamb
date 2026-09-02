@@ -15,6 +15,10 @@ class ToSExpr(Protocol):
 type LikeSExpr = ToSExpr | str | int | Iterable[LikeSExpr] | None
 
 
+class ParseError(BaseException):
+    pass
+
+
 def sexpr(obj: LikeSExpr) -> SExpr:
     if isinstance(obj, ToSExpr):
         v = obj.__sexpr__()
@@ -94,6 +98,28 @@ def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
         args.append(a)
 
     return key, args, kwargs
+
+
+def unlist(sexpr: list[SExpr]) -> tuple[list[str], dict[str, SExpr]]:
+    if not isinstance(sexpr, list) or len(sexpr) == 0:
+        raise RuntimeError(f"Unexpected expression: {sexpr}")
+
+    items = list(sexpr)
+    args = []
+    kwargs = {}
+
+    while len(items):
+        a = items.pop(0)
+        if isinstance(a, str) and a.startswith(":"):
+            k = a[1:]
+            assert not k in kwargs
+            v = items.pop(0)
+            kwargs[k] = v
+            continue
+
+        args.append(a)
+
+    return args, kwargs
 
 
 def escape(symbol: str) -> str:

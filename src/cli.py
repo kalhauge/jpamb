@@ -261,14 +261,24 @@ def analyse(
     )
 
     state = jpamb.AnalysisState(config)
-
     for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
         if step_wise and not cont:
             eff.error("Stopping early")
             # TODO Save state to file if step-wise.
             return
 
-        print(sexpr.pretty(sexpr.sexpr(state), indent=2))
+        state_sexpr = sexpr.sexpr(state)
+        # print(sexpr.pretty(state_sexpr, indent=2))
+        # print(state)
+        recreated = jpamb.AnalysisState.from_sexpr(state_sexpr)
+        # print("\n\n")
+        # print(recreated)
+        assert state.results == recreated.results, (
+            f"Results differ\n{state.results}\n{recreated.results}"
+        )
+        assert state.config == recreated.config, "Configs differ"
+        assert state.config == recreated.config, "Configs differ"
+        assert state == recreated, "Not the same"
         return
 
     summary = state.summary()

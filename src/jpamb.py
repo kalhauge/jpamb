@@ -14,7 +14,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NoReturn
+from typing import NoReturn, Self
 from copy import deepcopy
 
 import math
@@ -95,6 +95,7 @@ class Case:
 
 @dataclass(frozen=True)
 class AnalysisInfo:
+    classname = "analysis-info"
     name: str
     version: str
     group: str
@@ -127,7 +128,7 @@ class AnalysisInfo:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            "analysis-info",
+            self.classname,
             name=self.name,
             version=self.version,
             group=self.group,
@@ -139,13 +140,13 @@ class AnalysisInfo:
     def from_sexpr(cls, expr: sexpr.SExpr) -> "Self":
         name, args, kwargs = sexpr.undata(expr)
 
-        if name == "analysis-info":
+        if name != cls.classname:
             raise sexpr.ParseError()
 
         if args != []:
             raise sexpr.ParseError()
 
-        return cls()
+        return cls(**kwargs)
 
 
 @dataclass(frozen=True)
@@ -205,6 +206,9 @@ class Prediction:
 
     def __json__(self):
         return self.wager
+
+    def from_sexpr(expr: sexpr.SExpr) -> Self:
+        return Prediction("dummy-skip")
 
 
 QUERIES = (
@@ -266,6 +270,19 @@ class Response:
                 for k, v in json.items()
             }
         )
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data("response", predictions=sexpr.sexpr(self.predictions))
+
+    def from_sexpr(expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+        print(kwargs)
+        if name != "response":
+            raise sexpr.ParseError()
+
+        preds = Prediction.from_sexpr(kwargs["predictions"])
+
+        return Response(preds)
 
 
 @dataclass(frozen=True)
@@ -699,19 +716,55 @@ def parse_input(i) -> Input:
 
 @dataclass(frozen=True)
 class Duration:
-    absolute: float
+    absolute: int
     relative: float
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "duration",
+            absolute=sexpr.sexpr(self.absolute),
+            relative=sexpr.sexpr(self.relative),
+        )
+
+    def from_sexpr(expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name != "duration":
+            raise sexpr.ParseError()
+
+        return Duration(int(kwargs["absolute"]), float(kwargs["relative"]))
 
 
 @dataclass(frozen=True)
 class AnalysisResult:
     response: Response
     duration: Duration
-    calibrates: float
+    calibrates: list[int]
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "analysis-result",
+            response=sexpr.sexpr(self.response),
+            duration=sexpr.sexpr(self.duration),
+            calibrates=sexpr.sexpr(self.calibrates),
+        )
+
+    def from_sexpr(expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name != "analysis-result":
+            raise sexpr.ParseError()
+
+        resp = Response.from_sexpr(kwargs["response"])
+        dur = Duration.from_sexpr(kwargs["duration"])
+        calibrates = [int(v) for v in kwargs["calibrates"]]
+
+        return AnalysisResult(resp, dur, calibrates)
 
 
 @dataclass
 class Tracker:
+    classname = "tracker"
     hits: int = 0
     counts: int = 0
 
@@ -721,9 +774,25 @@ class Tracker:
     def prediction(self) -> Prediction:
         return Prediction.from_probability(self.hits / self.counts)
 
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            self.classname, hits=sexpr.sexpr(self.hits), counts=sexpr.sexpr(self.counts)
+        )
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name != cls.classname:
+            raise sexpr.ParseError()
+
+        parsed = {k: int(v) for k, v in kwargs.items()}
+        return cls(**parsed)
+
 
 @dataclass(frozen=True)
 class AnalysisConfig:
+    name = "analysis-config"
     cmd: tuple[str]
     analysis: AnalysisInfo
     experiments: tuple[tuple[jvm.AbsMethodID, set[str]], ...]
@@ -744,7 +813,7 @@ class AnalysisConfig:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            "analysis-config",
+            self.name,
             cmd=sexpr.sexpr(self.cmd),
             analysis=sexpr.sexpr(self.analysis),
             iterations=sexpr.sexpr(self.iterations),
@@ -755,8 +824,20 @@ class AnalysisConfig:
         )
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> "Self":
-        pass
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+        if name != cls.name:
+            raise sexpr.ParseError()
+
+        cmd = kwargs["cmd"]
+        analysis = AnalysisInfo.from_sexpr(kwargs["analysis"])
+        _, experi_dict = sexpr.unlist(kwargs["experiments"])
+        experiments = {jvm.AbsMethodID.decode(k): v for k, v in experi_dict.items()}
+        print(experiments)
+        iterations = kwargs["iterations"]
+        timeout = kwargs["timeout"]
+
+        return AnalysisConfig(cmd, analysis, experiments, iterations, timeout)
 
     @classmethod
     def from_cmd(
@@ -932,6 +1013,29 @@ class AnalysisState:
                 (k, sexpr.sexpr(v)) for k, v in self.categories.items()
             ),
         )
+
+    def from_sexpr(expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name != "analysis-state":
+            raise sexpr.ParseError()
+
+        if args != []:
+            raise sexpr.ParseError()
+
+        config = AnalysisConfig.from_sexpr(kwargs["config"])
+        progress = kwargs["progress"]
+
+        cases, res_dict = sexpr.unlist(kwargs["results"])
+        results = {}
+        for k, v in res_dict.items():
+            res_list = [AnalysisResult.from_sexpr(inner) for inner in v]
+            results[jvm.AbsMethodID.decode(k)] = res_list
+
+        _, cat_dict = sexpr.unlist(kwargs["categories"])
+        categories = {k: Tracker.from_sexpr(v) for k, v in cat_dict.items()}
+
+        return AnalysisState(config, progress, results, categories)
 
     def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool:
         no_experiments = len(self.config.experiments)
