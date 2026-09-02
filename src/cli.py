@@ -227,24 +227,15 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
     type=click.File("w"),
     help="write the report here (disables filter)",
 )
-@click.option(
-    "--format",
-    default="table",
-    type=click.Choice(["table", "json"]),
-    show_default=True,
-    help="timeout in seconds.",
-)
 @click.argument("PROGRAM", nargs=-1)
 def analyse(
     ctx,
     program,
-    timeout,
-    format,
-    iterations,
     score_limit,
     filter,
     step_wise,
     report,
+    **kwargs,
 ):
     """Evaluate the PROGRAM as an analysis."""
 
@@ -254,52 +245,31 @@ def analyse(
         eff.warning(f"Changing to {ctx.suite.workdir}")
         os.chdir(ctx.suite.workdir)
 
-    with eff.context("Getting info about analysis"):
-        try:
-            out = eff.run(
-                program + ("info",),
-                timeout=timeout,
-            )
-            info = jpamb.AnalysisInfo.parse(out)
-        except subprocess.CalledProcessError as e:
-            eff.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
-            sys.exit(1)
-        except ValueError:
-            eff.error("Expected info, but got:")
-            for o in out.splitlines():
-                eff.error(o)
-
-    # TODO Load State from file if step-wise.
-
-    all_case_methods = list(sorted(ctx.suite.case_methods()))
     experiments = []
-
-    eff.info(f"Found {len(all_case_methods)} case methods")
-
-    for methodid in all_case_methods:
+    for methodid, expected in sorted(ctx.suite.case_methods().items()):
         if not filter.search(str(methodid)):
             eff.info(f"Skipping {methodid}, excluded by filter")
             continue
 
-        experiments.append(methodid)
+        experiments.append((methodid, expected))
 
-    experiments = experiments * iterations
+    config = jpamb.AnalysisConfig.from_cmd(
+        program,
+        experiments,
+        eff=eff,
+        **kwargs,
+    )
 
-    state = jpamb.AnalysisState(program, experiments, timeout=timeout)
+    state = jpamb.AnalysisState(config)
 
-    while state.experiments:
-        cont = state.step(
-            score_limit=score_limit,
-            suite=ctx.suite,
-            eff=eff,
-        )
+    for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
         if step_wise and not cont:
             eff.error("Stopping early")
             # TODO Save state to file if step-wise.
             return
 
-    # TODO Report summary
-    # summary = state.summary()
+    summary = state.summary()
+    summary.display()
     # summary.report()
 
 
@@ -312,87 +282,6 @@ def make_cache(workdir: Path, *, eff: Effect) -> Path:
         (cache / ".gitignore").write_text("**/*\n")
 
     return cache
-
-
-def dump_json(result):
-    json.dump(result, sys.stdout, indent=2)
-
-
-def mean(results):
-    res = [r for r in results if not math.isnan(r)]
-    return sum(res) / len(res)
-
-
-def dump_table(result):
-    bymethod = result.scorebymethod
-
-    classes = {}
-    for m in bymethod:
-        classes.setdefault(m.classname, set()).add(m)
-
-    rows = []
-
-    rows.append(
-        [
-            "Method",
-            "Score",
-            "Rel. (Db)",
-            "Abs. (ms)",
-        ]
-    )
-
-    for classname in sorted(classes):
-        class_methods = classes[classname]
-        rows.append(["", "", "", ""])
-        rows.append([str(classname), "", "", ""])
-        for methodid in sorted(class_methods):
-            output = bymethod[methodid]
-            rows.append(
-                [
-                    " " + str(methodid.extension),
-                    f"{output.score:.2f}",
-                    f"{output.relative:.3f}",
-                    f"{output.time / 10**9:.3f}",
-                ]
-            )
-
-    rows.append(
-        [
-            "Method",
-            "Score",
-            "Rel. (Db)",
-            "Abs. (ms)",
-        ]
-    )
-    rows.append(["", "", "", ""])
-    rows.append(
-        [
-            "Total",
-            f"{sum(o.score for o in bymethod.values()):.2f}",
-            f"{mean(o.relative for o in bymethod.values()):.3f}",
-            f"{mean(o.time for o in bymethod.values()) / 10**9:.3f}",
-        ]
-    )
-    print(rows[-1])
-
-    sizes = [max(map(len, col)) for col in zip(*rows)]
-
-    align = "<>>>"
-
-    for row in rows:
-        print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)))
-
-    print()
-    if not result.category:
-        print("No categories used")
-    else:
-        print("Categories:")
-        maxcat = max(map(len, result.category))
-        for category, value in result.category.items():
-            print(
-                f" {category:<{maxcat}}  {value:7.2%}"
-                f"  wager: {jpamb.Prediction.from_probability(value).wager:7.2}"
-            )
 
 
 @cli.command()
