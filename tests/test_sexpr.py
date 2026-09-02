@@ -104,6 +104,7 @@ def test_tripping(expr):
     string = sexpr.pretty(expr)
     note(string)
     items = sexpr.from_string(string)
+    note(items)
     assert len(items) == 1
     assert items[0] == expr
 
@@ -135,3 +136,15 @@ def test_data_tripping(key, args, kwargs):
     assert key == key2
     assert args == args2
     assert kwargs == kwargs2
+
+
+@given(st.floats())
+def test_float_tripping(value):
+    data = sexpr.sexpr(value)
+    assert repr(value) == repr(sexpr.unfloat(data))
+
+
+@given(st.integers())
+def test_int_tripping(value):
+    data = sexpr.sexpr(value)
+    assert value == sexpr.unint(data)

@@ -2,7 +2,7 @@ import io
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, runtime_checkable
+from typing import NamedTuple, Protocol, runtime_checkable, Callable
 
 type SExpr = list[SExpr] | str
 
@@ -40,44 +40,91 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
-BAD_SYMBOL = re.compile("[)(\n \t|]")
-
-
 def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[SExpr]:
-    exp = [name]
+    exp: list[SExpr] = [name]
+    exp += values(args)
+    exp += items(kwargs.items())
+    return exp
 
-    for a in args:
+
+def sequence(
+    values: Iterable[LikeSExpr],
+    *,
+    keyfmt: Callable[..., str] = str,
+    deep=True,
+) -> list[SExpr]:
+    return items(((keyfmt(k), v) for k, v in enumerate(values)), deep=deep)
+
+
+def values(values: Iterable[LikeSExpr], *, deep=True) -> list[SExpr]:
+    exp = []
+    for a in values:
+        if deep:
+            a = sexpr(a)
         assert isinstance(a, list | str), f"expected s-expr but got {a!r}"
         assert not (isinstance(a, str) and a.startswith(":"))
         exp += [a]
-
-    for k, v in kwargs.items():
-        assert isinstance(k, str)
-        assert isinstance(v, list | str), f"expected s-expr at :{k} but got {v!r}"
-        exp += [":" + k, v]
     return exp
 
 
-def sequence(values: Iterable[SExpr]) -> list[SExpr]:
+def items[K](
+    items: Iterable[tuple[K, LikeSExpr]],
+    *,
+    keyfmt: Callable[[K], str] = str,
+    deep=True,
+) -> list[SExpr]:
     exp = []
-    for k, v in enumerate(values):
-        assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
-        exp += [f":{k}", v]
-    return exp
-
-
-def items(values: Iterable[tuple[str, SExpr]]) -> list[SExpr]:
-    exp = []
-    for k, v in values:
+    for k, v in items:
+        if deep:
+            v = sexpr(v)
         assert isinstance(k, str), f"expected str but got {k!r}"
         assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
-        exp += [f":{k}", v]
+        exp += [f":{keyfmt(k)}", v]
     return exp
 
 
 def undata(sexpr: SExpr) -> tuple[str, list[SExpr], dict[str, SExpr]]:
+    pass
+
+
+def unsymbol(sexpr: SExpr) -> str:
+    if not isinstance(sexpr, str):
+        raise UnsexprError("expected symbol but fund list")
+
+    if sexpr.startswith(":"):
+        raise UnsexprError("expected symbol but found keyword")
+
+    return sexpr
+
+
+def unfloat(sexpr: SExpr) -> float:
+    string = unsymbol(sexpr)
+
+    try:
+        return float(string)
+    except ValueError as e:
+        raise UnsexprError(e)
+
+
+def unint(sexpr: SExpr) -> float:
+    string = unsymbol(sexpr)
+
+    try:
+        return int(string)
+    except ValueError as e:
+        raise UnsexprError(e)
+
+
+def unlist[T](sexpr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
+    if not isinstance(sexpr, list):
+        raise UnsexprError("expected list but fund symbol")
+
+    return [handler(v) for v in sexpr]
+
+
+def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
-        raise RuntimeError(f"Unexpected expression: {sexpr}")
+        raise ValueError(f"Unexpected expression: {sexpr}")
 
     key = sexpr[0]
 
@@ -121,11 +168,17 @@ def unlist(sexpr: SExpr) -> dict[str, SExpr]:
     return kwargs
 
 
+BAD_SYMBOL = re.compile("[)(\n \t|]")
+
+
 def escape(symbol: str) -> str:
     if symbol == "":
         return "||"
 
     if BAD_SYMBOL.search(symbol) is not None:
+        if symbol.startswith(":"):
+            return f":|{symbol[1:].replace('|', '||')}|"
+
         return f"|{symbol.replace('|', '||')}|"
     else:
         return symbol
@@ -197,13 +250,17 @@ class Token(NamedTuple):
     column: int
 
 
+class ParseError(Exception):
+    pass
+
+
 def tokenize(code):
     token_specification = [
         ("OPEN", r"\("),  # Open Paren
         ("CLOSE", r"\)"),  # Close Paren
-        ("SYMBOL", r"[^)(\n \t|]+"),  # Symbol
+        ("SYMBOL", r"[^)(\n \t|]+(?![^)(\n \t])"),  # Symbol
         ("STEP", r"STEP"),  # Symbol
-        ("ESCAPED_SYMBOL", r"\|([^|]|\|\|)*\|"),  # Symbol
+        ("ESCAPED_SYMBOL", r":?\|([^|]|\|\|)*\|"),  # Symbol
         ("NEWLINE", r"\n"),  # Line endings
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
         ("MISMATCH", r"."),  # Any other character
@@ -225,7 +282,7 @@ def tokenize(code):
         elif kind == "SKIP":
             continue
         elif kind == "MISMATCH":
-            raise RuntimeError(f"{value!r} unexpected on line {line_num}")
+            raise ParseError(f"{value!r} unexpected on line {line_num}")
         yield Token(kind, value, line_num, column)
 
 
@@ -268,7 +325,10 @@ class Parser:
             return str(value)
 
         if self.head.type == "ESCAPED_SYMBOL":
-            value = str(self.head.value)[1:-1].replace("||", "|")
+            if self.head.value[0] == ":":
+                value = ":" + str(self.head.value)[2:-1].replace("||", "|")
+            else:
+                value = str(self.head.value)[1:-1].replace("||", "|")
             self.next()
             return value
 
