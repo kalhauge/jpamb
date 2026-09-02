@@ -24,6 +24,8 @@ def sexpr(obj: LikeSExpr) -> SExpr:
         return obj
     if isinstance(obj, int):
         return str(obj)
+    if isinstance(obj, float):
+        return str(obj)
     if obj is None:
         return "-"
     if isinstance(obj, Iterable):
@@ -35,7 +37,7 @@ def sexpr(obj: LikeSExpr) -> SExpr:
 BAD_SYMBOL = re.compile("[)(\n \t|]")
 
 
-def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
+def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[SExpr]:
     exp = [name]
 
     for a in args:
@@ -50,9 +52,18 @@ def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
     return exp
 
 
-def sequence(values: Iterable[object]) -> list[SExpr]:
+def sequence(values: Iterable[SExpr]) -> list[SExpr]:
     exp = []
     for k, v in enumerate(values):
+        assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
+        exp += [f":{k}", v]
+    return exp
+
+
+def items(values: Iterable[tuple[str, SExpr]]) -> list[SExpr]:
+    exp = []
+    for k, v in values:
+        assert isinstance(k, str), f"expected str but got {k!r}"
         assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
         exp += [f":{k}", v]
     return exp

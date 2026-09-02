@@ -18,6 +18,7 @@ from typing import NoReturn
 from copy import deepcopy
 
 import math
+import sexpr
 import runit
 import shlex
 
@@ -123,6 +124,28 @@ class AnalysisInfo:
             tuple(tags),
             system,
         )
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "analysis-info",
+            name=self.name,
+            version=self.version,
+            group=self.group,
+            tags=sexpr.sexpr(self.tags),
+            system=sexpr.sexpr(self.system),
+        )
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Self":
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name == "analysis-info":
+            raise sexpr.ParseError()
+
+        if args != []:
+            raise sexpr.ParseError()
+
+        return cls()
 
 
 @dataclass(frozen=True)
@@ -703,7 +726,7 @@ class Tracker:
 class AnalysisConfig:
     cmd: tuple[str]
     analysis: AnalysisInfo
-    experiments: tuple[tuple[jvm.AbsMethodID, set[str]]]
+    experiments: tuple[tuple[jvm.AbsMethodID, set[str]], ...]
     iterations: int
     timeout: float
 
@@ -718,6 +741,22 @@ class AnalysisConfig:
         file.write(f"Experiments:   {len(self.experiments)}\n")
         file.write(f"Iterations:    {self.iterations}\n")
         file.write(f"Timeout:       {self.timeout}\n")
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "analysis-config",
+            cmd=sexpr.sexpr(self.cmd),
+            analysis=sexpr.sexpr(self.analysis),
+            iterations=sexpr.sexpr(self.iterations),
+            timeout=sexpr.sexpr(self.timeout),
+            experiments=sexpr.items(
+                (m.encode(), sexpr.sexpr(e)) for m, e in self.experiments
+            ),
+        )
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Self":
+        pass
 
     @classmethod
     def from_cmd(
@@ -880,6 +919,19 @@ class AnalysisState:
     progress: int = 0
     results: dict[jvm.AbsMethodID, list[AnalysisResult]] = field(default_factory=dict)
     categories: dict[str, Tracker] = field(default_factory=dict)
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(
+            "analysis-state",
+            config=sexpr.sexpr(self.config),
+            progress=sexpr.sexpr(self.progress),
+            results=sexpr.items(
+                (k.encode(), sexpr.sexpr(v)) for k, v in self.results.items()
+            ),
+            categories=sexpr.items(
+                (k, sexpr.sexpr(v)) for k, v in self.categories.items()
+            ),
+        )
 
     def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool:
         no_experiments = len(self.config.experiments)

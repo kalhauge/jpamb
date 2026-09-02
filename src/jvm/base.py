@@ -600,6 +600,9 @@ class AbsMethodID(Absolute[MethodID]):
             ),
         )
 
+    def __sexpr__(self) -> sexpr.SExpr:
+        return self.encode()
+
 
 @dataclass(frozen=True, order=True)
 class AbsFieldID(Absolute[FieldID]):

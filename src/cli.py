@@ -268,6 +268,9 @@ def analyse(
             # TODO Save state to file if step-wise.
             return
 
+        print(sexpr.pretty(sexpr.sexpr(state), indent=2))
+        return
+
     summary = state.summary()
     summary.display()
     # summary.report()
