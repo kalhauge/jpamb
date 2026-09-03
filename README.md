@@ -3,6 +3,7 @@
 JPAMB is a collection of small Java programs with various behaviors (crashes, infinite loops, and normal completion).
 Your task is to build a program analysis tool that can predict what will happen when these programs run.
 This benchmark is centered around Java methods with @Case annotations.
+Your analyzer is given a method, but no input or annotations. The `@Case` annotations specify every possible outcome your analyzer is tested against.
 Consider the following method:
 
 ```java

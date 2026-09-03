@@ -76,7 +76,7 @@ uv run jpamb checkhealth
 You should see several green "ok" messages. If you see any red errors, check the
 troubleshooting section below!
 
-**IMPORTANT**, if you want to use Python, follow the guide [here](docs/python.md).
+**IMPORTANT**, if you want to use Python, follow the guide [here](python.md).
 Then come back and run `checkhealth` without uv:
 
 ```bash
