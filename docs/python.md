@@ -44,7 +44,7 @@ the source code at [](src/jpamb.py) and [](src/jvm).
 ### Automatic script setup with `getmethodid` and `getcase`
 
 Two useful utility methods are the `getmethodid` and `getcase` method, which prints the correct
-stats and parses the method and (potential inputs for you:
+stats and parses the method and potential inputs for you:
 
 ```python
 import jpamb
