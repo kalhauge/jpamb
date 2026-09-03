@@ -5,6 +5,8 @@ This module provides the basic data model for working with the JPAMB.
 
 """
 
+from abc import ABC, abstractmethod
+
 from iniconfig import ParseError
 
 import collections
@@ -16,7 +18,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NoReturn, Self
+from typing import NoReturn, Self, get_origin
 from copy import deepcopy
 
 import math
@@ -95,9 +97,80 @@ class Case:
         return sorted(cases_by_id.items())
 
 
+class classproperty:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, obj, cls):
+        return self.func(cls)
+
+
+class WithSExpr(ABC):
+    @classproperty
+    def sexpr_name(cls) -> str:
+        name = cls.__name__
+        result = re.sub(r"(?=[A-Z])", "-", name[1:])
+        return (name[0] + result).lower()
+
+    def get_key(key: str, kwargs: dict[str, sexpr.SExpr]) -> sexpr.SExpr:
+        if key not in kwargs.keys():
+            raise ValueError()
+
+        return kwargs[key]
+
+    @classmethod
+    def get_kwargs(cls, expr: sexpr.SExpr) -> dict[str, sexpr.SExpr]:
+        name, args, kwargs = sexpr.undata(expr)
+
+        if name != cls.sexpr_name:
+            raise sexpr.ParseError(f"Expected {cls.sexpr_name}, but got {name}")
+
+        if args != []:
+            raise sexpr.ParseError(f"Got: {args}")
+
+        if cls.__dict__["__annotations__"].keys() != kwargs.keys():
+            raise sexpr.ParseError(
+                f"The sexpr has keys {kwargs.keys()}, expected {cls.__dict__['__annotations__'].keys()}"
+            )
+
+        return kwargs
+
+    @classmethod
+    def cast_to(cls, expr: sexpr.SExpr, t: type):
+        match t:
+            case _ if t is int:
+                assert isinstance(expr, str), f"Cannot convert {expr} to int"
+                return int(expr)
+            case _ if t is float:
+                assert isinstance(expr, str), f"Cannot convert {expr} to float"
+                return float(expr)
+            case _ if t is str:
+                assert isinstance(expr, str), f"Cannot convert {expr} to str"
+                return expr
+            case _ if get_origin(t) is tuple:
+                assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
+                return tuple(expr)
+
+        print(f"Failed to cast {expr} of type {get_origin(expr)} to {t}")
+        return expr
+
+    @classmethod
+    def cast_kwargs(cls, kwargs: dict[str, sexpr.SExpr]):
+        new_kwargs = {}
+        for k, v in cls.__annotations__.items():
+            new_kwargs[k] = cls.cast_to(kwargs[k], v)
+
+        return new_kwargs
+
+    @abstractmethod
+    def __sexpr__(self) -> sexpr.SExpr: ...
+
+    @abstractmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self: ...
+
+
 @dataclass(frozen=True)
-class AnalysisInfo:
-    classname = "analysis-info"
+class AnalysisInfo(WithSExpr):
     name: str
     version: str
     group: str
@@ -130,7 +203,7 @@ class AnalysisInfo:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            self.classname,
+            self.sexpr_name,
             name=self.name,
             version=self.version,
             group=self.group,
@@ -139,27 +212,13 @@ class AnalysisInfo:
         )
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> "Self":
-        name, args, kwargs = sexpr.undata(expr)
-
-        if name != cls.classname:
-            raise sexpr.ParseError()
-
-        if args != []:
-            raise sexpr.ParseError()
-
-        return cls(
-            name=kwargs["name"],
-            version=kwargs["version"],
-            group=kwargs["group"],
-            tags=tuple(kwargs["tags"]),
-            system=kwargs["system"],
-        )
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        kwargs = cls.cast_kwargs(cls.get_kwargs(expr))
+        return cls(**kwargs)
 
 
 @dataclass(frozen=True)
-class Category:
-    classname = "category"
+class Category(WithSExpr):
     name: str
 
     def __json__(self):
@@ -172,14 +231,11 @@ class Category:
         return self.name
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.data(self.classname, name=self.name)
+        return sexpr.data(self.sexpr_name, name=self.name)
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-        if name != cls.classname:
-            raise sexpr.ParseError()
-
+        kwargs = cls.cast_kwargs(cls.get_kwargs(expr))
         return cls(**kwargs)
 
 
@@ -227,8 +283,9 @@ class Prediction:
     def __json__(self):
         return self.wager
 
-    def from_sexpr(expr: sexpr.SExpr) -> Self:
-        return Prediction("dummy-skip")
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        return cls("dummy-skip")
 
 
 QUERIES = (
@@ -242,7 +299,7 @@ QUERIES = (
 
 
 @dataclass(frozen=True)
-class Response:
+class Response(WithSExpr):
     predictions: dict[str, Prediction | Category]
 
     @staticmethod
@@ -293,15 +350,12 @@ class Response:
 
     def __sexpr__(self) -> sexpr.SExpr:
         inner = [(k, sexpr.sexpr(v)) for k, v in self.predictions.items()]
-        return sexpr.data("response", predictions=sexpr.sexpr(inner))
+        return sexpr.data(self.sexpr_name, predictions=sexpr.sexpr(inner))
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-        if name != "response":
-            raise sexpr.ParseError()
+        kwargs = cls.get_kwargs(expr)
         categories = [k for k in kwargs["predictions"]]
-
         preds = {i[0]: Category.from_sexpr(i[1]) for i in categories}
 
         return cls(preds)
@@ -737,28 +791,25 @@ def parse_input(i) -> Input:
 
 
 @dataclass(frozen=True)
-class Duration:
+class Duration(WithSExpr):
     absolute: int
     relative: float
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            "duration",
+            self.sexpr_name,
             absolute=sexpr.sexpr(self.absolute),
             relative=sexpr.sexpr(self.relative),
         )
 
-    def from_sexpr(expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-
-        if name != "duration":
-            raise sexpr.ParseError()
-
-        return Duration(int(kwargs["absolute"]), float(kwargs["relative"]))
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        kwargs = cls.cast_kwargs(cls.get_kwargs(expr))
+        return cls(**kwargs)
 
 
 @dataclass(frozen=True)
-class AnalysisResult:
+class AnalysisResult(WithSExpr):
     response: Response
     duration: Duration
     calibrates: list[int]
@@ -771,22 +822,19 @@ class AnalysisResult:
             calibrates=sexpr.sexpr(self.calibrates),
         )
 
-    def from_sexpr(expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-
-        if name != "analysis-result":
-            raise sexpr.ParseError()
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        kwargs = cls.get_kwargs(expr)
 
         resp = Response.from_sexpr(kwargs["response"])
         dur = Duration.from_sexpr(kwargs["duration"])
         calibrates = [int(v) for v in kwargs["calibrates"]]
 
-        return AnalysisResult(resp, dur, calibrates)
+        return cls(resp, dur, calibrates)
 
 
 @dataclass
-class Tracker:
-    classname = "tracker"
+class Tracker(WithSExpr):
     hits: int = 0
     counts: int = 0
 
@@ -798,23 +846,19 @@ class Tracker:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            self.classname, hits=sexpr.sexpr(self.hits), counts=sexpr.sexpr(self.counts)
+            self.sexpr_name,
+            hits=sexpr.sexpr(self.hits),
+            counts=sexpr.sexpr(self.counts),
         )
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-
-        if name != cls.classname:
-            raise sexpr.ParseError()
-
-        parsed = {k: int(v) for k, v in kwargs.items()}
-        return cls(**parsed)
+        kwargs = cls.cast_kwargs(cls.get_kwargs(expr))
+        return cls(**kwargs)
 
 
 @dataclass(frozen=True)
-class AnalysisConfig:
-    name = "analysis-config"
+class AnalysisConfig(WithSExpr):
     cmd: tuple[str]
     analysis: AnalysisInfo
     experiments: tuple[tuple[jvm.AbsMethodID, set[str]], ...]
@@ -823,7 +867,7 @@ class AnalysisConfig:
 
     def display(self, *, file=sys.stdout):
         file.write(f"Cmd:           {shlex.join(self.cmd)}\n")
-        file.write(f"Analysis:\n")
+        file.write("Analysis:\n")
         file.write(f" Name:         {self.analysis.name}\n")
         file.write(f" Version:      {self.analysis.version}\n")
         file.write(f" Group:        {self.analysis.group}\n")
@@ -835,7 +879,7 @@ class AnalysisConfig:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            self.name,
+            self.sexpr_name,
             cmd=sexpr.sexpr(self.cmd),
             analysis=sexpr.sexpr(self.analysis),
             iterations=sexpr.sexpr(self.iterations),
@@ -847,18 +891,16 @@ class AnalysisConfig:
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
-        if name != cls.name:
-            raise sexpr.ParseError()
-
-        cmd = tuple(kwargs["cmd"])
+        kwargs = cls.get_kwargs(expr)
         analysis = AnalysisInfo.from_sexpr(kwargs["analysis"])
-        _, experi_dict = sexpr.unlist(kwargs["experiments"])
+        experi_dict = sexpr.unlist(kwargs["experiments"])
         experiments = tuple(
             [(jvm.AbsMethodID.decode(k), set(v)) for k, v in experi_dict.items()]
         )
-        iterations = int(kwargs["iterations"])
-        timeout = float(kwargs["timeout"])
+
+        cmd = cls.cast_to(kwargs["cmd"], tuple)
+        iterations = cls.cast_to(kwargs["iterations"], int)
+        timeout = cls.cast_to(kwargs["timeout"], float)
 
         return cls(cmd, analysis, experiments, iterations, timeout)
 
@@ -880,7 +922,9 @@ class AnalysisConfig:
                 )
                 info = AnalysisInfo.parse(out)
             except subprocess.CalledProcessError as e:
-                eff.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
+                eff.error(
+                    f"Ran {shlex.join(cls.analysis.name)} info, and got error:\n{e.stderr}"
+                )
                 return None
             except ValueError:
                 eff.error("Expected info, but got:")
@@ -905,11 +949,13 @@ class AnalysisConfig:
                 timeout=self.timeout,
             )
         except subprocess.CalledProcessError as e:
-            eff.warning(f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}")
+            eff.warning(
+                f"Ran {shlex.join(self.analysis.name)} info, and got error:\n{e.stderr}"
+            )
             return None
         except subprocess.TimeoutExpired as e:
             eff.warning(
-                f"Ran {shlex.join(analysis)} info, and timed out after {e.timeout} seconds"
+                f"Ran {shlex.join(self.analysis.name)} info, and timed out after {e.timeout} seconds"
             )
             return None
 
@@ -988,7 +1034,7 @@ class AnalysisSummary:
                         "Time (abs)",
                     ],
                     [
-                        f"Total",
+                        "Total",
                         f"{total_score:>7.2f}",
                         f"{total_rel_time:>7.2f} Db",
                         f"{total_abs_time / 10**9:>7.3f} s",
@@ -1018,7 +1064,7 @@ def mean(results):
 
 
 @dataclass
-class AnalysisState:
+class AnalysisState(WithSExpr):
     config: AnalysisConfig
     progress: int = 0
     results: dict[jvm.AbsMethodID, list[AnalysisResult]] = field(default_factory=dict)
@@ -1026,7 +1072,7 @@ class AnalysisState:
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.data(
-            "analysis-state",
+            self.sexpr_name,
             config=sexpr.sexpr(self.config),
             progress=sexpr.sexpr(self.progress),
             results=sexpr.items(
@@ -1039,29 +1085,22 @@ class AnalysisState:
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        name, args, kwargs = sexpr.undata(expr)
+        kwargs = cls.get_kwargs(expr)
+        config = AnalysisConfig.from_sexpr(cls.get_key("config", kwargs))
+        progress = cls.cast_to(cls.get_key("progress", kwargs), int)
 
-        if name != "analysis-state":
-            raise sexpr.ParseError()
-
-        if args != []:
-            raise sexpr.ParseError()
-
-        config = AnalysisConfig.from_sexpr(kwargs["config"])
-        progress = int(kwargs["progress"])
-
-        cases, res_dict = sexpr.unlist(kwargs["results"])
+        res_dict = sexpr.unlist(kwargs["results"])
         results = {}
         for k, v in res_dict.items():
             res_list = [AnalysisResult.from_sexpr(inner) for inner in v]
             results[jvm.AbsMethodID.decode(k)] = res_list
 
-        _, cat_dict = sexpr.unlist(kwargs["categories"])
+        cat_dict = sexpr.unlist(kwargs["categories"])
         categories = {k: Tracker.from_sexpr(v) for k, v in cat_dict.items()}
 
         return cls(config, progress, results, categories)
 
-    def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool:
+    def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool | None:
         no_experiments = len(self.config.experiments)
         iteration = self.progress // no_experiments
 

@@ -12,10 +12,12 @@ class ToSExpr(Protocol):
     def __sexpr__(self) -> SExpr: ...
 
 
-type LikeSExpr = ToSExpr | str | int | Iterable[LikeSExpr] | None
+type LikeSExpr = ToSExpr | str | int | float | Iterable[LikeSExpr] | None
 
 
 class ParseError(BaseException):
+    msg: str
+
     pass
 
 
@@ -73,7 +75,7 @@ def items(values: Iterable[tuple[str, SExpr]]) -> list[SExpr]:
     return exp
 
 
-def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
+def undata(sexpr: SExpr) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
         raise RuntimeError(f"Unexpected expression: {sexpr}")
 
@@ -90,7 +92,7 @@ def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
         a = items.pop(0)
         if isinstance(a, str) and a.startswith(":"):
             k = a[1:]
-            assert not k in kwargs
+            assert k not in kwargs
             v = items.pop(0)
             kwargs[k] = v
             continue
@@ -100,26 +102,23 @@ def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     return key, args, kwargs
 
 
-def unlist(sexpr: list[SExpr]) -> tuple[list[str], dict[str, SExpr]]:
+def unlist(sexpr: SExpr) -> dict[str, SExpr]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
         raise RuntimeError(f"Unexpected expression: {sexpr}")
 
     items = list(sexpr)
-    args = []
     kwargs = {}
 
     while len(items):
         a = items.pop(0)
         if isinstance(a, str) and a.startswith(":"):
             k = a[1:]
-            assert not k in kwargs
+            assert k not in kwargs
             v = items.pop(0)
             kwargs[k] = v
             continue
 
-        args.append(a)
-
-    return args, kwargs
+    return kwargs
 
 
 def escape(symbol: str) -> str:
