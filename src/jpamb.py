@@ -5,6 +5,8 @@ This module provides the basic data model for working with the JPAMB.
 
 """
 
+from iniconfig import ParseError
+
 import collections
 import re
 import sys
@@ -146,11 +148,18 @@ class AnalysisInfo:
         if args != []:
             raise sexpr.ParseError()
 
-        return cls(**kwargs)
+        return cls(
+            name=kwargs["name"],
+            version=kwargs["version"],
+            group=kwargs["group"],
+            tags=tuple(kwargs["tags"]),
+            system=kwargs["system"],
+        )
 
 
 @dataclass(frozen=True)
 class Category:
+    classname = "category"
     name: str
 
     def __json__(self):
@@ -161,6 +170,17 @@ class Category:
 
     def __str__(self):
         return self.name
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.data(self.classname, name=self.name)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        name, args, kwargs = sexpr.undata(expr)
+        if name != cls.classname:
+            raise sexpr.ParseError()
+
+        return cls(**kwargs)
 
 
 @dataclass(frozen=True)
@@ -272,17 +292,19 @@ class Response:
         )
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.data("response", predictions=sexpr.sexpr(self.predictions))
+        inner = [(k, sexpr.sexpr(v)) for k, v in self.predictions.items()]
+        return sexpr.data("response", predictions=sexpr.sexpr(inner))
 
-    def from_sexpr(expr: sexpr.SExpr) -> Self:
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         name, args, kwargs = sexpr.undata(expr)
-        print(kwargs)
         if name != "response":
             raise sexpr.ParseError()
+        categories = [k for k in kwargs["predictions"]]
 
-        preds = Prediction.from_sexpr(kwargs["predictions"])
+        preds = {i[0]: Category.from_sexpr(i[1]) for i in categories}
 
-        return Response(preds)
+        return cls(preds)
 
 
 @dataclass(frozen=True)
@@ -829,15 +851,16 @@ class AnalysisConfig:
         if name != cls.name:
             raise sexpr.ParseError()
 
-        cmd = kwargs["cmd"]
+        cmd = tuple(kwargs["cmd"])
         analysis = AnalysisInfo.from_sexpr(kwargs["analysis"])
         _, experi_dict = sexpr.unlist(kwargs["experiments"])
-        experiments = {jvm.AbsMethodID.decode(k): v for k, v in experi_dict.items()}
-        print(experiments)
-        iterations = kwargs["iterations"]
-        timeout = kwargs["timeout"]
+        experiments = tuple(
+            [(jvm.AbsMethodID.decode(k), set(v)) for k, v in experi_dict.items()]
+        )
+        iterations = int(kwargs["iterations"])
+        timeout = float(kwargs["timeout"])
 
-        return AnalysisConfig(cmd, analysis, experiments, iterations, timeout)
+        return cls(cmd, analysis, experiments, iterations, timeout)
 
     @classmethod
     def from_cmd(
@@ -1014,7 +1037,8 @@ class AnalysisState:
             ),
         )
 
-    def from_sexpr(expr: sexpr.SExpr) -> Self:
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         name, args, kwargs = sexpr.undata(expr)
 
         if name != "analysis-state":
@@ -1024,7 +1048,7 @@ class AnalysisState:
             raise sexpr.ParseError()
 
         config = AnalysisConfig.from_sexpr(kwargs["config"])
-        progress = kwargs["progress"]
+        progress = int(kwargs["progress"])
 
         cases, res_dict = sexpr.unlist(kwargs["results"])
         results = {}
@@ -1035,7 +1059,7 @@ class AnalysisState:
         _, cat_dict = sexpr.unlist(kwargs["categories"])
         categories = {k: Tracker.from_sexpr(v) for k, v in cat_dict.items()}
 
-        return AnalysisState(config, progress, results, categories)
+        return cls(config, progress, results, categories)
 
     def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool:
         no_experiments = len(self.config.experiments)
