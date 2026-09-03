@@ -259,6 +259,7 @@ def analyse(
         eff=eff,
         **kwargs,
     )
+    assert config is not None, "Failed to instantiate config"
 
     state = jpamb.AnalysisState(config)
     for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
@@ -267,21 +268,11 @@ def analyse(
             # TODO Save state to file if step-wise.
             return
 
+        # Check that we can convert to sexpr and back again
         state_sexpr = sexpr.sexpr(state)
         recreated = jpamb.AnalysisState.from_sexpr(state_sexpr)
-        assert state.results == recreated.results, (
-            f"Results differ\n{state.results}\n{recreated.results}"
-        )
-        assert state.config == recreated.config, (
-            f"Config differ\n{state.config}\n\n{recreated.config}"
-        )
-        assert state.config == recreated.config, "Configs differ"
-        assert state.categories == recreated.categories, (
-            f"Categories differ\n{state.categories}\n\n{recreated.categories}"
-        )
-        assert state.progress == recreated.progress, (
-            f"Progress differ\n{state.progress}\n\n{recreated.progress}"
-        )
+
+        jpamb.check_state_equality(state, recreated)
 
     summary = state.summary()
     summary.display()

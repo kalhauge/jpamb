@@ -147,6 +147,9 @@ class WithSExpr(ABC):
             case _ if t is str:
                 assert isinstance(expr, str), f"Cannot convert {expr} to str"
                 return expr
+            case _ if t is tuple:
+                assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
+                return tuple(expr)
             case _ if get_origin(t) is tuple:
                 assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
                 return tuple(expr)
@@ -897,7 +900,7 @@ class AnalysisConfig(WithSExpr):
         experiments = tuple(
             [(jvm.AbsMethodID.decode(k), set(v)) for k, v in experi_dict.items()]
         )
-
+        print(kwargs["cmd"])
         cmd = cls.cast_to(kwargs["cmd"], tuple)
         iterations = cls.cast_to(kwargs["iterations"], int)
         timeout = cls.cast_to(kwargs["timeout"], float)
@@ -1158,3 +1161,15 @@ class AnalysisState(WithSExpr):
             deepcopy(self.results),
             {k: v.prediction() for k, v in self.categories.items()},
         )
+
+
+def check_state_equality(s1: AnalysisState, s2: AnalysisState):
+    assert s1.results == s2.results, f"Results differ\n{s1.results}\n{s2.results}"
+    assert s1.config == s2.config, f"Config differ\n{s1.config}\n\n{s2.config}"
+    assert s1.config == s2.config, "Configs differ"
+    assert s1.categories == s2.categories, (
+        f"Categories differ\n{s1.categories}\n\n{s2.categories}"
+    )
+    assert s1.progress == s2.progress, (
+        f"Progress differ\n{s1.progress}\n\n{s2.progress}"
+    )
