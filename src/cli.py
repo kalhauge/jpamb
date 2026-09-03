@@ -282,7 +282,6 @@ def analyse(
         assert state.progress == recreated.progress, (
             f"Progress differ\n{state.progress}\n\n{recreated.progress}"
         )
-        return
 
     summary = state.summary()
     summary.display()
