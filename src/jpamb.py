@@ -915,7 +915,7 @@ class AnalysisConfig:
 
 
 @dataclass(frozen=True)
-class AnalysisSummary:
+class AnalysisSummary(WithSExpr):
     config: AnalysisConfig
     results: dict[jvm.AbsMethodID, list[AnalysisResult]]
     categories: dict[str, Wager]
@@ -990,6 +990,39 @@ class AnalysisSummary:
             )
         ]
         dump_table(groups, align="<>>>", file=file)
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        results = sexpr.items(
+            (m.encode(), sexpr.sexpr(e)) for m, e in self.results.items()
+        )
+
+        print(sexpr.items((m, v) for m, v in self.categories.items()))
+        return sexpr.data(
+            self.sexpr_name,
+            config=sexpr.sexpr(self.config),
+            results=sexpr.items(
+                (m.encode(), sexpr.sexpr(e)) for m, e in self.results.items()
+            ),
+            categories=sexpr.sexpr(self.categories),
+        )
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        kwargs = cls.get_kwargs(expr)
+
+        conf = AnalysisConfig.from_sexpr(kwargs["config"])
+        results = sexpr.unlist(kwargs["results"])
+        res = {
+            jvm.AbsMethodID.decode(k): [AnalysisResult.from_sexpr(vi) for vi in v]
+            for k, v in results.items()
+        }
+        print(kwargs.keys())
+        cat = sexpr.undata(kwargs["categories"])
+        print(kwargs["categories"])
+        categories = {v: Prediction.from_sexpr(v) for v in list(cat)}
+        print(categories)
+
+        return cls(conf, res, categories)
 
 
 def dump_table(groups, *, align="<>>>", file):
@@ -1094,3 +1127,6 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     assert s1.progress == s2.progress, (
         f"Progress differ\n{s1.progress}\n\n{s2.progress}"
     )
+
+
+# def verify():

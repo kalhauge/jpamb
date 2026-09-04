@@ -1,14 +1,8 @@
-from dataclasses import dataclass
-from click.decorators import _AnyCallable
 import dataclasses
 import json
-import math
-import csv
 import os
-import shlex
 import subprocess
 import sys
-from collections import Counter
 from pathlib import Path
 
 import click
@@ -269,12 +263,16 @@ def analyse(
             return
 
         # Check that we can convert to sexpr and back again
-        state_sexpr = sexpr.sexpr(state)
-        recreated = jpamb.AnalysisState.from_sexpr(state_sexpr)
+        # state_sexpr = sexpr.sexpr(state)
+        # recreated = jpamb.AnalysisState.from_sexpr(state_sexpr)
+        # jpamb.check_state_equality(state, recreated)
 
-        jpamb.check_state_equality(state, recreated)
+        summary = state.summary()
+        summary_sexpr = sexpr.sexpr(summary)
+        summary_recreated = jpamb.AnalysisSummary.from_sexpr(summary_sexpr)
+        assert summary == summary_recreated
+        return
 
-    summary = state.summary()
     summary.display()
     # summary.report()
 
