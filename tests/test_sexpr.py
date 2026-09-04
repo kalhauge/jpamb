@@ -63,7 +63,7 @@ def test_data_tripping(key, args, kwargs):
 
     note(data)
 
-    (key2, args2, kwargs2) = sexpr.undata(data)
+    (key2, args2, kwargs2) = sexpr.data_from_sexpr(data)
 
     assert key == key2
     assert args == args2
@@ -73,10 +73,10 @@ def test_data_tripping(key, args, kwargs):
 @given(st.floats())
 def test_float_tripping(value):
     data = sexpr.sexpr(value)
-    assert repr(value) == repr(sexpr.unfloat(data))
+    assert repr(value) == repr(sexpr.float_from_sexpr(data))
 
 
 @given(st.integers())
 def test_int_tripping(value):
     data = sexpr.sexpr(value)
-    assert value == sexpr.unint(data)
+    assert value == sexpr.int_from_sexpr(data)
