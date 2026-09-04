@@ -179,7 +179,7 @@ class Type(ABC):
         return self.encode()
 
     def __sexpr__(self) -> SExpr:
-        return self.math()
+        return sexpr.sexpr(self.math())
 
 
 @dataclass(frozen=True)
@@ -709,13 +709,15 @@ class Value:
         match self.type:
             case Reference():
                 assert isinstance(self.value, int | None)
-                return [
-                    "ref",
-                    f"0x{self.value + 1 if self.value is not None else 0:04x}",
-                ]
+                return sexpr.sexpr(
+                    [
+                        "ref",
+                        f"0x{self.value + 1 if self.value is not None else 0:04x}",
+                    ]
+                )
             case t:
                 res = sexpr.sexpr(self.value)  # ty: ignore
-                return [sexpr.sexpr(t.math()), res]
+                return sexpr.sexpr([sexpr.sexpr(t.math()), res])
 
     def math(self) -> str:
         return sexpr.pretty(sexpr.sexpr(self))

@@ -21,6 +21,8 @@ from pathlib import Path
 from typing import NoReturn, Self, get_origin
 from copy import deepcopy
 
+from typing import Self
+
 import math
 import sexpr
 import runit
@@ -925,9 +927,7 @@ class AnalysisConfig(WithSExpr):
                 )
                 info = AnalysisInfo.parse(out)
             except subprocess.CalledProcessError as e:
-                eff.error(
-                    f"Ran {shlex.join(cls.analysis.name)} info, and got error:\n{e.stderr}"
-                )
+                eff.error(f"Ran {shlex.join(cls.cmd)} info, and got error:\n{e.stderr}")
                 return None
             except ValueError:
                 eff.error("Expected info, but got:")
@@ -952,13 +952,11 @@ class AnalysisConfig(WithSExpr):
                 timeout=self.timeout,
             )
         except subprocess.CalledProcessError as e:
-            eff.warning(
-                f"Ran {shlex.join(self.analysis.name)} info, and got error:\n{e.stderr}"
-            )
+            eff.warning(f"Ran {shlex.join(self.cmd)} info, and got error:\n{e.stderr}")
             return None
         except subprocess.TimeoutExpired as e:
             eff.warning(
-                f"Ran {shlex.join(self.analysis.name)} info, and timed out after {e.timeout} seconds"
+                f"Ran {shlex.join(self.cmd)} info, and timed out after {e.timeout} seconds"
             )
             return None
 

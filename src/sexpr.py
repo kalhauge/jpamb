@@ -2,22 +2,41 @@ import io
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, runtime_checkable, Callable, TypeIs
+from typing import NamedTuple, Protocol, runtime_checkable, Callable, TypeIs, Self
 
 
-@dataclass(frozen=True, slots=True)
-class Keyword:
-    name: str
+class Option[T](NamedTuple):
+    key: str
+    value: T
+
+    @classmethod
+    def unkeyed(cls, value: T) -> Self:
+        return cls("", value)
+
+    def __repr__(self):
+        if self.key:
+            return f"option({self.key!r}, {self.value!r})"
+        else:
+            return f"item({self.value!r})"
 
 
-type SExpr = list[SExpr | Keyword] | str
+type SExpr = list[Option[SExpr]] | str
+
+
+def item(value: SExpr) -> Option[SExpr]:
+    return Option.unkeyed(value)
+
+
+def option(key: str, value: SExpr) -> Option[SExpr]:
+    return Option(key, value)
 
 
 def issexpr(expr: object, *, deep=True) -> TypeIs[SExpr]:
     if isinstance(expr, list):
-        if deep:
-            return all(isinstance(e, Keyword) or issexpr(e, deep=deep) for e in expr)
-        return True
+        return all(
+            isinstance(e, Option) and (not deep or issexpr(e.value, deep=True))
+            for e in expr
+        )
     return isinstance(expr, str)
 
 
@@ -26,7 +45,9 @@ class ToSExpr(Protocol):
     def __sexpr__(self) -> SExpr: ...
 
 
-type LikeSExpr = ToSExpr | str | int | float | Iterable[LikeSExpr] | None
+type LikeSExpr = (
+    ToSExpr | str | int | float | Iterable[LikeSExpr | Option[SExpr]] | None
+)
 
 
 class ParseError(BaseException):
@@ -49,13 +70,19 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     if obj is None:
         return "-"
     if isinstance(obj, Iterable):
-        return [e if isinstance(e, Keyword) else sexpr(e) for e in obj]
+        items = []
+        for e in obj:
+            if isinstance(e, Option):
+                items.append(e)
+            else:
+                items.append(Option.unkeyed(sexpr(e)))
+        return items
 
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
 def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[SExpr]:
-    exp: list[SExpr] = [name]
+    exp: list[SExpr] = [Option.unkeyed(name)]
     exp += values(args)
     exp += items(kwargs.items())
     return exp
@@ -75,9 +102,8 @@ def values(values: Iterable[LikeSExpr], *, deep=True) -> list[SExpr]:
     for a in values:
         if deep:
             a = sexpr(a)
-        assert not isinstance(a, Keyword), f"did not expect a keyword"
         assert issexpr(a), f"expected s-expr but got {a!r}"
-        exp += [a]
+        exp += [Option.unkeyed(a)]
     return exp
 
 
@@ -91,9 +117,8 @@ def items[K](
     for k, v in items:
         if deep:
             v = sexpr(v)
-        assert isinstance(k, str), f"expected str but got {k!r}"
         assert issexpr(v), f"expected s-expr but got {v!r}"
-        exp += [Keyword(keyfmt(k)), v]
+        exp += [Option(keyfmt(k), v)]
     return exp
 
 
@@ -133,31 +158,27 @@ def unlist[T](sexpr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
     return [handler(v) for v in sexpr]
 
 
-def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
+def undata(sexpr: list[Option[SExpr]]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
         raise ValueError(f"Unexpected expression: {sexpr}")
 
     key = sexpr[0]
 
-    if not isinstance(key, str):
-        raise TypeError(f"Unexpected expression: {key} in {sexpr}")
+    if key.key:
+        raise TypeError(f"Unexpected key {key.key} in {sexpr}")
 
-    items = list(sexpr[1:])
     args = []
     kwargs = {}
 
-    while len(items):
-        a = items.pop(0)
-        if isinstance(a, Keyword):
-            k = a.name
+    for option in sexpr[1:]:
+        if k := option.key:
+            assert k != ""
             assert not k in kwargs
-            v = items.pop(0)
-            kwargs[k] = v
-            continue
+            kwargs[k] = option.value
+        else:
+            args.append(option.value)
 
-        args.append(a)
-
-    return key, args, kwargs
+    return key.value, args, kwargs
 
 
 def unlist(sexpr: SExpr) -> dict[str, SExpr]:
@@ -199,13 +220,10 @@ def pretty(expr: SExpr, indent=0) -> str:
         return output.getvalue()
 
     if isinstance(expr, list):
-        return f"({' '.join([pretty(s) for s in expr])})"
+        return f"({' '.join(f':{escape(s.key)} {pretty(s.value)}' if s.key else pretty(s.value) for s in expr)})"
 
     if isinstance(expr, str):
         return escape(expr)
-
-    if isinstance(expr, Keyword):
-        return ":" + escape(expr.name)
 
     raise TypeError(f"{expr!r} is not a s-expression")
 
@@ -217,48 +235,32 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
             output.write(")")
             return
 
-        indented = False
+        spacing = ""
 
-        e = expr[0]
-        left = list(expr[1:])
+        if indent > 0:
+            spacing = "\n" + " " * (current + indent)
 
-        if isinstance(e, Keyword) and len(left) > 0:
-            e2 = left.pop(0)
-            output.write("\n" + " " * (current + indent))
-            output.write(":")
-            output.write(escape(e.name))
-            output.write(" ")
-            indented = True
-            pretty_indent(e2, output, current + indent, indent)
-        else:
-            pretty_indent(expr[0], output, current, indent)
-
-        while left:
-            e = left.pop(0)
-            if isinstance(e, Keyword) and len(left) > 0:
-                e2 = left.pop(0)
-                output.write("\n" + " " * (current + indent))
+        for e in expr:
+            if e.key:
+                output.write(spacing)
                 output.write(":")
-                output.write(escape(e.name))
+                output.write(escape(e.key))
                 output.write(" ")
-                indented = True
-                pretty_indent(e2, output, current + indent, indent)
-            elif indented:
-                output.write("\n" + " " * (current + indent))
-                pretty_indent(e, output, current + indent, indent)
+                pretty_indent(e.value, output, current + indent, indent)
             else:
-                output.write(" ")
-                pretty_indent(e, output, current, indent)
-        if indented:
-            output.write("\n" + (" " * current))
+                output.write(spacing)
+                pretty_indent(e.value, output, current + indent, indent)
+
+            if not spacing:
+                spacing = " "
+
+        if spacing != " ":
+            output.write("\n" + " " * current)
+
         output.write(")")
 
     elif isinstance(expr, str):
         output.write(escape(expr))
-
-    elif isinstance(expr, Keyword):
-        output.write(":")
-        output.write(escape(expr.name))
 
     else:
         raise TypeError(f"{expr!r} is not a s-expression")
@@ -340,7 +342,7 @@ class Parser:
             return a
         return None
 
-    def atom(self) -> str | Keyword | None:
+    def atom(self) -> str | None:
         if self.head.type == "SYMBOL":
             value = self.head.value
             self.next()
@@ -351,17 +353,18 @@ class Parser:
             self.next()
             return value
 
+        return None
+
+    def keyword(self) -> str | None:
         if self.head.type == "KEYWORD":
             value = self.head.value
             self.next()
-            return Keyword(value[1:])
+            return value[1:]
 
         if self.head.type == "ESCAPED_KEYWORD":
             value = str(self.head.value)[2:-1].replace("||", "|")
             self.next()
-            return Keyword(value)
-
-        return None
+            return value
 
     def list(self) -> list[SExpr] | None:
         if self.head.type != "OPEN":
@@ -371,11 +374,23 @@ class Parser:
 
         output = []
 
-        while (a := self.sexpr()) is not None:
-            output.append(a)
+        for i in range(1000):
+            key = self.keyword()
+            value = self.sexpr()
+
+            if value is None:
+                if key is None:
+                    break
+                raise ParseError(
+                    f"Expected s-expression after keyword {key} but got {self.head.type}"
+                )
+
+            output.append(Option(key or "", value))
+        else:
+            raise ParseError(f"Expected CLOSE, but ran for more than {i} iterations")
 
         if self.head.type != "CLOSE":
-            raise RuntimeError(f"Expected CLOSE, but got {self.head.type}")
+            raise ParseError(f"Expected CLOSE, but got {self.head.type}")
 
         self.next()
 
