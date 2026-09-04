@@ -1,12 +1,23 @@
-# def test_sourcefile():
-#     mid = jvm.AbsMethodID.decode("jpamb.cases.Simple.divideByZero:()I")
-#     assert jpamb.sourcefile(mid).absolute(), "should be absolute"
-#     assert jpamb.sourcefile(mid).name == "Simple.java", "should be Simple.java"
-#     assert jpamb.sourcefile(mid).exists(), "should exist"
-#
-#
-# def test_classfile():
-#     mid = jvm.AbsMethodID.decode("jpamb.cases.Simple.divideByZero:()I")
-#     assert jpamb.classfile(mid).absolute(), "should be absolute"
-#     assert jpamb.classfile(mid).name == "Simple.class", "should be Simple.class"
-#     assert jpamb.classfile(mid).exists(), "should exist"
+from hypothesis import assume, given, note
+from hypothesis import strategies as st
+
+import sexpr
+import jpamb
+
+
+@st.composite
+def st_analysis_infos(draw):
+    return jpamb.AnalysisInfo(
+        name=draw(st.text()),
+        version=draw(st.text()),
+        group=draw(st.text()),
+        tags=draw(st.tuples(st.text())),
+        system=draw(st.text()),
+    )
+
+
+@given(st_analysis_infos())
+def test_analysis_info_from_sexpr(analysis):
+    expr = sexpr.sexpr(analysis)
+    note(expr)
+    assert analysis == jpamb.AnalysisInfo.from_sexpr(expr)

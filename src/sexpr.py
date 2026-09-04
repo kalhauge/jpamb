@@ -13,6 +13,11 @@ class Option[T](NamedTuple):
     def unkeyed(cls, value: T) -> Self:
         return cls("", value)
 
+    def unitem(self) -> T:
+        if self.key:
+            raise ValueError("Can't unitem a keyed option")
+        return self.value
+
     def __repr__(self):
         if self.key:
             return f"option({self.key!r}, {self.value!r})"
@@ -53,8 +58,6 @@ type LikeSExpr = (
 class ParseError(BaseException):
     msg: str
 
-    pass
-
 
 def sexpr(obj: LikeSExpr) -> SExpr:
     if isinstance(obj, ToSExpr):
@@ -81,10 +84,13 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
-def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[Option[SExpr]]:
+def data(
+    name: str, /, *args: LikeSExpr, deep=True, **kwargs: LikeSExpr
+) -> list[Option[SExpr]]:
+    assert isinstance(name, str)
     exp: list[Option[SExpr]] = [Option.unkeyed(name)]
-    exp += values(args)
-    exp += items(kwargs.items())
+    exp += values(args, deep=deep)
+    exp += items(kwargs.items(), deep=deep)
     return exp
 
 

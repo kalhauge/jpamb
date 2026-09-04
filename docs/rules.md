@@ -118,7 +118,7 @@ This should output 5 lines:
 - Version number
 - Your team/group name
 - Tags describing your approach (e.g., "static,dataflow")
-- Either your system info (to help us improve and for science) or "no" (for privacy)
+- Either your system info (to help us improve and for science), or an empty line (for privacy)
 
 ```
 bytecoder

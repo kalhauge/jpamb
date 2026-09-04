@@ -18,7 +18,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NoReturn, Self, get_origin
+from typing import NoReturn, Self, get_origin, get_args
 from copy import deepcopy
 
 from typing import Self
@@ -153,8 +153,11 @@ class WithSExpr(ABC):
                 assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
                 return tuple(expr)
             case _ if get_origin(t) is tuple:
-                assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
-                return tuple(expr)
+                args = get_args(t)
+                if len(args) == 2 and args[1] == Ellipsis:
+                    assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
+                    return tuple(cls.cast_to(e.unitem(), args[0]) for e in expr)
+                assert False
 
         print(f"Failed to cast {expr} of type {get_origin(expr)} to {t}")
         return expr
@@ -180,23 +183,24 @@ class AnalysisInfo(WithSExpr):
     version: str
     group: str
     tags: tuple[str, ...]
-    system: str | None
+    system: str
 
     @staticmethod
     def parse(output: str):
-        try:
-            [name, version, group, ltags, lsystem] = output.splitlines()
-        except ValueError:
+        lines = output.splitlines()
+        if len(lines) == 5:
+            [name, version, group, ltags, lsystem] = lines
+        elif len(lines) == 4:
+            [name, version, group, ltags] = lines
+            lsystem = ""
+        else:
             raise ValueError(f"Expected 5 lines, but got {len(output.splitlines())}")
 
         tags = []
         for t in ltags.split(","):
             tags.append(t.strip())
 
-        if lsystem.strip().lower() == "no":
-            system = None
-        else:
-            system = lsystem.strip()
+        system = lsystem.strip()
 
         return AnalysisInfo(
             name.strip(),
