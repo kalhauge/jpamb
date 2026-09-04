@@ -199,3 +199,28 @@ def test_analysis_symmary_from_sexpr(it):
     expr = sexpr.sexpr(it)
     note(expr)
     assert it == jpamb.AnalysisSummary.from_sexpr(expr)
+
+
+@st.composite
+def st_analysis_states(draw):
+    config = draw(st_analysis_configs())
+    return jpamb.AnalysisState(
+        config=config,
+        progress=draw(st.integers(min_value=0, max_value=len(config.experiments))),
+        results=draw(
+            st.dictionaries(
+                test_jvm.st_absmethodid(),
+                st.lists(st_analysis_results()),
+            )
+        ),
+        categories=draw(
+            st.dictionaries(st_categories().map(lambda c: c.name), st_trackers())
+        ),
+    )
+
+
+@given(st_analysis_states())
+def test_analysis_states_from_sexpr(it):
+    expr = sexpr.sexpr(it)
+    note(expr)
+    assert it == jpamb.AnalysisState.from_sexpr(expr)

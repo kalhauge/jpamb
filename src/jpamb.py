@@ -1011,41 +1011,18 @@ def mean(results):
 
 
 @dataclass
-class AnalysisState(WithSExpr):
+class AnalysisState:
     config: AnalysisConfig
     progress: int = 0
     results: dict[jvm.AbsMethodID, list[AnalysisResult]] = field(default_factory=dict)
     categories: dict[str, Tracker] = field(default_factory=dict)
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.data(
-            self.sexpr_name,
-            config=sexpr.sexpr(self.config),
-            progress=sexpr.sexpr(self.progress),
-            results=sexpr.items(
-                (k.encode(), sexpr.sexpr(v)) for k, v in self.results.items()
-            ),
-            categories=sexpr.items(
-                (k, sexpr.sexpr(v)) for k, v in self.categories.items()
-            ),
-        )
+        return sexpr.from_dataclass(self)
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        kwargs = cls.get_kwargs(expr)
-        config = AnalysisConfig.from_sexpr(cls.get_key("config", kwargs))
-        progress = cls.cast_to(cls.get_key("progress", kwargs), int)
-
-        res_dict = sexpr.unlist(kwargs["results"])
-        results = {}
-        for k, v in res_dict.items():
-            res_list = [AnalysisResult.from_sexpr(inner) for inner in v]
-            results[jvm.AbsMethodID.decode(k)] = res_list
-
-        cat_dict = sexpr.unlist(kwargs["categories"])
-        categories = {k: Tracker.from_sexpr(v) for k, v in cat_dict.items()}
-
-        return cls(config, progress, results, categories)
+        return sexpr.dataclass_from_sexpr(expr, target=cls)
 
     def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool | None:
         no_experiments = len(self.config.experiments)
