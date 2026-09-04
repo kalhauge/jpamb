@@ -81,8 +81,8 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
 
-def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[SExpr]:
-    exp: list[SExpr] = [Option.unkeyed(name)]
+def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[Option[SExpr]]:
+    exp: list[Option[SExpr]] = [Option.unkeyed(name)]
     exp += values(args)
     exp += items(kwargs.items())
     return exp
@@ -91,13 +91,13 @@ def data(name: str, /, *args: SExpr, **kwargs: SExpr) -> list[SExpr]:
 def sequence(
     values: Iterable[LikeSExpr],
     *,
-    keyfmt: Callable[..., str] = str,
+    keyfmt: Callable[[int], str] = str,
     deep=True,
-) -> list[SExpr]:
-    return items(((keyfmt(k), v) for k, v in enumerate(values)), deep=deep)
+) -> list[Option[SExpr]]:
+    return items(enumerate(values), keyfmt=keyfmt, deep=deep)
 
 
-def values(values: Iterable[LikeSExpr], *, deep=True) -> list[SExpr]:
+def values(values: Iterable[LikeSExpr], *, deep=True) -> list[Option[SExpr]]:
     exp = []
     for a in values:
         if deep:
@@ -112,7 +112,7 @@ def items[K](
     *,
     keyfmt: Callable[[K], str] = str,
     deep=True,
-) -> list[SExpr]:
+) -> list[Option[SExpr]]:
     exp = []
     for k, v in items:
         if deep:
@@ -155,7 +155,12 @@ def unlist[T](sexpr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
     if not isinstance(sexpr, list):
         raise UnsexprError("expected list but fund symbol")
 
-    return [handler(v) for v in sexpr]
+    items: list[T] = []
+    for v in sexpr:
+        assert not v.key
+        items.append(handler(v.value))
+
+    return items
 
 
 def undata(sexpr: list[Option[SExpr]]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
@@ -166,6 +171,8 @@ def undata(sexpr: list[Option[SExpr]]) -> tuple[str, list[SExpr], dict[str, SExp
 
     if key.key:
         raise TypeError(f"Unexpected key {key.key} in {sexpr}")
+
+    assert isinstance(key.value, str), "expected first argument to be string"
 
     args = []
     kwargs = {}
@@ -366,7 +373,7 @@ class Parser:
             self.next()
             return value
 
-    def list(self) -> list[SExpr] | None:
+    def list(self) -> list[Option[SExpr]] | None:
         if self.head.type != "OPEN":
             return None
 
