@@ -2,9 +2,23 @@ import io
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, runtime_checkable, Callable
+from typing import NamedTuple, Protocol, runtime_checkable, Callable, TypeIs
 
-type SExpr = list[SExpr] | str
+
+@dataclass(frozen=True, slots=True)
+class Keyword:
+    name: str
+
+
+type SExpr = list[SExpr | Keyword] | str
+
+
+def issexpr(expr: object, *, deep=True) -> TypeIs[SExpr]:
+    if isinstance(expr, list):
+        if deep:
+            return all(isinstance(e, Keyword) or issexpr(e, deep=deep) for e in expr)
+        return True
+    return isinstance(expr, str)
 
 
 @runtime_checkable
@@ -24,7 +38,7 @@ class ParseError(BaseException):
 def sexpr(obj: LikeSExpr) -> SExpr:
     if isinstance(obj, ToSExpr):
         v = obj.__sexpr__()
-        assert isinstance(v, list | str), f"expected s-expr from {obj!r} but got {v!r}"
+        assert issexpr(v, deep=False), f"expected s-expr from {obj!r} but got {v!r}"
         return v
     if isinstance(obj, str):
         return obj
@@ -35,7 +49,7 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     if obj is None:
         return "-"
     if isinstance(obj, Iterable):
-        return list(map(sexpr, obj))
+        return [e if isinstance(e, Keyword) else sexpr(e) for e in obj]
 
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
 
@@ -61,8 +75,8 @@ def values(values: Iterable[LikeSExpr], *, deep=True) -> list[SExpr]:
     for a in values:
         if deep:
             a = sexpr(a)
-        assert isinstance(a, list | str), f"expected s-expr but got {a!r}"
-        assert not (isinstance(a, str) and a.startswith(":"))
+        assert not isinstance(a, Keyword), f"did not expect a keyword"
+        assert issexpr(a), f"expected s-expr but got {a!r}"
         exp += [a]
     return exp
 
@@ -78,8 +92,8 @@ def items[K](
         if deep:
             v = sexpr(v)
         assert isinstance(k, str), f"expected str but got {k!r}"
-        assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
-        exp += [f":{keyfmt(k)}", v]
+        assert issexpr(v), f"expected s-expr but got {v!r}"
+        exp += [Keyword(keyfmt(k)), v]
     return exp
 
 
@@ -89,10 +103,7 @@ def undata(sexpr: SExpr) -> tuple[str, list[SExpr], dict[str, SExpr]]:
 
 def unsymbol(sexpr: SExpr) -> str:
     if not isinstance(sexpr, str):
-        raise UnsexprError("expected symbol but fund list")
-
-    if sexpr.startswith(":"):
-        raise UnsexprError("expected symbol but found keyword")
+        raise UnsexprError("expected symbol but fund list or keyword")
 
     return sexpr
 
@@ -137,9 +148,9 @@ def undata(sexpr: list[SExpr]) -> tuple[str, list[SExpr], dict[str, SExpr]]:
 
     while len(items):
         a = items.pop(0)
-        if isinstance(a, str) and a.startswith(":"):
-            k = a[1:]
-            assert k not in kwargs
+        if isinstance(a, Keyword):
+            k = a.name
+            assert not k in kwargs
             v = items.pop(0)
             kwargs[k] = v
             continue
@@ -175,10 +186,7 @@ def escape(symbol: str) -> str:
     if symbol == "":
         return "||"
 
-    if BAD_SYMBOL.search(symbol) is not None:
-        if symbol.startswith(":"):
-            return f":|{symbol[1:].replace('|', '||')}|"
-
+    if BAD_SYMBOL.search(symbol) is not None or symbol.startswith(":"):
         return f"|{symbol.replace('|', '||')}|"
     else:
         return symbol
@@ -192,9 +200,14 @@ def pretty(expr: SExpr, indent=0) -> str:
 
     if isinstance(expr, list):
         return f"({' '.join([pretty(s) for s in expr])})"
+
     if isinstance(expr, str):
         return escape(expr)
-    return pretty(sexpr(expr))
+
+    if isinstance(expr, Keyword):
+        return ":" + escape(expr.name)
+
+    raise TypeError(f"{expr!r} is not a s-expression")
 
 
 def pretty_indent(expr: SExpr, output, current, indent) -> None:
@@ -209,10 +222,11 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
         e = expr[0]
         left = list(expr[1:])
 
-        if isinstance(e, str) and e.startswith(":") and len(left) > 0:
+        if isinstance(e, Keyword) and len(left) > 0:
             e2 = left.pop(0)
             output.write("\n" + " " * (current + indent))
-            output.write(escape(e))
+            output.write(":")
+            output.write(escape(e.name))
             output.write(" ")
             indented = True
             pretty_indent(e2, output, current + indent, indent)
@@ -221,10 +235,11 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
 
         while left:
             e = left.pop(0)
-            if isinstance(e, str) and e.startswith(":") and len(left) > 0:
+            if isinstance(e, Keyword) and len(left) > 0:
                 e2 = left.pop(0)
                 output.write("\n" + " " * (current + indent))
-                output.write(escape(e))
+                output.write(":")
+                output.write(escape(e.name))
                 output.write(" ")
                 indented = True
                 pretty_indent(e2, output, current + indent, indent)
@@ -237,10 +252,16 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
         if indented:
             output.write("\n" + (" " * current))
         output.write(")")
+
     elif isinstance(expr, str):
         output.write(escape(expr))
+
+    elif isinstance(expr, Keyword):
+        output.write(":")
+        output.write(escape(expr.name))
+
     else:
-        return pretty_indent(sexpr(expr), output, current, indent)
+        raise TypeError(f"{expr!r} is not a s-expression")
 
 
 class Token(NamedTuple):
@@ -258,9 +279,10 @@ def tokenize(code):
     token_specification = [
         ("OPEN", r"\("),  # Open Paren
         ("CLOSE", r"\)"),  # Close Paren
-        ("SYMBOL", r"[^)(\n \t|]+(?![^)(\n \t])"),  # Symbol
-        ("STEP", r"STEP"),  # Symbol
-        ("ESCAPED_SYMBOL", r":?\|([^|]|\|\|)*\|"),  # Symbol
+        ("KEYWORD", r":[^)(\n \t|]+(?![^)(\n \t])"),
+        ("ESCAPED_KEYWORD", r":\|([^|]|\|\|)*\|"),
+        ("SYMBOL", r"[^)(\n \t|:][^)(\n \t|]*(?![^)(\n \t])"),
+        ("ESCAPED_SYMBOL", r"\|([^|]|\|\|)*\|"),
         ("NEWLINE", r"\n"),  # Line endings
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
         ("MISMATCH", r"."),  # Any other character
@@ -318,19 +340,26 @@ class Parser:
             return a
         return None
 
-    def atom(self) -> str | None:
+    def atom(self) -> str | Keyword | None:
         if self.head.type == "SYMBOL":
             value = self.head.value
             self.next()
             return str(value)
 
         if self.head.type == "ESCAPED_SYMBOL":
-            if self.head.value[0] == ":":
-                value = ":" + str(self.head.value)[2:-1].replace("||", "|")
-            else:
-                value = str(self.head.value)[1:-1].replace("||", "|")
+            value = str(self.head.value)[1:-1].replace("||", "|")
             self.next()
             return value
+
+        if self.head.type == "KEYWORD":
+            value = self.head.value
+            self.next()
+            return Keyword(value[1:])
+
+        if self.head.type == "ESCAPED_KEYWORD":
+            value = str(self.head.value)[2:-1].replace("||", "|")
+            self.next()
+            return Keyword(value)
 
         return None
 

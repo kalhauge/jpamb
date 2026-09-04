@@ -96,7 +96,9 @@ def test_pretty():
 
 
 def st_sexpr():
-    return st.recursive(st.text(), extend=lambda xs: st.lists(xs))
+    return st.recursive(
+        st.text(), extend=lambda xs: st.lists(xs | st.text().map(sexpr.Keyword))
+    )
 
 
 @given(st_sexpr())
@@ -111,22 +113,20 @@ def test_tripping(expr):
 
 @given(st_sexpr())
 def test_tripping_indent(expr):
+    note(f"{expr=}")
     string = sexpr.pretty(expr, indent=1)
-    note(string)
+    note(f"{string=}")
     items = sexpr.from_string(string)
     assert len(items) == 1
     assert items[0] == expr
 
 
 def test_data():
-    assert sexpr.data("hello", key="value") == ["hello", ":key", "value"]
+    assert sexpr.data("hello", key="value") == ["hello", sexpr.Keyword("key"), "value"]
 
 
 @given(st.text(), st.lists(st_sexpr()), st.dictionaries(st.text(), st_sexpr()))
 def test_data_tripping(key, args, kwargs):
-    for a in args:
-        assume(isinstance(a, str) and a.startswith(":"))
-
     data = sexpr.data(key, *args, **kwargs)
 
     note(data)
