@@ -285,7 +285,6 @@ class Wager(Prediction):
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        print(cls, expr)
         return sexpr.dataclass_from_sexpr(expr, target=cls)
 
 

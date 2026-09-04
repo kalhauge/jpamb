@@ -3,15 +3,39 @@ import re
 from collections.abc import Iterable, Iterator
 import dataclasses
 from dataclasses import dataclass
-from typing import NamedTuple, Protocol, runtime_checkable, Callable, TypeIs, Self
+from typing import (
+    NamedTuple,
+    Protocol,
+    runtime_checkable,
+    Callable,
+    TypeIs,
+    Self,
+    Sequence,
+)
 
 from functools import partial
 import typing
 
 
-class Option[T](NamedTuple):
+@runtime_checkable
+class Encodable(Protocol):
+    def encode(self) -> str: ...
+
+
+def encode(obj: str | Encodable) -> str:
+    if isinstance(obj, str):
+        return obj
+
+    return obj.encode()
+
+
+@dataclass(frozen=True, slots=True)
+class Option[T]:
     key: str
     value: T
+
+    def __post_init__(self):
+        assert isinstance(self.key, str)
 
     @classmethod
     def unkeyed(cls, value: T) -> Self:
@@ -77,7 +101,7 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     if obj is None:
         return "-"
     if isinstance(obj, dict):
-        return [Option(k, sexpr(v)) for k, v in obj.items()]
+        return [Option(encode(k), sexpr(v)) for k, v in obj.items()]
     if isinstance(obj, Iterable):
         items = []
         for e in obj:
@@ -162,8 +186,9 @@ class FromSExprError(ValueError):
 
 
 @runtime_checkable
-class AsString(Protocol):
-    def decode(self) -> str: ...
+class Decodable(Protocol):
+    @classmethod
+    def decode(cls, code: str) -> Self: ...
 
 
 def from_sexpr(expr: SExpr, *, target: type):
@@ -184,11 +209,42 @@ def from_sexpr(expr: SExpr, *, target: type):
         if tkey is str:
             return dict_from_sexpr(expr, valuefn=partial(from_sexpr, target=tvalue))
 
+        if issubclass(tkey, Decodable):
+            return dict_from_sexpr(
+                expr, keyfn=tkey.decode, valuefn=partial(from_sexpr, target=tvalue)
+            )
+
     if typing.get_origin(target) is tuple:
         args = typing.get_args(target)
+
         if len(args) == 2 and args[1] == Ellipsis:
-            assert isinstance(expr, list), f"Cannot convert {expr} to tuple"
-            return tuple(from_sexpr(e.unitem(), target=args[0]) for e in expr)
+            return tuple(
+                list_from_sexpr(
+                    expr,
+                    handler=partial(from_sexpr, target=args[0]),
+                )
+            )
+
+        return tuple_from_sexpr(
+            expr, handlers=[partial(from_sexpr, target=t) for t in args]
+        )
+
+    if typing.get_origin(target) is set:
+        (arg,) = typing.get_args(target)
+
+        return set(
+            list_from_sexpr(
+                expr,
+                handler=partial(from_sexpr, target=arg),
+            )
+        )
+
+    if typing.get_origin(target) is list:
+        (arg,) = typing.get_args(target)
+        return list_from_sexpr(
+            expr,
+            handler=partial(from_sexpr, target=arg),
+        )
 
     raise NotImplementedError(
         f"No implementation of type {typing.get_origin(target)} to {target}"
@@ -254,8 +310,8 @@ def float_from_sexpr(sexpr: SExpr) -> float:
         raise FromSExprError(e)
 
 
-def int_from_sexpr(sexpr: SExpr) -> float:
-    string = str_from_sexpr(sexpr)
+def int_from_sexpr(expr: SExpr) -> float:
+    string = str_from_sexpr(expr)
 
     try:
         return int(string)
@@ -263,16 +319,33 @@ def int_from_sexpr(sexpr: SExpr) -> float:
         raise FromSExprError(e)
 
 
-def list_from_sexpr[T](sexpr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
-    if not isinstance(sexpr, list):
+def list_from_sexpr[T](expr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
+    if not isinstance(expr, list):
         raise FromSExprError("expected list but fund symbol")
 
     items: list[T] = []
-    for v in sexpr:
+    for v in expr:
         assert not v.key
         items.append(handler(v.value))
 
     return items
+
+
+def tuple_from_sexpr(
+    expr: SExpr, *, handlers: Sequence[Callable[[SExpr], object]]
+) -> tuple:
+    if not isinstance(expr, list):
+        raise FromSExprError("expected list but fund symbol")
+
+    if len(expr) != len(handlers):
+        raise FromSExprError(f"expected {len(handlers)} element but fund {len(expr)}")
+
+    items = []
+    for e, h in zip(expr, handlers):
+        assert not e.key
+        items.append(h(e.value))
+
+    return tuple(items)
 
 
 def dict_from_sexpr[K, V](

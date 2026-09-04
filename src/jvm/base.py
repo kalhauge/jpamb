@@ -30,6 +30,10 @@ class ClassName:
 
     _as_string: str
 
+    def __post_init__(self):
+        if "/" in self._as_string:
+            raise ValueError(f"Use '.' as a seperator in {self._as_string!r}")
+
     @property
     def packages(self) -> list[str]:
         """Get a list of packages"""
@@ -50,11 +54,12 @@ class ClassName:
         """Get the elements of the name"""
         return self._as_string.split(".")
 
-    def encode(self) -> str:
-        return self._as_string
-
     def slashed(self) -> str:
         return "/".join(self.parts)
+
+    @classmethod
+    def from_slashed(cls, code: str) -> Self:
+        return cls.from_parts(*code.split("/"))
 
     def dotted(self) -> str:
         return self._as_string
@@ -65,13 +70,16 @@ class ClassName:
     def __repr__(self) -> str:
         return f"ClassName({self.dotted()!r})"
 
-    @staticmethod
-    def decode(input: str) -> "ClassName":
-        return ClassName(input)
+    @classmethod
+    def decode(cls, code: str) -> Self:
+        return cls(code)
 
-    @staticmethod
-    def from_parts(*args: str) -> "ClassName":
-        return ClassName(".".join(args))
+    def encode(self) -> str:
+        return self._as_string
+
+    @classmethod
+    def from_parts(cls, *args: str) -> Self:
+        return cls(".".join(args))
 
 
 @total_ordering
@@ -110,12 +118,14 @@ class Type(ABC):
                     r = Float()
                 case "D":
                     r = Double()
+                case "A":
+                    r = Reference()
                 case "L":
                     i += 1
                     start = i
                     while input[i] != ";":
                         i += 1
-                    r = Object(ClassName.decode(input[start:i]))
+                    r = Object(ClassName.from_slashed(input[start:i]))
                 case "[":  # ]
                     stack.append(Array)
                     i += 1
@@ -156,7 +166,7 @@ class Type(ABC):
                 case "boolean":
                     return Boolean()
                 case "string":
-                    return Object(ClassName("java/lang/String"))
+                    return Object(ClassName("java.lang.String"))
 
         json = json_dict(json)
 
@@ -167,7 +177,7 @@ class Type(ABC):
                 case "array":
                     return Array(Type.from_json(json["type"]))
                 case "class":
-                    return Object(ClassName.decode(json_str(json["name"])))
+                    return Object(ClassName.from_slashed(json_str(json["name"])))
                 case kind:
                     raise NotImplementedError(
                         f"Unknown kind {kind}, in Type.from_json: {json!r}"
@@ -459,9 +469,6 @@ class ParameterType:
 
         return ParameterType(tuple(params))
 
-    def math(self):
-        return "double"
-
 
 METHOD_ID_RE_RAW = r"(?P<method_name>.*)\:\((?P<params>.*)\)(?P<return>.*)"
 METHOD_ID_RE = re.compile(METHOD_ID_RE_RAW)
@@ -475,10 +482,14 @@ class MethodID:
     params: ParameterType
     return_type: Type | None
 
+    def __post_init__(self):
+        if "." in self.name:
+            raise ValueError(f"No '.' allowed in name: {self.name!r}")
+
     @staticmethod
     def decode(input: str):
         if (match := METHOD_ID_RE.match(input)) is None:
-            raise ValueError("invalid method name: %r", input)
+            raise ValueError(f"invalid method name: {input!r}")
 
         return_type = None
         if match["return"] != "V":
@@ -533,7 +544,7 @@ class Encodable(Protocol):
     def encode(self) -> str: ...
 
 
-ABSOLUTE_RE = re.compile(r"(?P<class_name>.+)\.(?P<rest>.*)")
+ABSOLUTE_RE = re.compile(r"(?P<class_name>.+)\.(?P<rest>.+)")
 
 
 @dataclass(frozen=True)
@@ -547,9 +558,9 @@ class Absolute[T: Encodable](ABC):
         )
 
     @classmethod
-    def decode_with(cls, input, decode: Callable[[str], T]) -> "Self":
-        if (match := ABSOLUTE_RE.match(input)) is None:
-            raise ValueError("invalid absolute method name: %r", input)
+    def decode_with(cls, code: str, decode: Callable[[str], T]) -> "Self":
+        if (match := ABSOLUTE_RE.match(code)) is None:
+            raise ValueError(f"invalid absolute method name: {code!r}")
 
         return cls(ClassName.decode(match["class_name"]), decode(match["rest"]))
 
@@ -575,8 +586,8 @@ def json_dict(json: JSON) -> dict[str, JSON]:
 @dataclass(frozen=True, order=True)
 class AbsMethodID(Absolute[MethodID]):
     @classmethod
-    def decode(cls, input) -> "Self":
-        return cls.decode_with(input, MethodID.decode)
+    def decode(cls, code: str) -> Self:
+        return cls.decode_with(code, MethodID.decode)
 
     @property
     def methodid(self):
@@ -588,7 +599,7 @@ class AbsMethodID(Absolute[MethodID]):
             raise NotImplementedError(f"Cannot handle {json!r}")
 
         return cls(
-            classname=ClassName.decode(json_str(json_dict(json["ref"])["name"])),
+            classname=ClassName.from_slashed(json_str(json_dict(json["ref"])["name"])),
             extension=MethodID(
                 name=json_str(json["name"]),
                 params=ParameterType.from_json(json["args"]),
@@ -603,12 +614,16 @@ class AbsMethodID(Absolute[MethodID]):
     def __sexpr__(self) -> sexpr.SExpr:
         return self.encode()
 
+    @classmethod
+    def from_sexpr(cls, expr) -> sexpr.SExpr:
+        return cls.decode(sexpr.str_from_sexpr(expr))
+
 
 @dataclass(frozen=True, order=True)
 class AbsFieldID(Absolute[FieldID]):
     @classmethod
-    def decode(cls, input: str) -> "Self":
-        return cls.decode_with(input, FieldID.decode)
+    def decode(cls, code: str) -> "Self":
+        return cls.decode_with(code, FieldID.decode)
 
     @property
     def fieldid(self):
@@ -671,7 +686,7 @@ class Value:
 
     @classmethod
     def string(cls, n: str) -> Self:
-        return cls(Object(ClassName("java/lang/String")), n)
+        return cls(Object(ClassName("java.lang.String")), n)
 
     @classmethod
     def char(cls, char: str) -> Self:

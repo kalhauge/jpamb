@@ -158,7 +158,7 @@ class Push(Opcode):
                     case 5:
                         return "iconst_5"
                 return f"ldc [{self.value.value}]"
-            case jvm.Object(cn) if cn == jvm.ClassName("java/lang/String"):
+            case jvm.Object(cn) if cn == jvm.ClassName("java.lang.String"):
                 return "ldc"
             case jvm.Reference():
                 assert self.value.value is None, f"what is {self.value}"
@@ -185,7 +185,7 @@ class Push(Opcode):
                     return "iconst_i"
                 else:
                     return "ldc"
-            case jvm.Object(cn) if cn.name == "java/lang/String":
+            case jvm.Object(cn) if cn.name == "java.lang.String":
                 return "ldc"
             case jvm.Reference():
                 return "aconst_null"
@@ -850,7 +850,7 @@ class Get(Opcode):
     def from_json(cls, json: dict) -> "Opcode":
         # Construct field object from the json data
         field = jvm.AbsFieldID(
-            classname=jvm.ClassName.decode(json["field"]["class"]),
+            classname=jvm.ClassName.from_slashed(json["field"]["class"]),
             extension=jvm.FieldID(
                 name=json["field"]["name"],
                 type=jvm.Type.from_json(json["field"]["type"]),
@@ -975,7 +975,10 @@ class New(Opcode):
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
-        return cls(offset=json["offset"], classname=jvm.ClassName.decode(json["class"]))
+        return cls(
+            offset=json["offset"],
+            classname=jvm.ClassName.from_slashed(json["class"]),
+        )
 
     def real(self) -> str:
         return f"new {self.classname.slashed()}"

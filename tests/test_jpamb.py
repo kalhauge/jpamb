@@ -4,6 +4,8 @@ from hypothesis import strategies as st
 import sexpr
 import jpamb
 
+from . import test_jvm
+
 
 @st.composite
 def st_analysis_infos(draw):
@@ -156,7 +158,14 @@ def st_analysis_configs(draw):
     return jpamb.AnalysisConfig(
         cmd=draw(st.lists(st.text()).map(tuple)),
         analysis=draw(st_analysis_infos()),
-        experiments=tuple(),  # TODO
+        experiments=draw(
+            st.lists(
+                st.tuples(
+                    test_jvm.st_absmethodid(),
+                    st.sets(st_queries()),
+                )
+            ).map(tuple)
+        ),
         iterations=draw(st.integers(min_value=0)),
         timeout=draw(st.floats(min_value=0)),
     )
@@ -173,7 +182,12 @@ def test_analysis_configs_from_sexpr(it):
 def st_analysis_summaries(draw):
     return jpamb.AnalysisSummary(
         config=draw(st_analysis_configs()),
-        results={},  # TODO
+        results=draw(
+            st.dictionaries(
+                test_jvm.st_absmethodid(),
+                st.lists(st_analysis_results()),
+            )
+        ),
         categories=draw(
             st.dictionaries(st_categories().map(lambda c: c.name), st_wagers())
         ),
