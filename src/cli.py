@@ -153,7 +153,7 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                 for step in steps:
                     if not isinstance(step, list):
                         raise TypeError(f"expected list, not {step}")
-                    (k, _, kwargs) = sexpr.undata(step)
+                    (k, _, kwargs) = sexpr.dict_from_sexpr(step)  # TODO
                     if k == "step":
                         no_steps += 1
 
@@ -218,6 +218,7 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
 )
 @click.option(
     "--report",
+    default=None,
     type=click.File("w"),
     help="write the report here (disables filter)",
 )
@@ -268,13 +269,10 @@ def analyse(
         # jpamb.check_state_equality(state, recreated)
 
         summary = state.summary()
-        summary_sexpr = sexpr.sexpr(summary)
-        summary_recreated = jpamb.AnalysisSummary.from_sexpr(summary_sexpr)
-        assert summary == summary_recreated
-        return
-
     summary.display()
-    # summary.report()
+
+    if report:
+        summary.report(report)
 
 
 def make_cache(workdir: Path, *, eff: Effect) -> Path:

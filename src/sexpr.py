@@ -1,20 +1,18 @@
+import dataclasses
 import io
 import re
-from collections.abc import Iterable, Iterator
-import dataclasses
+import typing
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
+from functools import partial
 from typing import (
+    Any,
     NamedTuple,
     Protocol,
-    runtime_checkable,
-    Callable,
-    TypeIs,
     Self,
-    Sequence,
+    TypeIs,
+    runtime_checkable,
 )
-
-from functools import partial
-import typing
 
 
 @runtime_checkable
@@ -127,7 +125,8 @@ def data(
 
 def sexprtag(cls: type) -> str:
     if getattr(cls, "__sexprtag__", None):
-        return cls.__sexprtag__
+        assert hasattr(cls, "__sexprtag__")
+        return str(cls.__sexprtag__)
     name = cls.__name__
     result = re.sub(r"(?=[A-Z])", "-", name[1:])
     return (name[0] + result).lower()
@@ -353,7 +352,7 @@ def dict_from_sexpr[K, V](
     *,
     keyfn: Callable[[str], K] = str,
     valuefn: Callable[[SExpr], V],
-) -> str:
+) -> dict[Any, Any]:
     if not isinstance(sexpr, list):
         raise FromSExprError("expected list but fund symbol")
 
@@ -370,7 +369,7 @@ def data_from_sexpr(
     sexpr: list[Option[SExpr]],
 ) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
-        raise FromSExprError(f"Unexpected expression: {sexpr}")
+        raise FromSExprError(f"Unexpected expression: {sexpr} of type {type(sexpr)}")
 
     key = sexpr[0]
 
@@ -464,10 +463,6 @@ class Token(NamedTuple):
     value: str
     line: int
     column: int
-
-
-class ParseError(Exception):
-    pass
 
 
 def tokenize(code):
@@ -584,7 +579,3 @@ class Parser:
 
         if self.head.type != "CLOSE":
             raise ParseError(f"Expected CLOSE, but got {self.head.type}")
-
-        self.next()
-
-        return output
