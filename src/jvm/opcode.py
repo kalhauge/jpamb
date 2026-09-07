@@ -185,7 +185,7 @@ class Push(Opcode):
                     return "iconst_i"
                 else:
                     return "ldc"
-            case jvm.Object(cn) if cn.name == "java.lang.String":
+            case jvm.Object(cn) if cn.dotted() == "java.lang.String":
                 return "ldc"
             case jvm.Reference():
                 return "aconst_null"

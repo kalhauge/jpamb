@@ -660,7 +660,7 @@ class Value:
                 return str(self.value)
             case Char():
                 return f"'{self.value}'"
-            case Object(cn) if cn.name == "java/lang/String":
+            case Object(cn) if cn.slashed() == "java/lang/String":
                 return f"s'{self.value}'"
             case Array(content):
                 assert isinstance(self.value, Iterable)
