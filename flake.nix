@@ -130,33 +130,30 @@
                       ${pkgs.gnutar}/bin/tar -cf $out $NAME
                     '';
 
-                docker_image =
-                  let
-                    target = pkgs.runCommand "target" { } ''
-                      mkdir -p $out/workspace/target
-                      cp -r ${./target}/. $out/workspace/target
-                    '';
-                  in
-                  pkgs.dockerTools.buildImage {
+                docker_image = pkgs.dockerTools.buildImage {
+                  name = "jpamb";
+                  tag = "latest";
+
+                  copyToRoot = pkgs.buildEnv {
                     name = "jpamb";
-                    tag = "latest";
-
-                    copyToRoot = pkgs.buildEnv {
-                      name = "jpamb";
-                      paths = [
-                        pkgs.coreutils
-                        pkgs.gnumake
-                        jpamb
-                        target
-                      ];
-                    };
-
-                    config = {
-                      Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
-                      WorkingDir = "/workspace";
-                      Env = [ ];
-                    };
+                    paths = [
+                      pkgs.coreutils
+                      pkgs.gnumake
+                      (python.withPackages (py: [
+                        py.pip
+                        py.click
+                        py.runit
+                        py.setuptools
+                      ]))
+                    ];
                   };
+
+                  config = {
+                    Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
+                    WorkingDir = "/workspace";
+                    Env = [ ];
+                  };
+                };
               };
           };
         systems = [

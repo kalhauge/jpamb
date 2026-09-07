@@ -1,6 +1,8 @@
 # The Change Log
 
-## Version X.X.X
+## Version 0.5.0
+
+- Add better report formats
 
 ## Version 0.4.0
 
