@@ -242,12 +242,10 @@ class Suite:
     """The suite!"""
 
     workdir: Path
-    cases: tuple[Case]
+    cases: tuple[Case, ...]
 
     @classmethod
     def from_workdir(cls, workdir: Path, *, eff: Effect):
-        cases = []
-
         case_file = workdir / "target" / "stats" / "cases.txt"
         with (
             eff.context(f"Reading cases from {case_file}"),
@@ -457,6 +455,7 @@ class Suite:
                         "-s",
                         self.classfile(cl).relative_to(self.workdir).as_posix(),
                     ],
+                    timeout=60,
                     eff=eff,
                 )
                 file = self.decompiledfile(cl)
@@ -494,9 +493,9 @@ class Suite:
 
     def document(self, *, eff: Effect):
         with eff.context("Documenting"):
-            opcode_counts = Counter()
-            opcode_urls = {}
-            class_opcodes = {}
+            opcode_counts: Counter[str] = Counter()
+            opcode_urls: dict[str, tuple[str, str, jvm.Opcode]] = {}
+            class_opcodes: dict[str, set[str]] = {}
             for case in self.cases:
                 class_opcodes[str(case.methodid.classname).split(".")[-1]] = set()
                 list_ops = []

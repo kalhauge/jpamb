@@ -27,8 +27,10 @@ jpamb = "cli:cli"
 [dependency-groups]
 dev = [
     "hypothesis>=6.165.5",
+    "mypy>=1.14",
     "pytest>=8.3.4",
     "ruff>=0.16.5",
+    "types-PyYAML",
 ]
 
 [tool.pytest.ini_options]
@@ -36,6 +38,20 @@ testpaths = ["tests"]
 markers = [
   "slow: mark test as slow"
 ]
+
+[tool.mypy]
+files = ["src"]
+mypy_path = "src"
+explicit_package_bases = true
+python_version = "3.13"
+check_untyped_defs = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "runit.*"
+ignore_missing_imports = true
 
 [tool.ruff.lint]
 ignore = ["F841", "F403"]

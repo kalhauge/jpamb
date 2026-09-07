@@ -16,7 +16,7 @@ from collections import namedtuple
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import ClassVar, NoReturn, Optional, Protocol, Self
+from typing import Any, ClassVar, NoReturn, Optional, Protocol, Self
 
 import sexpr
 from sexpr import SExpr
@@ -89,9 +89,9 @@ class Type(ABC):
 
     @staticmethod
     def decode(input) -> tuple["Type", str]:
-        r, stack = None, []
+        r: Type | None = None
+        stack: list[type[Array]] = []
         i = 0
-        r = None
         while i < len(input):
             match input[i]:
                 case "Z":
@@ -133,7 +133,7 @@ class Type(ABC):
 
         return r, input[i + 1 :]
 
-    def __lt__(self, other):
+    def __lt__(self, other):  # type: ignore[misc]
         return self.encode() <= other.encode()
 
     def __eq__(self, other):
@@ -312,7 +312,7 @@ class Object(Type):
     A reference to an object of an known class.
     """
 
-    _instance: ClassVar = {}
+    _instance: ClassVar[dict[object, Any]] = {}
 
     def __new__(cls, subtype) -> "Self":
         if subtype not in cls._instance:
@@ -337,7 +337,7 @@ class Array(Type):
     A reference to an array of known type
     """
 
-    _instance: ClassVar = {}
+    _instance: ClassVar[dict[object, Any]] = {}
 
     def __new__(cls, subtype) -> "Self":
         if subtype not in cls._instance:
@@ -711,7 +711,7 @@ class Value:
                     f"0x{self.value + 1 if self.value is not None else 0:04x}",
                 ]
             case t:
-                res = sexpr.sexpr(self.value)  # ty: ignore
+                res = sexpr.sexpr(self.value)  # type: ignore[arg-type] # ty: ignore
                 return [sexpr.sexpr(t.math()), res]
 
     def math(self) -> str:

@@ -70,6 +70,7 @@ class Frame:
         locals = ", ".join(f"{k}:{v}" for k, v in enumerate(self.locals))
         return f"<{{{locals}}}, {self.stack}, {self.pc}>"
 
+    @staticmethod
     def from_method(method: jvm.Method) -> "Frame":
         return Frame(
             [None] * method.max_locals,
@@ -123,9 +124,8 @@ class HeapObject(HeapValue):
     fields: dict[jvm.FieldID, jvm.Value]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return [f"class:{self.classname}"] + [
-            item for v in self.fields for item in v.__sexpr__()
-        ]
+        out: list[sexpr.SExpr] = [f"class:{self.classname}"]
+        return out + [item for v in self.fields for item in v.__sexpr__()]
 
 
 @dataclass

@@ -302,8 +302,8 @@ def analyse(ctx, program, timeout, format, iterations):
 
     bymethod = {}
 
-    category_success = Counter()
-    category_count = Counter()
+    category_success: Counter[str] = Counter()
+    category_count: Counter[str] = Counter()
 
     case_methods = ctx.suite.case_methods()
 
@@ -331,7 +331,7 @@ def analyse(ctx, program, timeout, format, iterations):
     with eff.context("Scoring"):
         for methodid, correct in sorted(case_methods.items()):
             output = bymethod[methodid]
-            _score = 0
+            _score: float = 0
 
             if not output["iterations"]:
                 eff.warning(f"{methodid}: no iterations")
@@ -380,7 +380,7 @@ def mean(results):
 def dump_table(result):
     bymethod = result["bymethod"]
 
-    classes = {}
+    classes: dict[jvm.ClassName, set[jvm.AbsMethodID]] = {}
     for m in bymethod:
         classes.setdefault(m.classname, set()).add(m)
 
