@@ -1,0 +1,8 @@
+all:
+	tar -xf autograder.tar
+	cd jpamb
+	python -m venv .venv
+	jpamb validate --format autolab ../report.sexp
+
+clean:
+	rm -rf ../report.sexp jpamb
