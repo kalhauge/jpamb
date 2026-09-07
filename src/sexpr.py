@@ -518,6 +518,7 @@ class Parser:
         return cls(next(stream), stream)
 
     def next(self):
+        before = self.head
         try:
             self.head = next(self.stream)
         except StopIteration:
@@ -562,7 +563,7 @@ class Parser:
 
         output = []
 
-        for i in range(1000):
+        for i in range(2000):
             key = self.keyword()
             value = self.sexpr()
 
@@ -579,3 +580,7 @@ class Parser:
 
         if self.head.type != "CLOSE":
             raise ParseError(f"Expected CLOSE, but got {self.head.type}")
+
+        self.next()
+
+        return output

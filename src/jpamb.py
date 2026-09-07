@@ -757,10 +757,10 @@ class Duration:
 class AnalysisResult:
     response: Response
     duration: Duration
-    calibrates: list[int]
+    calibrates: tuple[int, ...]
 
     def __post_init__(self):
-        if not isinstance(self.calibrates, list):
+        if not isinstance(self.calibrates, tuple):
             raise TypeError(f"Expected tuple, but got {self.calibrates}")
 
     def __sexpr__(self) -> sexpr.SExpr:
@@ -897,7 +897,6 @@ class AnalysisSummary(WithSExpr):
         return sexpr.dataclass_from_sexpr(expr, target=cls)
 
     def score_results(self):
-
         byclasses = {}
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
@@ -940,7 +939,6 @@ class AnalysisSummary(WithSExpr):
         return total_score, total_abs_time, total_rel_time, total_results, groups
 
     def report(cls, file: File) -> None:
-
         content = sexpr.pretty(cls.__sexpr__())
         verify_summary(content)
         try:

@@ -29,9 +29,9 @@ def st_sexpr():
 @given(st_sexpr())
 def test_tripping(expr):
     string = sexpr.pretty(expr)
-    note(string)
+    note(f"{string=}")
     items = sexpr.from_string(string)
-    note(items)
+    note(f"{items=}")
     assert len(items) == 1
     assert items[0] == expr
 
