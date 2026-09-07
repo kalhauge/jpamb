@@ -36,7 +36,7 @@ BAD_SYMBOL = re.compile("[)(\n \t|]")
 
 
 def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
-    exp = [name]
+    exp: list[SExpr] = [name]
 
     for a in args:
         assert isinstance(a, list | str), f"expected s-expr but got {a!r}"
@@ -51,7 +51,7 @@ def data(name: str, *args: object, **kwargs: object) -> list[SExpr]:
 
 
 def sequence(values: Iterable[object]) -> list[SExpr]:
-    exp = []
+    exp: list[SExpr] = []
     for k, v in enumerate(values):
         assert isinstance(v, list | str), f"expected s-expr but got {v!r}"
         exp += [f":{k}", v]
@@ -221,8 +221,8 @@ class Parser:
     def sexpr(self) -> SExpr | None:
         if (a := self.list()) is not None:
             return a
-        if (a := self.atom()) is not None:
-            return a
+        if (b := self.atom()) is not None:
+            return b
         return None
 
     def atom(self) -> str | None:

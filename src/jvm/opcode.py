@@ -27,12 +27,13 @@ class Opcode(ABC):
     def __post_init__(self):
         for f in fields(self):
             v = getattr(self, f.name)
-            assert isinstance(v, f.type), (  # ty: ignore
+            assert isinstance(v, f.type), (  # type: ignore[arg-type] # ty: ignore
                 f"Expected {f.name!r} to be type {f.type}, but was {v!r}, in {self!r}"
             )
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
+        opr: type[Opcode]
         match json["opr"]:
             case "push":
                 opr = Push
@@ -122,7 +123,7 @@ class Opcode(ABC):
         )
 
     def __sexpr__(self) -> SExpr:
-        value: SExpr = self.__str__().split()  # ty: ignore
+        value: SExpr = self.__str__().split()  # type: ignore[assignment] # ty: ignore
         return value
 
 
@@ -800,7 +801,7 @@ class If(Opcode):
         }
 
         # For reference comparisons
-        ref_cmp_map = {"is": "if_acmpeq", "isnot": "if_acmpne"}
+        ref_cmp_map: dict[CmpOpr | str, str] = {"is": "if_acmpeq", "isnot": "if_acmpne"}
 
         if self.condition in int_cmp_map:
             return f"{int_cmp_map[self.condition]} {self.target}"
@@ -928,7 +929,7 @@ class Ifz(Opcode):
         }
 
         # For reference comparisons against null
-        ref_cmp_map = {
+        ref_cmp_map: dict[CmpOpr | str, str] = {
             "is": "ifnull",  # value == null
             "isnot": "ifnonnull",  # value != null
         }
