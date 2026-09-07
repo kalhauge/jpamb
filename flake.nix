@@ -106,14 +106,14 @@
                           max_score = 70 * 6;
                           description = "The total score";
                           optional = false;
-                          started = false;
+                          starred = false;
                         }
                       ];
                     };
                   in
                   pkgs.runCommand "syntactic-assign.tar"
                     {
-                      buildInputs = with pkgs; [ yj ];
+                      buildInputs = with pkgs; [ yq ];
                       json = builtins.toJSON config;
                     }
                     ''
@@ -123,7 +123,8 @@
                       cp ${grader} $NAME/autograde.tar
                       cp ${./autolab/syntactic}/syntactic.rb $NAME/$NAME.rb
                       cp ${./autolab/syntactic}/scoreboard.json $NAME
-                      echo "$json" | yj -jy > $NAME/$NAME.yml
+
+                      echo "$json" > $NAME/$NAME.yml
                       chmod a+rw -R $NAME
                       ${pkgs.gnutar}/bin/tar -cf $out $NAME
                     '';
