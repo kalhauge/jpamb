@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+import re
 
 import click
 
@@ -21,8 +22,6 @@ class Context:
 
 
 def re_parser(ctx_, parms_, expr):
-    import re
-
     if expr:
         return re.compile(expr)
 
@@ -241,7 +240,10 @@ def analyse(
         os.chdir(ctx.suite.workdir)
 
     if step_wise and report:
-        raise click.UserError("Cannot produce report in stepwise fassion")
+        raise click.UsageError("Cannot produce report in step wise mode")
+
+    if filter != re.compile(".*") and report:
+        raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
     experiments = []
     for methodid, expected in sorted(ctx.suite.case_methods().items()):
@@ -294,10 +296,24 @@ def analyse(
     except FileNotFoundError:
         pass
 
-    summary.display()
-
     if report:
         summary.report(file=report, eff=eff)
+    else:
+        summary.display()
+
+
+@cli.command()
+@click.pass_obj
+@click.argument(
+    "report",
+    default=None,
+    type=click.File("r"),
+)
+def validate(ctx, report):
+    """Validate the report as a correct report, and score it."""
+    summary = jpamb.AnalysisSummary.from_sexpr(sexpr.from_string(report.read())[0])
+
+    summary.display()
 
 
 @cli.command()

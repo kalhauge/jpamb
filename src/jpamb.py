@@ -307,7 +307,6 @@ class Response:
             categories = {}
 
         total = 0
-        print(self.predictions)
         for q, prd in self.predictions.items():
             total += prd.as_wager(categories).score(q in correct)
         return total
@@ -1106,10 +1105,3 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     assert s1.progress == s2.progress, (
         f"Progress differ\n{s1.progress}\n\n{s2.progress}"
     )
-
-
-# def verify_summary(summary_str: str) -> bool:
-#     print(sexpr.sexpr(summary_str))
-#     summary = AnalysisSummary.from_sexpr(sexpr.sexpr(summary_str))
-#
-#     return summary.score_results()
