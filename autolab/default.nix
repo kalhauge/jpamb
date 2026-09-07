@@ -27,13 +27,13 @@
         in
         pkgs.runCommand "${config.name}.tar"
           {
-            inherit (config) name;
             json = builtins.toJSON config.configuration;
             passthru = {
               config = config.configuration;
             };
           }
           ''
+            name=${config.name}
             mkdir "$name"
 
             cp ${./autograde-Makefile} "$name/autograde-Makefile"
