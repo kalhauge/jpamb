@@ -5,8 +5,6 @@ This module provides the basic data model for working with the JPAMB.
 
 """
 
-from click import File
-
 import collections
 import math
 import re
@@ -21,7 +19,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NoReturn, Self, IO
 
+from typing import NoReturn, Self
+
 import runit
+from click import File
 
 import jvm
 import jvm.state
@@ -910,6 +911,32 @@ class AnalysisConfig:
         )
 
 
+@dataclass
+class ResultRow:
+    methodname: str
+    score: float
+    rel_time: float
+    abs_time: float
+
+    def display(self):
+        return [
+            [
+                self.methodname,
+                f"{self.score:>7.2f}",
+                f"{self.rel_time:>7.2f} Db",
+                f"{self.abs_time / 10**9:>7.3f} s",
+            ]
+        ]
+
+
+@dataclass
+class ResultSummary:
+    total_score: float
+    total_rel_time: float
+    total_abs_time: float
+    results: list[tuple[str, list[ResultRow]]]
+
+
 @dataclass(frozen=True)
 class AnalysisSummary(WithSExpr):
     config: AnalysisConfig
@@ -947,14 +974,7 @@ class AnalysisSummary(WithSExpr):
                 rel_time = mean(result.duration.relative for result in results)
                 abs_time = mean(result.duration.absolute for result in results)
 
-                rows += [
-                    [
-                        str(method.extension),
-                        f"{score:>7.2f}",
-                        f"{rel_time:>7.2f} Db",
-                        f"{abs_time / 10**9:>7.3f} s",
-                    ]
-                ]
+                rows += [ResultRow(str(method.extension), score, rel_time, abs_time)]
 
                 total_score += score
                 total_rel_time += rel_time
@@ -963,7 +983,47 @@ class AnalysisSummary(WithSExpr):
 
             groups += [(str(clz), rows)]
 
-        return total_score, total_abs_time, total_rel_time, total_results, groups
+        return ResultSummary(total_score, total_rel_time, total_abs_time, groups)
+
+    def autolab_table(self):
+        student_eval = {
+            "scores": {},
+        }
+
+        results_summary = self.score_results()
+        score = {
+            "Arrays": 0,
+            "Simple": 0,
+            "Calls": 0,
+            "Loops": 0,
+            "Tricky": 0,
+            "Strings": 0,
+            "Dependent": 0,
+            "RelativeTime": 0,
+        }
+
+        for testcase, res in results_summary.results:
+            intermediate_score = sum([s.score for s in res])
+            if re.match(r"jpamb.cases.Arrays", testcase):
+                score["Arrays"] += intermediate_score
+            if re.match(r"jpamb.cases.Simple", testcase):
+                score["Simple"] += intermediate_score
+            if re.match(r"jpamb.cases.Calls", testcase):
+                score["Calls"] += intermediate_score
+            if re.match(r"jpamb.cases.Loops", testcase):
+                score["Loops"] += intermediate_score
+            if re.match(r"jpamb.cases.Tricky", testcase):
+                score["Tricky"] += intermediate_score
+            if re.match(r"jpamb.cases.String", testcase):
+                score["Strings"] += intermediate_score
+            if re.match(r"jpamb.cases.Dependent", testcase):
+                score["Dependent"] += intermediate_score
+
+        score["RelativeTime"] = results_summary.total_rel_time
+
+        student_eval["scores"] = score
+
+        return student_eval
 
     def report(cls, *, file: File, eff: Effect) -> None:
         content = sexpr.pretty(cls.__sexpr__(), indent=2)
@@ -976,7 +1036,8 @@ class AnalysisSummary(WithSExpr):
     def display(self, file=sys.stdout):
         self.config.display(file=file)
 
-        total_score, total_abs_time, total_rel_time, _, groups = self.score_results()
+        res_summary = self.score_results()
+        groups = [(n, r.display()) for n, res in res_summary.results for r in res]
 
         groups += [
             (
@@ -990,9 +1051,9 @@ class AnalysisSummary(WithSExpr):
                     ],
                     [
                         "Total",
-                        f"{total_score:>7.2f}",
-                        f"{total_rel_time:>7.2f} Db",
-                        f"{total_abs_time / 10**9:>7.3f} s",
+                        f"{res_summary.total_score:>7.2f}",
+                        f"{res_summary.total_rel_time:>7.2f} Db",
+                        f"{res_summary.total_abs_time / 10**9:>7.3f} s",
                     ],
                 ],
             )
@@ -1104,4 +1165,14 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     )
     assert s1.progress == s2.progress, (
         f"Progress differ\n{s1.progress}\n\n{s2.progress}"
+    )
+
+
+def verify_summary(summary_str: str) -> None:
+    summary = AnalysisSummary.from_sexpr(sexpr.sexpr(summary_str))
+    autolab_table = summary.autolab_table()
+    result_summary = summary.score_results()
+
+    assert result_summary.total_score == round(
+        sum([v for k, v in autolab_table["score"].items() if k != "RelativeTime"]), 3
     )
