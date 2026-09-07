@@ -17,8 +17,6 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NoReturn, Self, IO
-
 from typing import NoReturn, Self
 
 import runit
@@ -955,10 +953,7 @@ class AnalysisSummary(WithSExpr):
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
 
-        total_score = 0
-        total_abs_time = 0
-        total_rel_time = 0
-        total_results = 0
+        total_score = total_abs_time = total_rel_time = total_results = 0
 
         experiments = dict(self.config.experiments)
         groups = []
@@ -991,36 +986,25 @@ class AnalysisSummary(WithSExpr):
         }
 
         results_summary = self.score_results()
-        score = {
-            "Arrays": 0,
-            "Simple": 0,
-            "Calls": 0,
-            "Loops": 0,
-            "Tricky": 0,
-            "Strings": 0,
-            "Dependent": 0,
-            "RelativeTime": 0,
-        }
+
+        testtypes = [
+            "Arrays",
+            "Simple",
+            "Calls",
+            "Loops",
+            "Tricky",
+            "String",
+            "Dependent",
+        ]
+        score = {k: 0 for k in testtypes}
+        score["RelativeTime"] = 0
 
         for testcase, res in results_summary.results:
-            intermediate_score = sum([s.score for s in res])
-            if re.match(r"jpamb.cases.Arrays", testcase):
-                score["Arrays"] += intermediate_score
-            if re.match(r"jpamb.cases.Simple", testcase):
-                score["Simple"] += intermediate_score
-            if re.match(r"jpamb.cases.Calls", testcase):
-                score["Calls"] += intermediate_score
-            if re.match(r"jpamb.cases.Loops", testcase):
-                score["Loops"] += intermediate_score
-            if re.match(r"jpamb.cases.Tricky", testcase):
-                score["Tricky"] += intermediate_score
-            if re.match(r"jpamb.cases.String", testcase):
-                score["Strings"] += intermediate_score
-            if re.match(r"jpamb.cases.Dependent", testcase):
-                score["Dependent"] += intermediate_score
+            for testtype in testtypes:
+                if re.match(rf"jpamb.cases.{testtype}", testcase):
+                    score[testtype] += sum([s.score for s in res])
 
         score["RelativeTime"] = results_summary.total_rel_time
-
         student_eval["scores"] = score
 
         return student_eval
@@ -1151,7 +1135,7 @@ class AnalysisState:
     def summary(self) -> AnalysisSummary:
         return AnalysisSummary(
             self.config,
-            self.results,  # deepcopy(self.results),
+            self.results,
             {k: v.prediction() for k, v in self.categories.items()},
         )
 
@@ -1173,6 +1157,9 @@ def verify_summary(summary_str: str) -> None:
     autolab_table = summary.autolab_table()
     result_summary = summary.score_results()
 
-    assert result_summary.total_score == round(
+    autolab_total = round(
         sum([v for k, v in autolab_table["score"].items() if k != "RelativeTime"]), 3
+    )
+    assert result_summary.total_score == autolab_total, (
+        f"Autolab score: {autolab_total} differs from summary score: {result_summary.total_score}"
     )
