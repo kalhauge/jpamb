@@ -916,27 +916,66 @@ class ResultRow:
     rel_time: float
     abs_time: float
 
-    def display(self):
+    def as_row(self) -> list[str]:
         return [
-            [
-                self.methodname,
-                f"{self.score:>7.2f}",
-                f"{self.rel_time:>7.2f} Db",
-                f"{self.abs_time / 10**9:>7.3f} s",
-            ]
+            self.methodname,
+            f"{self.score:>7.2f}",
+            f"{self.rel_time:>7.2f} Db",
+            f"{self.abs_time / 10**9:>7.3f} s",
         ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ResultSummary:
+    config: AnalysisConfig
     total_score: float
     total_rel_time: float
     total_abs_time: float
     results: list[tuple[str, list[ResultRow]]]
 
+    def autolab_json(self):
+        student_eval = {
+            "scores": {},
+        }
+
+        total = 0
+
+        for testcase, res in self.results:
+            total += sum([s.score for s in res])
+
+        student_eval["scores"]["Total"] = total
+
+        return student_eval
+
+    def display(self, file=sys.stdout):
+        self.config.display(file=file)
+
+        groups = [(n, [r.as_row() for r in res]) for n, res in self.results]
+
+        groups += [
+            (
+                "Totals",
+                [
+                    [
+                        "Name",
+                        "Score",
+                        "Time (rel)",
+                        "Time (abs)",
+                    ],
+                    [
+                        "Total",
+                        f"{self.total_score:>7.2f}",
+                        f"{self.total_rel_time:>7.2f} Db",
+                        f"{self.total_abs_time / 10**9:>7.3f} s",
+                    ],
+                ],
+            )
+        ]
+        dump_table(groups, align="<>>>", file=file)
+
 
 @dataclass(frozen=True)
-class AnalysisSummary(WithSExpr):
+class AnalysisSummary:
     config: AnalysisConfig
     results: dict[jvm.AbsMethodID, list[AnalysisResult]]
     categories: dict[str, Prediction]
@@ -948,7 +987,7 @@ class AnalysisSummary(WithSExpr):
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.dataclass_from_sexpr(expr, target=cls)
 
-    def score_results(self):
+    def score_results(self) -> ResultSummary:
         byclasses = {}
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
@@ -978,36 +1017,9 @@ class AnalysisSummary(WithSExpr):
 
             groups += [(str(clz), rows)]
 
-        return ResultSummary(total_score, total_rel_time, total_abs_time, groups)
-
-    def autolab_table(self):
-        student_eval = {
-            "scores": {},
-        }
-
-        results_summary = self.score_results()
-
-        testtypes = [
-            "Arrays",
-            "Simple",
-            "Calls",
-            "Loops",
-            "Tricky",
-            "String",
-            "Dependent",
-        ]
-        score = {k: 0 for k in testtypes}
-        score["RelativeTime"] = 0
-
-        for testcase, res in results_summary.results:
-            for testtype in testtypes:
-                if re.match(rf"jpamb.cases.{testtype}", testcase):
-                    score[testtype] += sum([s.score for s in res])
-
-        score["RelativeTime"] = results_summary.total_rel_time
-        student_eval["scores"] = score
-
-        return student_eval
+        return ResultSummary(
+            self.config, total_score, total_rel_time, total_abs_time, groups
+        )
 
     def report(cls, *, file: File, eff: Effect) -> None:
         content = sexpr.pretty(cls.__sexpr__(), indent=2)
@@ -1016,33 +1028,6 @@ class AnalysisSummary(WithSExpr):
             eff.success(f"Succesfully wrote report to {file.name}")
         except OSError:
             eff.error("Failed to write report")
-
-    def display(self, file=sys.stdout):
-        self.config.display(file=file)
-
-        res_summary = self.score_results()
-        groups = [(n, r.display()) for n, res in res_summary.results for r in res]
-
-        groups += [
-            (
-                "Totals",
-                [
-                    [
-                        "Name",
-                        "Score",
-                        "Time (rel)",
-                        "Time (abs)",
-                    ],
-                    [
-                        "Total",
-                        f"{res_summary.total_score:>7.2f}",
-                        f"{res_summary.total_rel_time:>7.2f} Db",
-                        f"{res_summary.total_abs_time / 10**9:>7.3f} s",
-                    ],
-                ],
-            )
-        ]
-        dump_table(groups, align="<>>>", file=file)
 
 
 def dump_table(groups, *, align="<>>>", file):
@@ -1152,14 +1137,16 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     )
 
 
-def verify_summary(summary_str: str) -> None:
-    summary = AnalysisSummary.from_sexpr(sexpr.sexpr(summary_str))
-    autolab_table = summary.autolab_table()
+def verify_summary(summary: AnalysisSummary) -> None:
     result_summary = summary.score_results()
+    autolab_table = result_summary.autolab_table()
 
     autolab_total = round(
         sum([v for k, v in autolab_table["score"].items() if k != "RelativeTime"]), 3
     )
+
     assert result_summary.total_score == autolab_total, (
         f"Autolab score: {autolab_total} differs from summary score: {result_summary.total_score}"
     )
+
+    return autolab_table

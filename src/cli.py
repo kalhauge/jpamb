@@ -296,24 +296,36 @@ def analyse(
     except FileNotFoundError:
         pass
 
+    results = summary.score_results()
     if report:
         summary.report(file=report, eff=eff)
     else:
-        summary.display()
+        result.display()
 
 
 @cli.command()
 @click.pass_obj
+@click.option(
+    "--format",
+    default="user",
+    type=click.Choice(["user", "autolab"], case_sensitive=True),
+)
 @click.argument(
     "report",
     default=None,
     type=click.File("r"),
 )
-def validate(ctx, report):
+def validate(ctx, report, format):
     """Validate the report as a correct report, and score it."""
     summary = jpamb.AnalysisSummary.from_sexpr(sexpr.from_string(report.read())[0])
 
-    summary.display()
+    results = summary.score_results()
+
+    match format:
+        case "user":
+            results.display()
+        case "autolab":
+            print(json.dumps(results.autolab_json(), indent=2))
 
 
 @cli.command()
