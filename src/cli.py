@@ -240,6 +240,9 @@ def analyse(
         eff.warning(f"Changing to {ctx.suite.workdir}")
         os.chdir(ctx.suite.workdir)
 
+    if step_wise and report:
+        raise click.UserError("Cannot produce report in stepwise fassion")
+
     experiments = []
     for methodid, expected in sorted(ctx.suite.case_methods().items()):
         if not filter.search(str(methodid)):
@@ -254,36 +257,47 @@ def analyse(
         eff=eff,
         **kwargs,
     )
+
     assert config is not None, "Failed to instantiate config"
 
-    state = jpamb.AnalysisState(config)
+    cache = ctx.suite.cache_folder(eff=eff)
+
+    state_file = cache / "analysis-state.sexp"
+
+    state = None
+
+    if step_wise:
+        try:
+            code = state_file.read_text()
+            state_cc = sexpr.from_string(code)[0]
+            state = jpamb.AnalysisState.from_sexpr(state_cc)
+            if state.config != config:
+                eff.warning("Old state ran with other config, restarting...")
+                state = None
+        except FileNotFoundError:
+            eff.debug("No analysis cache")
+
+    if not state:
+        state = jpamb.AnalysisState(config)
+
     for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
         if step_wise and not cont:
             eff.error("Stopping early")
-            # TODO Save state to file if step-wise.
+            state_file.write_text(sexpr.pretty(sexpr.sexpr(state), indent=2))
+            eff.info(f"Saved state to {state_file!r}")
             return
 
-        # Check that we can convert to sexpr and back again
-        # state_sexpr = sexpr.sexpr(state)
-        # recreated = jpamb.AnalysisState.from_sexpr(state_sexpr)
-        # jpamb.check_state_equality(state, recreated)
-
         summary = state.summary()
+
+    try:
+        state_file.unlink()
+    except FileNotFoundError:
+        pass
+
     summary.display()
 
     if report:
-        summary.report(report)
-
-
-def make_cache(workdir: Path, *, eff: Effect) -> Path:
-    cache = Path.cwd() / ".cache" / "jpamb"
-    cache.mkdir(parents=True, exist_ok=True)
-
-    cache_gitignore = cache / ".gitignore"
-    if not cache_gitignore.exists():
-        (cache / ".gitignore").write_text("**/*\n")
-
-    return cache
+        summary.report(file=report, eff=eff)
 
 
 @cli.command()

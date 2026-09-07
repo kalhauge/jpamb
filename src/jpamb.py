@@ -14,7 +14,7 @@ import shlex
 import subprocess
 import sys
 from abc import ABC, abstractmethod
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -178,7 +178,20 @@ class Prediction(ABC):
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> "Wager | Category":
-        return sexpr.union_from_sexpr(expr, targets=[Wager, Category])
+        errors = []
+        try:
+            return Wager.from_sexpr(expr)
+        except ValueError as e:
+            errors.append(e)
+
+        try:
+            return Category.from_sexpr(expr)
+        except ValueError:
+            errors.append(e)
+
+        raise FromSExprError(
+            f"Could not parse Prediction: {''.join('\n{e}' for e in errors)}"
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,11 +243,11 @@ class Wager(Prediction):
         return self.wager
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass_values(self)
+        return str(self.wager)
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.dataclass_from_sexpr(expr, target=cls)
+        return cls(float(sexpr.str_from_sexpr(expr)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -251,11 +264,11 @@ class Category(Prediction):
         return self.name
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass_values(self)
+        return self.name
 
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.dataclass_from_sexpr(expr, target=cls)
+        return cls(sexpr.str_from_sexpr(expr))
 
 
 QUERIES = (
@@ -342,6 +355,16 @@ class Suite:
     def stats_folder(self) -> Path:
         """The folder to place the statistics about the repository"""
         return self.workdir / "target" / "stats"
+
+    def cache_folder(self, *, eff: Effect) -> Path:
+        cache = self.workdir / ".cache" / "jpamb"
+        cache.mkdir(parents=True, exist_ok=True)
+
+        cache_gitignore = cache / ".gitignore"
+        if not cache_gitignore.exists():
+            (cache / ".gitignore").write_text("**/*\n")
+
+        return cache
 
     @property
     def classfiles_folder(self) -> Path:
@@ -794,9 +817,14 @@ class Tracker:
 class AnalysisConfig:
     cmd: tuple[str, ...]
     analysis: AnalysisInfo
-    experiments: tuple[tuple[jvm.AbsMethodID, set[str]], ...]
+    experiments: OrderedDict[jvm.AbsMethodID, set[str]]
     iterations: int
     timeout: float
+
+    def __post_init__(self):
+        assert isinstance(self.experiments, OrderedDict), (
+            f"Expected orederd dict but got {self.experiments}"
+        )
 
     def display(self, *, file=sys.stdout):
         file.write(f"Cmd:           {shlex.join(self.cmd)}\n")
@@ -846,7 +874,7 @@ class AnalysisConfig:
         return cls(
             cmd,
             info,
-            experiments=tuple(experiments),
+            experiments=OrderedDict(experiments),
             timeout=timeout,
             iterations=iterations,
         )
@@ -879,7 +907,7 @@ class AnalysisConfig:
         return AnalysisResult(
             response,
             Duration(experiment.time_ns, experiment.time_relative),
-            experiment.calibrations_ns,
+            tuple(experiment.calibrations_ns),
         )
 
 
@@ -938,14 +966,13 @@ class AnalysisSummary(WithSExpr):
 
         return total_score, total_abs_time, total_rel_time, total_results, groups
 
-    def report(cls, file: File) -> None:
-        content = sexpr.pretty(cls.__sexpr__())
-        verify_summary(content)
+    def report(cls, *, file: File, eff: Effect) -> None:
+        content = sexpr.pretty(cls.__sexpr__(), indent=2)
         try:
             file.write(content)
-            print(f"Succesfully wrote report to {file}")
+            eff.success(f"Succesfully wrote report to {file.name}")
         except OSError:
-            print("Failed to write report")
+            eff.error("Failed to write report")
 
     def display(self, file=sys.stdout):
         self.config.display(file=file)
@@ -1013,7 +1040,10 @@ class AnalysisState:
         if iteration >= self.config.iterations:
             return None
 
-        methodid, expected = self.config.experiments[self.progress % no_experiments]
+        # TODO fix this
+        methodid, expected = list(self.config.experiments.items())[
+            self.progress % no_experiments
+        ]
 
         with eff.context(
             f"Iteration {iteration + 1}/{self.config.iterations}, Experiment {self.progress % no_experiments + 1}/{no_experiments} {methodid}"
@@ -1078,8 +1108,8 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     )
 
 
-def verify_summary(summary_str: str) -> bool:
-    print(sexpr.sexpr(summary_str))
-    summary = AnalysisSummary.from_sexpr(sexpr.sexpr(summary_str))
-
-    return summary.score_results()
+# def verify_summary(summary_str: str) -> bool:
+#     print(sexpr.sexpr(summary_str))
+#     summary = AnalysisSummary.from_sexpr(sexpr.sexpr(summary_str))
+#
+#     return summary.score_results()

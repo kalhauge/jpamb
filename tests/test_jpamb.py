@@ -4,6 +4,8 @@ from hypothesis import strategies as st
 import sexpr
 import jpamb
 
+from collections import OrderedDict
+
 from . import test_jvm
 
 
@@ -38,12 +40,13 @@ def st_wagers(draw):
 @given(st_wagers())
 def test_wagers_from_sexpr(wager):
     expr = sexpr.sexpr(wager)
-    note(expr)
+    assert sexpr.issexpr(expr)
+    note(f"{expr=}")
     assert wager == jpamb.Wager.from_sexpr(expr)
 
 
 def test_wagers_examples():
-    assert sexpr.sexpr(jpamb.Wager(0.0)) == [sexpr.item("wager"), sexpr.item("0.0")]
+    assert sexpr.sexpr(jpamb.Wager(0.0)) == "0.0"
 
 
 def isfloat(value: str) -> bool:
@@ -164,7 +167,7 @@ def st_analysis_configs(draw):
                     test_jvm.st_absmethodid(),
                     st.sets(st_queries()),
                 )
-            ).map(tuple)
+            ).map(OrderedDict)
         ),
         iterations=draw(st.integers(min_value=0)),
         timeout=draw(st.floats(min_value=0)),

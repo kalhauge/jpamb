@@ -2,6 +2,7 @@ import dataclasses
 import io
 import re
 import typing
+from collections import OrderedDict
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from functools import partial
@@ -203,7 +204,9 @@ def from_sexpr(expr: SExpr, *, target: type):
     if target is str:
         return str_from_sexpr(expr)
 
-    if typing.get_origin(target) is dict:
+    origin = typing.get_origin(target)
+
+    if origin is dict or origin is OrderedDict:
         tkey, tvalue = typing.get_args(target)
         if tkey is str:
             return dict_from_sexpr(expr, valuefn=partial(from_sexpr, target=tvalue))
@@ -212,7 +215,6 @@ def from_sexpr(expr: SExpr, *, target: type):
             return dict_from_sexpr(
                 expr, keyfn=tkey.decode, valuefn=partial(from_sexpr, target=tvalue)
             )
-
     if typing.get_origin(target) is tuple:
         args = typing.get_args(target)
 
@@ -293,11 +295,11 @@ def dataclass_from_sexpr[T](expr: SExpr, *, target: type[T]) -> T:
     return target(*_args, **_kwargs)
 
 
-def str_from_sexpr(sexpr: SExpr) -> str:
-    if not isinstance(sexpr, str):
-        raise FromSExprError("expected symbol but fund list or keyword")
+def str_from_sexpr(expr: SExpr) -> str:
+    if not isinstance(expr, str):
+        raise FromSExprError(f"expected symbol but found: {expr}")
 
-    return sexpr
+    return expr
 
 
 def float_from_sexpr(sexpr: SExpr) -> float:
@@ -356,7 +358,7 @@ def dict_from_sexpr[K, V](
     if not isinstance(sexpr, list):
         raise FromSExprError("expected list but fund symbol")
 
-    items: dict[K, V] = {}
+    items: dict[K, V] = OrderedDict()
     for opt in sexpr:
         key = keyfn(opt.key)
         assert key not in items
@@ -392,15 +394,15 @@ def data_from_sexpr(
     return key.value, args, kwargs
 
 
-BAD_SYMBOL = re.compile("[)(\n \t|]")
+BAD_SYMBOL = re.compile(r'[)(\n \t"]')
 
 
 def escape(symbol: str) -> str:
     if symbol == "":
-        return "||"
+        return '""'
 
     if BAD_SYMBOL.search(symbol) is not None or symbol.startswith(":"):
-        return f"|{symbol.replace('|', '||')}|"
+        return f'"{symbol.replace('"', '""')}"'
     else:
         return symbol
 
@@ -429,11 +431,10 @@ def pretty_indent(expr: SExpr, output, current, indent) -> None:
 
         spacing = ""
 
-        if indent > 0:
-            spacing = "\n" + " " * (current + indent)
-
         for e in expr:
             if e.key:
+                if indent > 0:
+                    spacing = "\n" + " " * (current + indent)
                 output.write(spacing)
                 output.write(":")
                 output.write(escape(e.key))
@@ -469,10 +470,10 @@ def tokenize(code):
     token_specification = [
         ("OPEN", r"\("),  # Open Paren
         ("CLOSE", r"\)"),  # Close Paren
-        ("KEYWORD", r":[^)(\n \t|]+(?![^)(\n \t])"),
-        ("ESCAPED_KEYWORD", r":\|([^|]|\|\|)*\|"),
-        ("SYMBOL", r"[^)(\n \t|:][^)(\n \t|]*(?![^)(\n \t])"),
-        ("ESCAPED_SYMBOL", r"\|([^|]|\|\|)*\|"),
+        ("KEYWORD", r':[^)(\n \t"]+(?![^)(\n \t])'),
+        ("ESCAPED_KEYWORD", r':"([^"]|"")*"'),
+        ("SYMBOL", r'[^)(\n \t":][^)(\n \t"]*(?![^)(\n \t])'),
+        ("ESCAPED_SYMBOL", r'"([^"]|"")*"'),
         ("NEWLINE", r"\n"),  # Line endings
         ("SKIP", r"[ \t]+"),  # Skip over spaces and tabs
         ("MISMATCH", r"."),  # Any other character
@@ -538,7 +539,7 @@ class Parser:
             return str(value)
 
         if self.head.type == "ESCAPED_SYMBOL":
-            value = str(self.head.value)[1:-1].replace("||", "|")
+            value = str(self.head.value)[1:-1].replace('""', '"')
             self.next()
             return value
 
@@ -551,7 +552,7 @@ class Parser:
             return value[1:]
 
         if self.head.type == "ESCAPED_KEYWORD":
-            value = str(self.head.value)[2:-1].replace("||", "|")
+            value = str(self.head.value)[2:-1].replace('""', '"')
             self.next()
             return value
 

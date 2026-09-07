@@ -7,7 +7,7 @@ import sexpr
 
 
 def test_pretty():
-    assert sexpr.pretty("ref 0") == "|ref 0|"
+    assert sexpr.pretty("ref 0") == '"ref 0"'
     assert sexpr.pretty("hello") == "hello"
     assert (
         sexpr.pretty([sexpr.item([]), sexpr.option("hello", "world")])
