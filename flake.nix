@@ -110,6 +110,7 @@
                         }
                       ];
                     };
+
                   in
                   pkgs.runCommand "syntactic-assign.tar"
                     {
@@ -129,25 +130,33 @@
                       ${pkgs.gnutar}/bin/tar -cf $out $NAME
                     '';
 
-                docker_image = pkgs.dockerTools.buildImage {
-                  name = "jpamb";
-                  tag = "latest";
-
-                  copyToRoot = pkgs.buildEnv {
+                docker_image =
+                  let
+                    target = pkgs.runCommand "target" { } ''
+                      mkdir -p $out/workspace/target
+                      cp -r ${./target}/. $out/workspace/target
+                    '';
+                  in
+                  pkgs.dockerTools.buildImage {
                     name = "jpamb";
-                    paths = [
-                      pkgs.coreutils
-                      pkgs.gnumake
-                      jpamb
-                    ];
-                  };
+                    tag = "latest";
 
-                  config = {
-                    Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
-                    WorkingDir = "/workspace";
-                    Env = [ ];
+                    copyToRoot = pkgs.buildEnv {
+                      name = "jpamb";
+                      paths = [
+                        pkgs.coreutils
+                        pkgs.gnumake
+                        jpamb
+                        target
+                      ];
+                    };
+
+                    config = {
+                      Cmd = [ "${pkgs.bashInteractive}/bin/bash" ];
+                      WorkingDir = "/workspace";
+                      Env = [ ];
+                    };
                   };
-                };
               };
           };
         systems = [
