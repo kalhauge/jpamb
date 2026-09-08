@@ -176,9 +176,6 @@ def st_analysis_summaries(draw):
                 st.lists(st_analysis_results()),
             )
         ),
-        categories=draw(
-            st.dictionaries(st_categories().map(lambda c: c.name), st_wagers())
-        ),
     )
 
 
@@ -201,9 +198,7 @@ def st_analysis_states(draw):
                 st.lists(st_analysis_results()),
             )
         ),
-        categories=draw(
-            st.dictionaries(st_categories().map(lambda c: c.name), st_trackers())
-        ),
+        categories=draw(st.dictionaries(st_categories(), st_trackers())),
     )
 
 
