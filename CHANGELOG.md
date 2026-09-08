@@ -3,6 +3,7 @@
 ## Version 0.5.1
 
 - Fix issue with floating point conversion (issue #62).
+- Remove unintended harsh restriction on score.
 
 ## Version 0.5.0
 

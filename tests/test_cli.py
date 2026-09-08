@@ -39,3 +39,19 @@ def test_analyse(solution):
     )
 
     assert result.exit_code == 0
+
+
+@pytest.mark.slow
+def test_analyse_report(tmp_path):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.cli,
+        [
+            "analyse",
+            "--report",
+            (tmp_path / "report.sexp"),
+            "jpamb-trivial",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
