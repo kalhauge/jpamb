@@ -7,12 +7,13 @@ This module provides the basic data model for working with the JPAMB.
 
 import collections
 import math
+import io
 import re
 import shlex
 import subprocess
 import sys
 from abc import ABC, abstractmethod
-from collections import Counter, OrderedDict, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -20,6 +21,7 @@ from pathlib import Path
 from typing import NoReturn, Self, TextIO
 
 import runit
+from click import File
 
 import jvm
 import jvm.state
@@ -209,8 +211,15 @@ class Wager(Prediction):
         else:
             return wager
 
+    def reward(self):
+        wager = math.fabs(self.wager)
+        if wager == float("inf"):
+            return 1
+        else:
+            return 1 - 1 / (wager + 1)
+
     def __str__(self):
-        return f"{self.to_probability():0.2%}"
+        return f"{self.wager:+0.2}"
 
     def __json__(self):
         return self.wager
@@ -230,10 +239,17 @@ class Category(Prediction):
     def __json__(self):
         return self.name
 
-    def as_wager(self, categories: dict[str, Wager]) -> Wager:
-        return categories.get(self.name, Wager(0))
+    def as_wager(self, categories: "dict[Category, Wager]") -> Wager:
+        return categories.get(self, Wager(0))
 
     def __str__(self):
+        return self.name
+
+    @classmethod
+    def decode(cls, code: str) -> Self:
+        return cls(code)
+
+    def encode(self) -> str:
         return self.name
 
     def __sexpr__(self) -> sexpr.SExpr:
@@ -275,7 +291,7 @@ class Response:
             predictions[query] = prediction
         return Response(predictions), warnings
 
-    def score(self, correct: set[str], categories: dict[str, Wager] | None = None):
+    def score(self, correct: set[str], categories: dict[Category, Wager] | None = None):
         if categories is None:
             categories = {}
 
@@ -771,6 +787,10 @@ class Tracker:
     hits: int = 0
     counts: int = 0
 
+    @property
+    def misses(self) -> int:
+        return self.counts - self.hits
+
     def approximate(self) -> Wager:
         return Wager.from_probability((self.hits + 1) / (self.counts + 2))
 
@@ -902,10 +922,11 @@ class ResultRow:
 @dataclass(frozen=True)
 class ResultSummary:
     config: AnalysisConfig
+    results: list[tuple[str, list[ResultRow]]]
+    categories: list[tuple[Category, Tracker]]
     total_score: float
     total_rel_time: float
     total_abs_time: float
-    results: list[tuple[str, list[ResultRow]]]
 
     def autolab_json(self):
         student_eval = {
@@ -924,14 +945,23 @@ class ResultSummary:
     def display(self, file=sys.stdout):
         self.config.display(file=file)
 
-        groups = [(n, [r.as_row() for r in res]) for n, res in self.results]
+        groups = [
+            [
+                "Method",
+                "Score",
+                "Time (rel)",
+                "Time (abs)",
+            ],
+        ]
+
+        groups += [(n, [r.as_row() for r in res]) for n, res in self.results]
 
         groups += [
             (
                 "Totals",
                 [
                     [
-                        "Name",
+                        "",
                         "Score",
                         "Time (rel)",
                         "Time (abs)",
@@ -947,12 +977,39 @@ class ResultSummary:
         ]
         dump_table(groups, align="<>>>", file=file)
 
+        file.write("\n--- Categories ---\n\n")
+        file.write(
+            "The following are the categories you identified, including\n"
+            "how often they were found versus missed. From this, we\n"
+            "calculate the optimal wager and the corresponding reward.\n"
+            "Finally, the score represents the proportion of the total\n"
+            "score attributed to this category.\n\n"
+        )
+
+        categories = [
+            ["Category", "Found", "Missed", "Percentage", "Wager", "Reward", "Score"]
+        ]
+
+        categories += [
+            [
+                c.name,
+                f"{v.hits / self.config.iterations:.1f}",
+                f"{v.misses / self.config.iterations:.1f}",
+                f"{v.wager().to_probability():0.2%}",
+                f"{v.wager()}",
+                f"{v.wager().reward():0.2}",
+                f"{(v.wager().score(False) * v.misses + v.wager().score(True) * v.hits) / self.config.iterations:.2f}",
+            ]
+            for c, v in self.categories.items()
+        ]
+
+        dump_table(categories, align="<>>>>>>", file=file)
+
 
 @dataclass(frozen=True)
 class AnalysisSummary:
     config: AnalysisConfig
     results: dict[jvm.AbsMethodID, list[AnalysisResult]]
-    categories: dict[str, Wager]
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.from_dataclass(self)
@@ -960,6 +1017,24 @@ class AnalysisSummary:
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.dataclass_from_sexpr(expr, target=cls)
+
+    def calculate_categories(self) -> dict[Category, Tracker]:
+        experiments = dict(self.config.experiments)
+
+        categories = defaultdict(Tracker)
+
+        for method, results in self.results.items():
+            expected = experiments[method]
+
+            for result in results:
+                for key, pred in result.response.predictions.items():
+                    if isinstance(pred, Category):
+                        tracker = categories[pred]
+                        tracker.counts += 1
+                        if key in expected:
+                            tracker.hits += 1
+
+        return dict(categories)
 
     def score_results(self) -> ResultSummary:
         byclasses = {}
@@ -971,13 +1046,17 @@ class AnalysisSummary:
         experiments = dict(self.config.experiments)
         groups = []
 
+        tracker_categories = self.calculate_categories()
+
+        categories = {k: v.wager() for k, v in tracker_categories.items()}
+
         for clz, methods in sorted(byclasses.items()):
             rows = []
             for method in sorted(methods):
                 results = self.results[method]
-                expr = experiments[method]
+                expected = experiments[method]
                 score = mean(
-                    result.response.score(expr, self.categories) for result in results
+                    result.response.score(expected, categories) for result in results
                 )
                 rel_time = mean(result.duration.relative for result in results)
                 abs_time = mean(result.duration.absolute for result in results)
@@ -992,7 +1071,12 @@ class AnalysisSummary:
             groups += [(str(clz), rows)]
 
         return ResultSummary(
-            self.config, total_score, total_rel_time, total_abs_time, groups
+            self.config,
+            groups,
+            tracker_categories,
+            total_score,
+            total_rel_time,
+            total_abs_time,
         )
 
     def report(cls, *, file: TextIO, eff: Effect) -> None:
@@ -1004,12 +1088,16 @@ class AnalysisSummary:
             eff.error("Failed to write report")
 
 
-def dump_table(groups, *, align="<>>>", file):
+def dump_table(groups, *, align, file):
     rows = []
-    for c, _rows in groups:
-        rows += [[""] * len(align)]
-        rows += [[c] + [""] * (len(align) - 1)]
-        rows += [["  " + h, *rest] for h, *rest in _rows]
+    for group in groups:
+        if isinstance(group, list):
+            rows += [group]
+        else:
+            c, _rows = group
+            rows += [[""] * len(align)]
+            rows += [[c] + [""] * (len(align) - 1)]
+            rows += [["  " + h, *rest] for h, *rest in _rows]
 
     sizes = [max(map(len, col)) for col in zip(*rows)]
 
@@ -1027,7 +1115,7 @@ class AnalysisState:
     config: AnalysisConfig
     progress: int = 0
     results: dict[jvm.AbsMethodID, list[AnalysisResult]] = field(default_factory=dict)
-    categories: dict[str, Tracker] = field(default_factory=dict)
+    categories: dict[Category, Tracker] = field(default_factory=dict)
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.from_dataclass(self)
@@ -1056,13 +1144,6 @@ class AnalysisState:
             if result is None:
                 return False
 
-            for key, pred in result.response.predictions.items():
-                if isinstance(pred, Category):
-                    tracker = self.categories.setdefault(pred.name, Tracker())
-                    tracker.counts += 1
-                    if key in expected:
-                        tracker.hits += 1
-
             if iteration > 0:
                 # If we are at our second iteration, use the categories.
                 categories = {k: v.wager() for k, v in self.categories.items()}
@@ -1086,6 +1167,13 @@ class AnalysisState:
                 eff.error(f"Total {total_score} below limit {score_limit}")
                 return False
 
+            for key, pred in result.response.predictions.items():
+                if isinstance(pred, Category):
+                    tracker = self.categories.setdefault(pred, Tracker())
+                    tracker.counts += 1
+                    if key in expected:
+                        tracker.hits += 1
+
             self.results.setdefault(methodid, []).append(result)
 
         self.progress += 1
@@ -1095,7 +1183,6 @@ class AnalysisState:
         return AnalysisSummary(
             self.config,
             self.results,
-            {k: v.wager() for k, v in self.categories.items()},
         )
 
 

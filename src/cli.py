@@ -297,10 +297,10 @@ def analyse(
         pass
 
     results = summary.score_results()
+    results.display()
+
     if report:
         summary.report(file=report, eff=eff)
-    else:
-        results.display()
 
 
 @cli.command()
