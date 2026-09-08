@@ -1,4 +1,4 @@
-from hypothesis import given
+from hypothesis import given, note
 from hypothesis import strategies as st
 
 from jpamb import jvm
@@ -22,13 +22,63 @@ def test_value_parser():
     ]
 
 
-def jvm_classnames():
+def st_classnames():
     return st.sampled_from(["java.lang.Object", "a.simple.ClassName"]).map(
         jvm.ClassName.decode
     )
 
 
-def jvm_primtypes():
+@given(st_classnames())
+def test_classname_decode(it):
+    code = it.encode()
+    note(code)
+    assert jvm.ClassName.decode(code) == it
+
+
+@st.composite
+def st_parameter_types(draw):
+    return jvm.ParameterType(draw(st.lists(st_types(), max_size=8).map(tuple)))
+
+
+@given(st_parameter_types())
+def test_parameter_type_decode(it):
+    code = it.encode()
+    note(code)
+    assert jvm.ParameterType.decode(code) == it
+
+
+@st.composite
+def st_methodid(draw):
+    return jvm.MethodID(
+        name=draw(st.sampled_from(["main", "<init>", "equals", "tostring"])),
+        params=draw(st_parameter_types()),
+        return_type=draw(st.none() | st_types()),
+    )
+
+
+@given(st_methodid())
+def test_methodid_decode(it):
+    code = it.encode()
+    note(code)
+    assert jvm.MethodID.decode(code) == it
+
+
+@st.composite
+def st_absmethodid(draw):
+    return jvm.AbsMethodID(
+        classname=draw(st_classnames()),
+        extension=draw(st_methodid()),
+    )
+
+
+@given(st_absmethodid())
+def test_absmethodid_decode(it):
+    code = it.encode()
+    note(code)
+    assert jvm.AbsMethodID.decode(code) == it
+
+
+def st_primtypes():
     return st.sampled_from(
         [
             jvm.Boolean(),
@@ -38,14 +88,14 @@ def jvm_primtypes():
             jvm.Long(),
             jvm.Reference(),
         ]
-    ) | jvm_classnames().map(jvm.Object)
+    ) | st_classnames().map(jvm.Object)
 
 
-def jvm_types():
-    return st.recursive(jvm_primtypes(), extend=lambda r: r.map(jvm.Array))
+def st_types():
+    return st.recursive(st_primtypes(), extend=lambda r: r.map(jvm.Array))
 
 
-def jvm_values():
+def st_values():
     return (
         st.integers().map(jvm.Value.int)
         | st.booleans().map(jvm.Value.boolean)
@@ -53,11 +103,11 @@ def jvm_values():
     )
 
 
-@given(jvm_types())
+@given(st_types())
 def test_types_math_should_return_string(tp):
     assert isinstance(tp.math(), str)
 
 
-@given(jvm_values())
+@given(st_values())
 def test_values_math_should_return_string(v):
     assert isinstance(v.math(), str)

@@ -1,6 +1,10 @@
 # The Change Log
 
-## Version X.X.X
+## Version 0.5.0
+
+- Add a better report format
+- Add `--step-wise` and `--score-limit` to `analyse`
+- Add `validate` subcommand
 
 ## Version 0.4.0
 

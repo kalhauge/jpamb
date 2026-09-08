@@ -13,78 +13,78 @@ class TestPredictionParsing:
 
     def test_parse_percentage(self):
         """Test parsing percentage format predictions."""
-        pred = jpamb.Response.parse_prediction("75%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("75%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == pytest.approx(0.75, abs=0.01)
 
         # Note: 100% confidence (wager=inf) returns 0 probability to discourage
         # students from being overly confident - teaches that you can't be 100% certain
-        pred = jpamb.Response.parse_prediction("100%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("100%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Response.parse_prediction("0%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("0%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == pytest.approx(0.0, abs=0.01)
 
     def test_parse_wager(self):
         """Test parsing wager format predictions."""
-        pred = jpamb.Response.parse_prediction("1.0")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("1.0")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == 1.0
 
-        pred = jpamb.Response.parse_prediction("0.5")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("0.5")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == 0.5
 
-        pred = jpamb.Response.parse_prediction("-1.0")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("-1.0")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == -1.0
 
     def test_parse_infinity(self):
         """Test parsing infinite confidence predictions."""
-        pred = jpamb.Response.parse_prediction("inf")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("inf")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == float("inf")
         # Returns 0 to discourage extreme confidence (pedagogical choice)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Response.parse_prediction("-inf")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("-inf")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == float("-inf")
         assert pred.to_probability() == 0.0
 
 
-class TestPredictionScoring:
+class TestWagerScoring:
     """Test the scoring algorithm for predictions."""
 
     def test_perfect_prediction_positive(self):
         """Test scoring when prediction is perfectly confident and correct."""
-        pred = jpamb.Prediction(float("inf"))
+        pred = jpamb.Wager(float("inf"))
         score = pred.score(happens=True)
         assert score == 1
 
     def test_perfect_prediction_negative(self):
         """Test scoring when prediction is perfectly confident it won't happen and is correct."""
-        pred = jpamb.Prediction(float("-inf"))
+        pred = jpamb.Wager(float("-inf"))
         score = pred.score(happens=False)
         assert score == 1
 
     def test_wrong_confident_prediction(self):
         """Test scoring when prediction is confident but wrong."""
         # Wager inf (think it will happen), but it doesn't
-        pred = jpamb.Prediction(float("inf"))
+        pred = jpamb.Wager(float("inf"))
         score = pred.score(happens=False)
         assert score == float("-inf")
 
         # Wager -inf (think it won't happen), but it does
-        pred = jpamb.Prediction(float("-inf"))
+        pred = jpamb.Wager(float("-inf"))
         score = pred.score(happens=True)
         assert score == float("-inf")  # Maximum penalty for being wrong
 
     def test_neutral_prediction(self):
         """Test scoring for neutral predictions."""
-        pred = jpamb.Prediction(0)
+        pred = jpamb.Wager(0)
         score_yes = pred.score(happens=True)
         score_no = pred.score(happens=False)
         # Neutral prediction should score 0 either way
@@ -93,7 +93,7 @@ class TestPredictionScoring:
 
     def test_moderate_confidence(self):
         """Test scoring for moderate confidence predictions."""
-        pred = jpamb.Prediction(1.0)
+        pred = jpamb.Wager(1.0)
         score_correct = pred.score(happens=True)
         score_wrong = pred.score(happens=False)
 
@@ -109,7 +109,7 @@ class TestPredictionScoring:
         discourages overconfidence - this is intentional pedagogy.
         """
         for prob in [0.1, 0.25, 0.5, 0.75, 0.9, 0.99]:
-            pred = jpamb.Prediction.from_probability(prob)
+            pred = jpamb.Wager.from_probability(prob)
             recovered = pred.to_probability()
             assert recovered == pytest.approx(prob, abs=0.01)
 

@@ -1,11 +1,8 @@
 import dataclasses
 import json
-import math
 import os
-import shlex
-import subprocess
+import re
 import sys
-from collections import Counter
 from pathlib import Path
 
 import click
@@ -16,17 +13,6 @@ import sexpr
 from jpamb_utils import DockerRunner, Effect
 
 
-class JpambScore:
-    score: float
-    time: float
-    rel_time: float
-
-    def __init__(self, score, time, rel_time):
-        self.score = score
-        self.time = time
-        self.rel_time = rel_time
-
-
 @dataclasses.dataclass
 class Context:
     eff: Effect
@@ -35,8 +21,6 @@ class Context:
 
 
 def re_parser(ctx_, parms_, expr):
-    import re
-
     if expr:
         return re.compile(expr)
 
@@ -99,158 +83,101 @@ def checkhealth(ctx, docker):
     ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 
 
-@cli.command()
-@click.option(
-    "--max-steps",
-    show_default=True,
-    default=100,
-    help="how many steps to execute",
-)
-@click.option(
-    "--fail-fast / --no-fail-fast",
-    show_default=True,
-    default=False,
-    help="stop at first failure",
-)
-@click.option(
-    "--timeout",
-    show_default=True,
-    default=2.0,
-    help="timeout in seconds.",
-)
-@click.option(
-    "--filter",
-    "-f",
-    help="A regular expression which filter the methods to run on.",
-    callback=re_parser,
-)
-@click.argument("PROGRAM", nargs=-1)
-@click.pass_obj
-def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
-    """Use PROGRAM as an interpreter."""
-
-    eff = ctx.eff
-
-    if ctx.suite.workdir != Path.cwd():
-        eff.warning(f"Changing to {ctx.suite.workdir}")
-        os.chdir(ctx.suite.workdir)
-
-    total = 0
-    count = 0
-    for case in ctx.suite.cases:
-        if filter and not filter.search(str(case)):
-            continue
-
-        with eff.context(f"Case {case}"):
-            try:
-                out = eff.run(
-                    program
-                    + (case.methodid.encode(), case.input.encode(), str(max_steps)),
-                    timeout=timeout,
-                )
-            except subprocess.TimeoutExpired:
-                eff.error("timed out")
-                behaviors = set("timed out")
-                if fail_fast:
-                    return
-            except subprocess.CalledProcessError as e:
-                eff.error(e)
-                behaviors = set("failure")
-                if fail_fast:
-                    return
-
-            else:
-                steps = sexpr.from_string(out)
-
-                no_steps = 0
-                behaviors = set()
-                for step in steps:
-                    if not isinstance(step, list):
-                        raise TypeError(f"expected list, not {step}")
-                    (k, _, kwargs) = sexpr.undata(step)
-                    if k == "step":
-                        no_steps += 1
-
-                        after = kwargs["after"]
-                        if isinstance(after, str):
-                            behaviors.add(after)
-
-                eff.info(
-                    f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
-                )
-
-                if case.result not in behaviors:
-                    if no_steps == max_steps:
-                        eff.warning(
-                            f"Terminated before finding behaviour: {case.result}"
-                        )
-                    else:
-                        eff.error(f"Did not find behaviour: {case.result}")
-                        if fail_fast:
-                            return
-                else:
-                    eff.success(f"Did find behaviour: {case.result}")
-                    count += 1
-
-            total += 1
-    eff.info(f"Total: {count}/{total}")
-
-
-def run_analysis(
-    analysis: tuple[str],
-    methodid: jvm.AbsMethodID,
-    iterations: int,
-    timeout: float,
-    eff: Effect,
-):
-    results = []
-
-    _time = 0
-    _relative = 0
-    _iterations = 0
-    for i in range(iterations):
-        with eff.context(f"Iteration {i}"):
-            try:
-                experiment = eff.experiment(
-                    analysis + (methodid.encode(),), timeout=timeout
-                )
-            except subprocess.CalledProcessError as e:
-                eff.warning(
-                    f"Ran {shlex.join(analysis)} info, and got error:\n{e.stderr}"
-                )
-                continue
-            except subprocess.TimeoutExpired as e:
-                eff.warning(
-                    f"Ran {shlex.join(analysis)} info, and timed out after {e.timeout} seconds"
-                )
-                continue
-
-        response, warns = jpamb.Response.parse(experiment.output)
-        for warn in warns:
-            eff.warning(warn)
-
-        result = {k: v.__json__() for k, v in response.predictions.items()}
-
-        results.append(
-            {
-                "iteration": i,
-                "response": result,
-                "time": experiment.time_ns,
-                "relative": experiment.time_relative,
-                "calibrates": experiment.calibrations_ns,
-            }
-        )
-
-        _relative += experiment.time_relative
-        _time += experiment.time_ns
-        _iterations += 1
-
-    return {
-        # "score": _score / iterations,
-        "time": _time / _iterations if _iterations else float("NaN"),
-        "relative": _relative / _iterations if _iterations else float("NaN"),
-        "iterations": results,
-    }
+# @cli.command()
+# @click.option(
+#     "--max-steps",
+#     show_default=True,
+#     default=100,
+#     help="how many steps to execute",
+# )
+# @click.option(
+#     "--fail-fast / --no-fail-fast",
+#     show_default=True,
+#     default=False,
+#     help="stop at first failure",
+# )
+# @click.option(
+#     "--timeout",
+#     show_default=True,
+#     default=2.0,
+#     help="timeout in seconds.",
+# )
+# @click.option(
+#     "--filter",
+#     "-f",
+#     help="A regular expression which filter the methods to run on.",
+#     callback=re_parser,
+# )
+# @click.argument("PROGRAM", nargs=-1)
+# @click.pass_obj
+# def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
+#     """Use PROGRAM as an interpreter."""
+#
+#     eff = ctx.eff
+#
+#     if ctx.suite.workdir != Path.cwd():
+#         eff.warning(f"Changing to {ctx.suite.workdir}")
+#         os.chdir(ctx.suite.workdir)
+#
+#     total = 0
+#     count = 0
+#     for case in ctx.suite.cases:
+#         if filter and not filter.search(str(case)):
+#             continue
+#
+#         with eff.context(f"Case {case}"):
+#             try:
+#                 out = eff.run(
+#                     program
+#                     + (case.methodid.encode(), case.input.encode(), str(max_steps)),
+#                     timeout=timeout,
+#                 )
+#             except subprocess.TimeoutExpired:
+#                 eff.error("timed out")
+#                 behaviors = set("timed out")
+#                 if fail_fast:
+#                     return
+#             except subprocess.CalledProcessError as e:
+#                 eff.error(e)
+#                 behaviors = set("failure")
+#                 if fail_fast:
+#                     return
+#
+#             else:
+#                 steps = sexpr.from_string(out)
+#
+#                 no_steps = 0
+#                 behaviors = set()
+#                 for step in steps:
+#                     if not isinstance(step, list):
+#                         raise TypeError(f"expected list, not {step}")
+#                     # (k, _, kwargs) = sexpr.dict_from_sexpr(step, keyfn=str)  # TODO
+#                     if k == "step":
+#                         no_steps += 1
+#
+#                         after = kwargs["after"]
+#                         if isinstance(after, str):
+#                             behaviors.add(after)
+#
+#                 eff.info(
+#                     f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
+#                 )
+#
+#                 if case.result not in behaviors:
+#                     if no_steps == max_steps:
+#                         eff.warning(
+#                             f"Terminated before finding behaviour: {case.result}"
+#                         )
+#                     else:
+#                         eff.error(f"Did not find behaviour: {case.result}")
+#                         if fail_fast:
+#                             return
+#                 else:
+#                     eff.success(f"Did find behaviour: {case.result}")
+#                     count += 1
+#
+#             total += 1
+#     eff.info(f"Total: {count}/{total}")
 
 
 @cli.command()
@@ -269,14 +196,40 @@ def run_analysis(
     help="timeout in seconds.",
 )
 @click.option(
-    "--format",
-    default="table",
-    type=click.Choice(["table", "json"]),
-    show_default=True,
-    help="timeout in seconds.",
+    "--score-limit",
+    "-l",
+    type=float,
+    default=None,
+    help="stop if score is below limit",
+)
+@click.option(
+    "--filter",
+    "-f",
+    default=".*",
+    help="A regular expression which filter the methods to run on.",
+    callback=re_parser,
+)
+@click.option(
+    "--step-wise / --no-step-wise",
+    default=False,
+    help="in case of crash, restart from where we left off",
+)
+@click.option(
+    "--report",
+    default=None,
+    type=click.File("w"),
+    help="write the report here (disables filter)",
 )
 @click.argument("PROGRAM", nargs=-1)
-def analyse(ctx, program, timeout, format, iterations):
+def analyse(
+    ctx,
+    program,
+    score_limit,
+    filter,
+    step_wise,
+    report,
+    **kwargs,
+):
     """Evaluate the PROGRAM as an analysis."""
 
     eff = ctx.eff
@@ -285,150 +238,102 @@ def analyse(ctx, program, timeout, format, iterations):
         eff.warning(f"Changing to {ctx.suite.workdir}")
         os.chdir(ctx.suite.workdir)
 
-    with eff.context("Getting info about analysis"):
+    if step_wise and report:
+        raise click.UsageError("Cannot produce report in step wise mode")
+
+    if filter != re.compile(".*") and report:
+        raise click.UsageError(f"Cannot produce report in while filtering {filter}")
+
+    experiments = []
+    for methodid, expected in sorted(ctx.suite.case_methods().items()):
+        if not filter.search(str(methodid)):
+            eff.info(f"Skipping {methodid}, excluded by filter")
+            continue
+
+        experiments.append((methodid, expected))
+
+    config = jpamb.AnalysisConfig.from_cmd(
+        program,
+        experiments,
+        eff=eff,
+        **kwargs,
+    )
+
+    assert config is not None, "Failed to instantiate config"
+
+    cache = ctx.suite.cache_folder(eff=eff)
+
+    state_file = cache / "analysis-state.sexp"
+
+    state = None
+
+    if step_wise:
         try:
-            out = eff.run(
-                program + ("info",),
-                timeout=timeout,
-            )
-            info = jpamb.AnalysisInfo.parse(out)
-        except subprocess.CalledProcessError as e:
-            eff.error(f"Ran {shlex.join(program)} info, and got error:\n{e.stderr}")
+            code = state_file.read_text()
+            state_cc = sexpr.from_string(code)[0]
+            state = jpamb.AnalysisState.from_sexpr(state_cc)
+            if state.config != config:
+                eff.warning("Old state ran with other config, restarting...")
+                state = None
+        except FileNotFoundError:
+            eff.debug("No analysis cache")
+
+    if not state:
+        state = jpamb.AnalysisState(config)
+
+    for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
+        if step_wise and not cont:
+            eff.error("Stopping early")
+            state_file.write_text(sexpr.pretty(sexpr.sexpr(state), indent=2))
+            eff.info(f"Saved state to {state_file!r}")
+            return
+
+        summary = state.summary()
+
+    try:
+        state_file.unlink()
+    except FileNotFoundError:
+        pass
+
+    results = summary.score_results()
+    results.display()
+
+    if report:
+        if (check := summary.score_results().invalidate()) is not None:
+            eff.error(check)
+            eff.error("No report created")
             sys.exit(1)
-        except ValueError:
-            eff.error("Expected info, but got:")
-            for o in out.splitlines():
-                eff.error(o)
+        summary.report(file=report, eff=eff)
 
-    bymethod = {}
 
-    category_success = Counter()
-    category_count = Counter()
+@cli.command()
+@click.pass_obj
+@click.option(
+    "--format",
+    default="user",
+    type=click.Choice(["user", "autolab"], case_sensitive=True),
+)
+@click.argument(
+    "report",
+    default=None,
+    type=click.File("r"),
+)
+def validate(ctx, report, format):
+    """Validate the report as a correct report, and score it."""
 
-    case_methods = ctx.suite.case_methods()
+    summary = jpamb.AnalysisSummary.from_sexpr(sexpr.from_string(report.read())[0])
 
-    for methodid, correct in sorted(case_methods.items()):
-        with eff.context(f"Running on {methodid}"):
-            output = run_analysis(
-                program,
-                methodid,
-                timeout=timeout,
-                iterations=iterations,
-                eff=eff,
-            )
+    result_summary = summary.score_results()
 
-            bymethod[methodid] = output
-
-            for it in output["iterations"]:
-                for key, value in it["response"].items():
-                    if isinstance(value, str):
-                        category_count.update([value])
-                        if key in correct:
-                            category_success.update([value])
-
-    category = {k: category_success[k] / v for k, v in category_count.items()}
-
-    with eff.context("Scoring"):
-        for methodid, correct in sorted(case_methods.items()):
-            output = bymethod[methodid]
-            _score = 0
-
-            if not output["iterations"]:
-                eff.warning(f"{methodid}: no iterations")
-            else:
-                for it in output["iterations"]:
-                    resp = jpamb.Response.from_json(it["response"])
-                    it["score"] = resp.score(correct, category)
-                    _score += it["score"]
-
-                _score /= len(output["iterations"])
-
-            eff.output(f"{methodid}: {_score}")
-
-            output["score"] = _score
-
-    total_methods = len(bymethod)
-    total_time = sum(v["time"] for v in bymethod.values())
-    total_relative = sum(v["relative"] for v in bymethod.values())
-    total_score = sum(v["score"] for v in bymethod.values())
-
-    result = {
-        "info": dataclasses.asdict(info),
-        "bymethod": bymethod,
-        "category": category,
-        "time": total_time / total_methods,
-        "score": total_score,
-        "relative": total_relative / total_methods,
-    }
+    if (check := result_summary.invalidate()) is not None:
+        ctx.eff.error(check)
+        sys.exit(1)
 
     match format:
-        case "table":
-            dump_table(result)
-        case "json":
-            dump_json(result)
-
-
-def dump_json(result):
-    json.dump(result, sys.stdout, indent=2)
-
-
-def mean(results):
-    res = [r for r in results if not math.isnan(r)]
-    return sum(res) / len(res)
-
-
-def dump_table(result):
-    bymethod = result["bymethod"]
-
-    classes = {}
-    for m in bymethod:
-        classes.setdefault(m.classname, set()).add(m)
-
-    rows = []
-    for classname in sorted(classes):
-        class_methods = classes[classname]
-        rows.append(["", "", "", ""])
-        rows.append([str(classname), "", "", ""])
-        for methodid in sorted(class_methods):
-            output = bymethod[methodid]
-            rows.append(
-                [
-                    " " + str(methodid.extension),
-                    f"{output['score']:.2f}",
-                    f"{output['relative']:.3f}",
-                    f"{output['time'] / 10**9:.3f}",
-                ]
-            )
-
-    rows.append(["", "", "", ""])
-    rows.append(
-        [
-            "Total",
-            f"{sum(o['score'] for o in bymethod.values()):.2f}",
-            f"{mean(o['relative'] for o in bymethod.values()):.3f}",
-            f"{mean(o['time'] for o in bymethod.values()) / 10**9:.3f}",
-        ]
-    )
-    print(rows[-1])
-
-    sizes = [max(map(len, col)) for col in zip(*rows)]
-
-    align = "<>>>"
-
-    for row in rows:
-        print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)))
-
-    print()
-    if not result["category"]:
-        print("No categories used")
-    else:
-        print("Categories:")
-        maxcat = max(map(len, result["category"]))
-        for category, value in result["category"].items():
-            print(
-                f" {category:<{maxcat}}  {value:7.2%}"
-                f"  wager: {jpamb.Prediction.from_probability(value).wager:7.2}"
-            )
+        case "user":
+            result_summary.display()
+        case "autolab":
+            print(json.dumps(result_summary.autolab_json()))
 
 
 @cli.command()

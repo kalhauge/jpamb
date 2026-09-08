@@ -112,9 +112,10 @@ class HeapArray(HeapValue):
     values: list[jvm.Value]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        type = [f"array:{self.contains}"]
-        values = [sexpr.sexpr(v) for v in self.values] if self.values != [] else []
-        return type + values
+        raise NotImplementedError()
+        # type = [sexpr.item(f"array:{self.contains}")]
+        # values = [sexpr.sexpr(v) for v in self.values] if self.values != [] else []
+        # return type + values
 
 
 @dataclass
@@ -123,9 +124,10 @@ class HeapObject(HeapValue):
     fields: dict[jvm.FieldID, jvm.Value]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return [f"class:{self.classname}"] + [
-            item for v in self.fields for item in v.__sexpr__()
-        ]
+        raise NotImplementedError()
+        # return [sexpr.item(f"class:{self.classname}")] + [
+        #     item for v in self.fields for item in v.__sexpr__()
+        # ]
 
 
 @dataclass

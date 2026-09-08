@@ -1,0 +1,5 @@
+all:
+	jpamb validate --format autolab report.sexp
+
+clean:
+	# Do nothing
