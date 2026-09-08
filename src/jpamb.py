@@ -1008,6 +1008,9 @@ class ResultSummary:
 
     def invalidate(self) -> str | None:
 
+        if self.config.analysis.group == "The Rice Theorem Cookers":
+            return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
+
         if (iters := self.config.iterations) != 3:
             return f"Analysis report should be based on 3 iterations, found {iters}"
 
