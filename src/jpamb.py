@@ -440,6 +440,10 @@ class Suite:
         return self.stats_folder / "cases.txt"
 
     @property
+    def stats_file(self) -> Path:
+        return self.stats_folder / "stats.json"
+
+    @property
     def version(self):
         with open(self.workdir / "CITATION.cff", encoding="utf-8") as f:
             import yaml
@@ -925,7 +929,7 @@ class ResultSummary:
     results: list[tuple[str, list[ResultRow]]]
     categories: list[tuple[Category, Tracker]]
     total_score: float
-    total_rel_time: float
+    mean_rel_time: float
     total_abs_time: float
 
     def autolab_json(self):
@@ -933,12 +937,9 @@ class ResultSummary:
             "scores": {},
         }
 
-        total = 0
-
-        for testcase, res in self.results:
-            total += sum([s.score for s in res])
-
-        student_eval["scores"]["Total"] = total
+        student_eval["scores"]["Total"] = self.total_score
+        student_eval["scores"]["Time"] = 100 / max(1, self.mean_rel_time)
+        student_eval["scores"]["Categories"] = 100 / len(self.categories)
 
         return student_eval
 
@@ -969,7 +970,7 @@ class ResultSummary:
                     [
                         "Total",
                         f"{self.total_score:>7.2f}",
-                        f"{self.total_rel_time:>7.2f} Db",
+                        f"{self.mean_rel_time:>7.2f} Db",
                         f"{self.total_abs_time / 10**9:>7.3f} s",
                     ],
                 ],
@@ -1041,7 +1042,7 @@ class AnalysisSummary:
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
 
-        total_score = total_abs_time = total_rel_time = total_results = 0
+        total_score = total_abs_time = total_rel_time = 0
 
         experiments = dict(self.config.experiments)
         groups = []
@@ -1050,6 +1051,7 @@ class AnalysisSummary:
 
         categories = {k: v.wager() for k, v in tracker_categories.items()}
 
+        hits = 0
         for clz, methods in sorted(byclasses.items()):
             rows = []
             for method in sorted(methods):
@@ -1066,7 +1068,7 @@ class AnalysisSummary:
                 total_score += score
                 total_rel_time += rel_time
                 total_abs_time += abs_time
-                total_results += len(results)
+                hits += 1
 
             groups += [(str(clz), rows)]
 
@@ -1075,7 +1077,7 @@ class AnalysisSummary:
             groups,
             tracker_categories,
             total_score,
-            total_rel_time,
+            total_rel_time / hits,
             total_abs_time,
         )
 

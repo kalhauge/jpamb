@@ -31,7 +31,7 @@ in
               name = mkOption {
                 type = types.str;
               };
-              decription = mkOption {
+              description = mkOption {
                 type = types.str;
                 default = "";
               };
@@ -59,7 +59,7 @@ in
   config = {
     configuration = {
       autograder = {
-        autograde_image = "autograding_image";
+        autograde_image = "autograding_02242_e26_1";
         autograde_timeout = 180;
         release_score = true;
       };

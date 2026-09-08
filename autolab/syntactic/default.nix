@@ -15,7 +15,17 @@
     {
       name = "Total";
       max_score = 46.0 * 6.0;
-      decription = "The total score";
+      description = "The total score";
+    }
+    {
+      name = "Time";
+      max_score = 100.0;
+      description = "100 / mean relative time";
+    }
+    {
+      name = "Categories";
+      max_score = 100.0;
+      description = "100 / number of categories used";
     }
   ];
 }

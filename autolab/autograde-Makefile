@@ -1,4 +1,7 @@
 all:
+	ls -l 
+	pwd
+	ls -l ~
 	tar -xf autograder.tar
 	cd jpamb
 	python -m venv .venv

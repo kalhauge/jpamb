@@ -47,12 +47,22 @@
     in
     {
 
-      config.packages = {
-        syntactic = mkAssignment ./syntactic;
-        assignments_all = pkgs.runCommand "assignments" { } ''
-          mkdir -p $out
-          cp ${self'.assignments.syntactic} $out/syntactic.tar
-        '';
-      };
+      config.packages =
+        let
+          syntactic = mkAssignment ./syntactic;
+        in
+        {
+          assignments =
+            pkgs.runCommand "assignments"
+              {
+                passthru = {
+                  inherit syntactic;
+                };
+              }
+              ''
+                mkdir -p $out
+                cp ${syntactic} $out/syntactic.tar
+              '';
+        };
     };
 }
