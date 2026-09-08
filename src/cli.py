@@ -326,7 +326,7 @@ def validate(ctx, report, format):
     result_summary = summary.score_results()
 
     if (check := result_summary.invalidate()) is not None:
-        eff.error(check)
+        ctx.eff.error(check)
         sys.exit(1)
 
     match format:
