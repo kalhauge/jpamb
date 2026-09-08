@@ -1006,6 +1006,24 @@ class ResultSummary:
 
         dump_table(categories, align="<>>>>>>", file=file)
 
+    def invalidate(self) -> str | None:
+
+        if (iters := self.config.iterations) != 3:
+            return f"Analysis report should be based on 3 iterations, found {iters}"
+
+        found_methods = []
+        for _, rs in self.results:
+            for r in rs:
+                if not (-6.0 <= r.score <= 6.0):
+                    return f"Invalid score {r.score} found for {r.methodname}"
+                if r.abs_time <= 0:
+                    return f"Found negative time value {r.abs_time}"
+                if r.methodname in found_methods:
+                    return f"Found duplicate method {r.methodname}"
+            found_methods.append(r.methodname)
+
+        return None
+
 
 @dataclass(frozen=True)
 class AnalysisSummary:

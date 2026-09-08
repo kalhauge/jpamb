@@ -1,3 +1,4 @@
+from pytest import UsageError
 import dataclasses
 import json
 import os
@@ -300,6 +301,8 @@ def analyse(
     results.display()
 
     if report:
+        if (check := summary.score_results().invalidate()) is not None:
+            raise click.UsageError(check)
         summary.report(file=report, eff=eff)
 
 
@@ -318,26 +321,12 @@ def analyse(
 def validate(ctx, report, format):
     """Validate the report as a correct report, and score it."""
 
-    eff = ctx.eff
     summary = jpamb.AnalysisSummary.from_sexpr(sexpr.from_string(report.read())[0])
 
     result_summary = summary.score_results()
 
-    assert (iters := result_summary.config.iterations) == 3, (
-        f"Analysis report should be based on 3 iterations, found {iters}"
-    )
-
-    found_methods = []
-    for _, rs in result_summary.results:
-        for r in rs:
-            assert -6.0 <= r.score <= 6.0, (
-                f"Invalid score {r.score} found for {r.methodname}"
-            )
-            assert 0 < r.abs_time, f"Found negative time value {r.abs_time}"
-            assert r.methodname not in found_methods, (
-                "Found duplicate method {r.methodname}"
-            )
-        found_methods.append(r.methodname)
+    if (check := result_summary.invalidate()) is not None:
+        raise click.UsageError(check)
 
     match format:
         case "user":
