@@ -332,7 +332,7 @@ def validate(ctx, report, format):
         case "user":
             result_summary.display()
         case "autolab":
-            print(json.dumps(result_summary.autolab_json(), indent=2))
+            print(json.dumps(result_summary.autolab_json()))
 
 
 @cli.command()

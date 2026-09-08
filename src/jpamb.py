@@ -7,7 +7,6 @@ This module provides the basic data model for working with the JPAMB.
 
 import collections
 import math
-import io
 import re
 import shlex
 import subprocess
@@ -21,7 +20,6 @@ from pathlib import Path
 from typing import NoReturn, Self, TextIO
 
 import runit
-from click import File
 
 import jvm
 import jvm.state
