@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from hypothesis import given, note
+from hypothesis import given, note, settings, HealthCheck
 from hypothesis import strategies as st
 
 import jpamb
@@ -202,6 +202,7 @@ def st_analysis_states(draw):
     )
 
 
+@settings(suppress_health_check=[HealthCheck.too_slow])
 @given(st_analysis_states())
 def test_analysis_states_from_sexpr(it):
     expr = sexpr.sexpr(it)

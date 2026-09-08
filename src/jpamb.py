@@ -199,22 +199,22 @@ class Wager(Prediction):
     def as_wager(self, categories: dict[str, Self]) -> Self:
         return self
 
-    def score(self, happens: bool):
+    def score(self, happens: bool) -> float:
         wager = (-1 if not happens else 1) * self.wager
         if wager > 0:
             if wager == float("inf"):
-                return 1
+                return 1.0
             else:
-                return 1 - 1 / (wager + 1)
+                return 1.0 - 1 / (wager + 1)
         else:
             return wager
 
-    def reward(self):
+    def reward(self) -> float:
         wager = math.fabs(self.wager)
         if wager == float("inf"):
-            return 1
+            return 1.0
         else:
-            return 1 - 1 / (wager + 1)
+            return 1.0 - 1 / (wager + 1)
 
     def __str__(self):
         return f"{self.wager:+0.2}"
@@ -996,7 +996,7 @@ class ResultSummary:
                 f"{v.misses / self.config.iterations:.1f}",
                 f"{v.wager().to_probability():0.2%}",
                 f"{v.wager()}",
-                f"{v.wager().reward():0.2}",
+                f"{v.wager().reward():0.2f}",
                 f"{(v.wager().score(False) * v.misses + v.wager().score(True) * v.hits) / self.config.iterations:.2f}",
             ]
             for c, v in self.categories.items()
@@ -1005,7 +1005,6 @@ class ResultSummary:
         dump_table(categories, align="<>>>>>>", file=file)
 
     def invalidate(self) -> str | None:
-
         if self.config.analysis.group == "The Rice Theorem Cookers":
             return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
 

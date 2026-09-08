@@ -23,6 +23,7 @@ classifiers = [
 
 [project.scripts]
 jpamb = "cli:cli"
+jpamb-trivial = "basic:main"
 
 [dependency-groups]
 dev = [
