@@ -1,4 +1,3 @@
-
 from hypothesis import given, note
 from hypothesis import strategies as st
 
