@@ -1,6 +1,5 @@
-from dataclasses import dataclass
 
-from hypothesis import assume, given, note
+from hypothesis import given, note
 from hypothesis import strategies as st
 
 import sexpr

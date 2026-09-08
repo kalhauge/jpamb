@@ -1,10 +1,10 @@
 import dataclasses
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
-import re
 
 import click
 
@@ -152,7 +152,7 @@ def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
                 for step in steps:
                     if not isinstance(step, list):
                         raise TypeError(f"expected list, not {step}")
-                    (k, _, kwargs) = sexpr.dict_from_sexpr(step)  # TODO
+                    # (k, _, kwargs) = sexpr.dict_from_sexpr(step, keyfn=str)  # TODO
                     if k == "step":
                         no_steps += 1
 
@@ -300,7 +300,7 @@ def analyse(
     if report:
         summary.report(file=report, eff=eff)
     else:
-        result.display()
+        results.display()
 
 
 @cli.command()

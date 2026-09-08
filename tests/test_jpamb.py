@@ -1,10 +1,10 @@
-from hypothesis import assume, given, note
+from collections import OrderedDict
+
+from hypothesis import given, note
 from hypothesis import strategies as st
 
-import sexpr
 import jpamb
-
-from collections import OrderedDict
+import sexpr
 
 from . import test_jvm
 
@@ -124,21 +124,6 @@ def test_analysis_results_from_sexpr(it):
     expr = sexpr.sexpr(it)
     note(expr)
     assert it == jpamb.AnalysisResult.from_sexpr(expr)
-
-
-@st.composite
-def st_trackers(draw):
-    return jpamb.Tracker(
-        hits=draw(st.integers(min_value=0)),
-        counts=draw(st.integers(min_value=0)),
-    )
-
-
-@given(st_trackers())
-def test_tracker_from_sexpr(it):
-    expr = sexpr.sexpr(it)
-    note(expr)
-    assert it == jpamb.Tracker.from_sexpr(expr)
 
 
 @st.composite

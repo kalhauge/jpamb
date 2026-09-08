@@ -13,44 +13,44 @@ class TestPredictionParsing:
 
     def test_parse_percentage(self):
         """Test parsing percentage format predictions."""
-        pred = jpamb.Prediction.parse("75%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("75%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == pytest.approx(0.75, abs=0.01)
 
         # Note: 100% confidence (wager=inf) returns 0 probability to discourage
         # students from being overly confident - teaches that you can't be 100% certain
-        pred = jpamb.Prediction.parse("100%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("100%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Prediction.parse("0%")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("0%")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.to_probability() == pytest.approx(0.0, abs=0.01)
 
     def test_parse_wager(self):
         """Test parsing wager format predictions."""
-        pred = jpamb.Prediction.parse("1.0")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("1.0")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == 1.0
 
-        pred = jpamb.Prediction.parse("0.5")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("0.5")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == 0.5
 
-        pred = jpamb.Prediction.parse("-1.0")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("-1.0")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == -1.0
 
     def test_parse_infinity(self):
         """Test parsing infinite confidence predictions."""
-        pred = jpamb.Prediction.parse("inf")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("inf")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == float("inf")
         # Returns 0 to discourage extreme confidence (pedagogical choice)
         assert pred.to_probability() == 0.0
 
-        pred = jpamb.Prediction.parse("-inf")
-        assert isinstance(pred, jpamb.Prediction)
+        pred = jpamb.Wager.parse("-inf")
+        assert isinstance(pred, jpamb.Wager)
         assert pred.wager == float("-inf")
         assert pred.to_probability() == 0.0
 

@@ -1,5 +1,5 @@
-from hypothesis import given
-from hypothesis import note, strategies as st
+from hypothesis import given, note
+from hypothesis import strategies as st
 
 from jpamb import jvm
 

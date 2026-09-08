@@ -7,13 +7,20 @@ from collections.abc import Callable, Iterable, Iterator, Sequence
 from dataclasses import dataclass
 from functools import partial
 from typing import (
+    TYPE_CHECKING,
     Any,
+    GenericAlias,
     NamedTuple,
     Protocol,
     Self,
     TypeIs,
     runtime_checkable,
 )
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
+else:
+    DataclassInstance = None
 
 
 @runtime_checkable
@@ -133,14 +140,14 @@ def sexprtag(cls: type) -> str:
     return (name[0] + result).lower()
 
 
-def from_dataclass(obj: object) -> list[Option[SExpr]]:
+def from_dataclass(obj: DataclassInstance) -> list[Option[SExpr]]:
     return data(
         sexprtag(obj.__class__),
         **{f.name: getattr(obj, f.name) for f in dataclasses.fields(obj)},
     )
 
 
-def from_dataclass_values(obj: object) -> list[Option[SExpr]]:
+def from_dataclass_values(obj: DataclassInstance) -> list[Option[SExpr]]:
     return data(
         sexprtag(obj.__class__),
         *[getattr(obj, f.name) for f in dataclasses.fields(obj)],
@@ -191,7 +198,7 @@ class Decodable(Protocol):
     def decode(cls, code: str) -> Self: ...
 
 
-def from_sexpr(expr: SExpr, *, target: type):
+def from_sexpr(expr: SExpr, *, target: type[Any]):
     if hasattr(target, "from_sexpr"):
         return target.from_sexpr(expr)
 
@@ -209,7 +216,9 @@ def from_sexpr(expr: SExpr, *, target: type):
     if origin is dict or origin is OrderedDict:
         tkey, tvalue = typing.get_args(target)
         if tkey is str:
-            return dict_from_sexpr(expr, valuefn=partial(from_sexpr, target=tvalue))
+            return dict_from_sexpr(
+                expr, keyfn=str, valuefn=partial(from_sexpr, target=tvalue)
+            )
 
         if issubclass(tkey, Decodable):
             return dict_from_sexpr(
@@ -262,7 +271,7 @@ def union_from_sexpr[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
     raise FromSExprError(f"Could not match {expr} with any of {targets}")
 
 
-def dataclass_from_sexpr[T](expr: SExpr, *, target: type[T]) -> T:
+def dataclass_from_sexpr[T: DataclassInstance](expr: SExpr, *, target: type[T]) -> T:
     kname, args, kwargs = data_from_sexpr(expr)
 
     if kname != sexprtag(target):
@@ -277,13 +286,23 @@ def dataclass_from_sexpr[T](expr: SExpr, *, target: type[T]) -> T:
 
     _args = []
     for arg, field in zip(args, annotations):
+        if not isinstance(field.type, type | GenericAlias):
+            raise TypeError(
+                f"Expected type of field {field.name!r} to be type, not {field.type!r}"
+            )
+
         _args.append(from_sexpr(arg, target=field.type))
 
     _kwargs = {}
     for field in annotations[len(args) :]:
         if not field.name in kwargs:
             raise FromSExprError(
-                f"Expected {key!r} option, but only got {kwargs.keys()}"
+                f"Expected {field.name!r} option, but only got {kwargs.keys()}"
+            )
+
+        if not isinstance(field.type, type | GenericAlias):
+            raise TypeError(
+                f"Expected type of field {field.name!r} to be type, not {field.type!r}"
             )
 
         _kwargs[field.name] = from_sexpr(kwargs[field.name], target=field.type)
@@ -352,7 +371,7 @@ def tuple_from_sexpr(
 def dict_from_sexpr[K, V](
     sexpr: SExpr,
     *,
-    keyfn: Callable[[str], K] = str,
+    keyfn: Callable[[str], K],
     valuefn: Callable[[SExpr], V],
 ) -> dict[Any, Any]:
     if not isinstance(sexpr, list):
@@ -368,7 +387,7 @@ def dict_from_sexpr[K, V](
 
 
 def data_from_sexpr(
-    sexpr: list[Option[SExpr]],
+    sexpr: SExpr,
 ) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
         raise FromSExprError(f"Unexpected expression: {sexpr} of type {type(sexpr)}")

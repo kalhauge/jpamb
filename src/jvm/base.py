@@ -615,7 +615,7 @@ class AbsMethodID(Absolute[MethodID]):
         return self.encode()
 
     @classmethod
-    def from_sexpr(cls, expr) -> sexpr.SExpr:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return cls.decode(sexpr.str_from_sexpr(expr))
 
 

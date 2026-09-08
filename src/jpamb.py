@@ -12,15 +12,14 @@ import shlex
 import subprocess
 import sys
 from abc import ABC, abstractmethod
-from collections import Counter, defaultdict, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import NoReturn, Self
+from typing import NoReturn, Self, TextIO
 
 import runit
-from click import File
 
 import jvm
 import jvm.state
@@ -94,31 +93,6 @@ class Case:
         return sorted(cases_by_id.items())
 
 
-class classproperty:
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, obj, cls):
-        return self.func(cls)
-
-
-class WithSExpr(ABC):
-    @classproperty
-    def sexpr_name(cls) -> str:
-        assert hasattr(cls, "__name__"), (
-            "Tried to retrieve __name__ from nameless class"
-        )
-        name = str(cls.__name__)
-        result = re.sub(r"(?=[A-Z])", "-", name[1:])
-        return (name[0] + result).lower()
-
-    @abstractmethod
-    def __sexpr__(self) -> sexpr.SExpr: ...
-
-    @abstractmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self: ...
-
-
 @dataclass(frozen=True)
 class AnalysisInfo:
     name: str
@@ -162,7 +136,7 @@ class AnalysisInfo:
 
 class Prediction(ABC):
     @abstractmethod
-    def as_wager(self, categories: dict[str, Self]) -> "Wager": ...
+    def as_wager(self, categories: "dict[str, Wager]") -> "Wager": ...
 
     @staticmethod
     def parse(string: str) -> "Wager | Category":
@@ -185,10 +159,10 @@ class Prediction(ABC):
 
         try:
             return Category.from_sexpr(expr)
-        except ValueError:
+        except ValueError as e:
             errors.append(e)
 
-        raise FromSExprError(
+        raise sexpr.FromSExprError(
             f"Could not parse Prediction: {''.join('\n{e}' for e in errors)}"
         )
 
@@ -256,7 +230,7 @@ class Category(Prediction):
     def __json__(self):
         return self.name
 
-    def as_wager(self, categories: dict[str, Self]) -> Wager:
+    def as_wager(self, categories: dict[str, Wager]) -> Wager:
         return categories.get(self.name, Wager(0))
 
     def __str__(self):
@@ -301,7 +275,7 @@ class Response:
             predictions[query] = prediction
         return Response(predictions), warnings
 
-    def score(self, correct: set[str], categories: dict[str, Prediction] | None = None):
+    def score(self, correct: set[str], categories: dict[str, Wager] | None = None):
         if categories is None:
             categories = {}
 
@@ -327,7 +301,7 @@ class Suite:
     """The suite!"""
 
     workdir: Path
-    cases: tuple[Case]
+    cases: tuple[Case, ...]
 
     @classmethod
     def from_workdir(cls, workdir: Path, *, eff: Effect):
@@ -797,10 +771,10 @@ class Tracker:
     hits: int = 0
     counts: int = 0
 
-    def approximate(self) -> Prediction:
+    def approximate(self) -> Wager:
         return Wager.from_probability((self.hits + 1) / (self.counts + 2))
 
-    def prediction(self) -> Prediction:
+    def wager(self) -> Wager:
         return Wager.from_probability(self.hits / self.counts)
 
     def __sexpr__(self) -> sexpr.SExpr:
@@ -861,7 +835,7 @@ class AnalysisConfig:
                 )
                 info = AnalysisInfo.parse(out)
             except subprocess.CalledProcessError as e:
-                eff.error(f"Ran {shlex.join(cls.cmd)} info, and got error:\n{e.stderr}")
+                eff.error(f"Ran {shlex.join(cmd)} info, and got error:\n{e.stderr}")
                 return None
             except ValueError:
                 eff.error("Expected info, but got:")
@@ -978,7 +952,7 @@ class ResultSummary:
 class AnalysisSummary:
     config: AnalysisConfig
     results: dict[jvm.AbsMethodID, list[AnalysisResult]]
-    categories: dict[str, Prediction]
+    categories: dict[str, Wager]
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.from_dataclass(self)
@@ -1021,7 +995,7 @@ class AnalysisSummary:
             self.config, total_score, total_rel_time, total_abs_time, groups
         )
 
-    def report(cls, *, file: File, eff: Effect) -> None:
+    def report(cls, *, file: TextIO, eff: Effect) -> None:
         content = sexpr.pretty(cls.__sexpr__(), indent=2)
         try:
             file.write(content)
@@ -1091,7 +1065,7 @@ class AnalysisState:
 
             if iteration > 0:
                 # If we are at our second iteration, use the categories.
-                categories = {k: v.prediction() for k, v in self.categories.items()}
+                categories = {k: v.wager() for k, v in self.categories.items()}
             else:
                 eff.info("Note: Categories are not approximated in the first iteration")
                 categories = {}
@@ -1121,7 +1095,7 @@ class AnalysisState:
         return AnalysisSummary(
             self.config,
             self.results,
-            {k: v.prediction() for k, v in self.categories.items()},
+            {k: v.wager() for k, v in self.categories.items()},
         )
 
 
@@ -1139,7 +1113,7 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
 
 def verify_summary(summary: AnalysisSummary) -> None:
     result_summary = summary.score_results()
-    autolab_table = result_summary.autolab_table()
+    autolab_table = result_summary.autolab_json()
 
     autolab_total = round(
         sum([v for k, v in autolab_table["score"].items() if k != "RelativeTime"]), 3
