@@ -2,15 +2,12 @@
 These test, check that the output of the tests remain the same.
 """
 
+import shutil
+
 import pytest
-
-from pathlib import Path
-
 from click.testing import CliRunner
 
 import cli
-
-import shutil
 
 solutions = [
     "jpamb-trivial",
