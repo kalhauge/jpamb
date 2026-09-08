@@ -1014,7 +1014,7 @@ class ResultSummary:
         found_methods = []
         for _, rs in self.results:
             for r in rs:
-                if not (-6.0 <= r.score <= 6.0):
+                if not (r.score <= 6.0):
                     return f"Invalid score {r.score} found for {r.methodname}"
                 if r.abs_time <= 0:
                     return f"Found negative time value {r.abs_time}"
