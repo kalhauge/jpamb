@@ -13,7 +13,7 @@ import shlex
 import subprocess
 import sys
 from abc import ABC, abstractmethod
-from collections import Counter, defaultdict, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -909,14 +909,14 @@ class AnalysisConfig:
 
 @dataclass
 class ResultRow:
-    methodname: str
+    methodname: jvm.AbsMethodID
     score: float
     rel_time: float
     abs_time: float
 
     def as_row(self) -> list[str]:
         return [
-            self.methodname,
+            str(self.methodname),
             f"{self.score:>7.2f}",
             f"{self.rel_time:>7.2f} Db",
             f"{self.abs_time / 10**9:>7.3f} s",
@@ -1063,7 +1063,7 @@ class AnalysisSummary:
                 rel_time = mean(result.duration.relative for result in results)
                 abs_time = mean(result.duration.absolute for result in results)
 
-                rows += [ResultRow(str(method.extension), score, rel_time, abs_time)]
+                rows += [ResultRow(method.extension, score, rel_time, abs_time)]
 
                 total_score += score
                 total_rel_time += rel_time

@@ -27,4 +27,4 @@ leananalyzer
 result
 .config/ash.json
 
-test_report.txt
+report.sexp
