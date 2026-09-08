@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from hypothesis import given, note, settings, HealthCheck
+from hypothesis import HealthCheck, given, note, settings
 from hypothesis import strategies as st
 
 import jpamb
