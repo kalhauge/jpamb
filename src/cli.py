@@ -1,9 +1,7 @@
-from pytest import UsageError
 import dataclasses
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -85,101 +83,101 @@ def checkhealth(ctx, docker):
     ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 
 
-@cli.command()
-@click.option(
-    "--max-steps",
-    show_default=True,
-    default=100,
-    help="how many steps to execute",
-)
-@click.option(
-    "--fail-fast / --no-fail-fast",
-    show_default=True,
-    default=False,
-    help="stop at first failure",
-)
-@click.option(
-    "--timeout",
-    show_default=True,
-    default=2.0,
-    help="timeout in seconds.",
-)
-@click.option(
-    "--filter",
-    "-f",
-    help="A regular expression which filter the methods to run on.",
-    callback=re_parser,
-)
-@click.argument("PROGRAM", nargs=-1)
-@click.pass_obj
-def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
-    """Use PROGRAM as an interpreter."""
-
-    eff = ctx.eff
-
-    if ctx.suite.workdir != Path.cwd():
-        eff.warning(f"Changing to {ctx.suite.workdir}")
-        os.chdir(ctx.suite.workdir)
-
-    total = 0
-    count = 0
-    for case in ctx.suite.cases:
-        if filter and not filter.search(str(case)):
-            continue
-
-        with eff.context(f"Case {case}"):
-            try:
-                out = eff.run(
-                    program
-                    + (case.methodid.encode(), case.input.encode(), str(max_steps)),
-                    timeout=timeout,
-                )
-            except subprocess.TimeoutExpired:
-                eff.error("timed out")
-                behaviors = set("timed out")
-                if fail_fast:
-                    return
-            except subprocess.CalledProcessError as e:
-                eff.error(e)
-                behaviors = set("failure")
-                if fail_fast:
-                    return
-
-            else:
-                steps = sexpr.from_string(out)
-
-                no_steps = 0
-                behaviors = set()
-                for step in steps:
-                    if not isinstance(step, list):
-                        raise TypeError(f"expected list, not {step}")
-                    # (k, _, kwargs) = sexpr.dict_from_sexpr(step, keyfn=str)  # TODO
-                    if k == "step":
-                        no_steps += 1
-
-                        after = kwargs["after"]
-                        if isinstance(after, str):
-                            behaviors.add(after)
-
-                eff.info(
-                    f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
-                )
-
-                if case.result not in behaviors:
-                    if no_steps == max_steps:
-                        eff.warning(
-                            f"Terminated before finding behaviour: {case.result}"
-                        )
-                    else:
-                        eff.error(f"Did not find behaviour: {case.result}")
-                        if fail_fast:
-                            return
-                else:
-                    eff.success(f"Did find behaviour: {case.result}")
-                    count += 1
-
-            total += 1
-    eff.info(f"Total: {count}/{total}")
+# @cli.command()
+# @click.option(
+#     "--max-steps",
+#     show_default=True,
+#     default=100,
+#     help="how many steps to execute",
+# )
+# @click.option(
+#     "--fail-fast / --no-fail-fast",
+#     show_default=True,
+#     default=False,
+#     help="stop at first failure",
+# )
+# @click.option(
+#     "--timeout",
+#     show_default=True,
+#     default=2.0,
+#     help="timeout in seconds.",
+# )
+# @click.option(
+#     "--filter",
+#     "-f",
+#     help="A regular expression which filter the methods to run on.",
+#     callback=re_parser,
+# )
+# @click.argument("PROGRAM", nargs=-1)
+# @click.pass_obj
+# def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
+#     """Use PROGRAM as an interpreter."""
+#
+#     eff = ctx.eff
+#
+#     if ctx.suite.workdir != Path.cwd():
+#         eff.warning(f"Changing to {ctx.suite.workdir}")
+#         os.chdir(ctx.suite.workdir)
+#
+#     total = 0
+#     count = 0
+#     for case in ctx.suite.cases:
+#         if filter and not filter.search(str(case)):
+#             continue
+#
+#         with eff.context(f"Case {case}"):
+#             try:
+#                 out = eff.run(
+#                     program
+#                     + (case.methodid.encode(), case.input.encode(), str(max_steps)),
+#                     timeout=timeout,
+#                 )
+#             except subprocess.TimeoutExpired:
+#                 eff.error("timed out")
+#                 behaviors = set("timed out")
+#                 if fail_fast:
+#                     return
+#             except subprocess.CalledProcessError as e:
+#                 eff.error(e)
+#                 behaviors = set("failure")
+#                 if fail_fast:
+#                     return
+#
+#             else:
+#                 steps = sexpr.from_string(out)
+#
+#                 no_steps = 0
+#                 behaviors = set()
+#                 for step in steps:
+#                     if not isinstance(step, list):
+#                         raise TypeError(f"expected list, not {step}")
+#                     # (k, _, kwargs) = sexpr.dict_from_sexpr(step, keyfn=str)  # TODO
+#                     if k == "step":
+#                         no_steps += 1
+#
+#                         after = kwargs["after"]
+#                         if isinstance(after, str):
+#                             behaviors.add(after)
+#
+#                 eff.info(
+#                     f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
+#                 )
+#
+#                 if case.result not in behaviors:
+#                     if no_steps == max_steps:
+#                         eff.warning(
+#                             f"Terminated before finding behaviour: {case.result}"
+#                         )
+#                     else:
+#                         eff.error(f"Did not find behaviour: {case.result}")
+#                         if fail_fast:
+#                             return
+#                 else:
+#                     eff.success(f"Did find behaviour: {case.result}")
+#                     count += 1
+#
+#             total += 1
+#     eff.info(f"Total: {count}/{total}")
 
 
 @cli.command()
@@ -302,7 +300,9 @@ def analyse(
 
     if report:
         if (check := summary.score_results().invalidate()) is not None:
-            raise click.UsageError(check)
+            eff.error(check)
+            eff.error("No report created")
+            sys.exit(1)
         summary.report(file=report, eff=eff)
 
 
@@ -326,7 +326,8 @@ def validate(ctx, report, format):
     result_summary = summary.score_results()
 
     if (check := result_summary.invalidate()) is not None:
-        raise click.UsageError(check)
+        eff.error(check)
+        sys.exit(1)
 
     match format:
         case "user":
