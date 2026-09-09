@@ -56,7 +56,7 @@
             pkgs.runCommand "assignments"
               {
                 passthru = {
-                  inherit syntactic;
+                  inherit syntactic autograder;
                 };
               }
               ''
