@@ -383,7 +383,9 @@ def build(ctx, compile, document, test):
 @click.pass_obj
 def inspect(ctx, method, format):
     method = jvm.AbsMethodID.decode(method)
-    for i, res in enumerate(ctx.suite.findmethod(method)["code"]["bytecode"]):
+    for i, res in enumerate(
+        ctx.suite.findmethod(method, eff=ctx.eff)["code"]["bytecode"]
+    ):
         op = jvm.Opcode.from_json(res)
         match format:
             case "pretty":

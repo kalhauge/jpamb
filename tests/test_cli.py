@@ -52,3 +52,23 @@ def test_analyse_report(tmp_path):
     )
 
     assert result.exit_code == 0, result.output
+
+
+methods = [
+    "jpamb.cases.Simple.assertBoolean:(Z)V",
+]
+
+formats = ["pretty", "real", "repr", "json"]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("method", methods)
+@pytest.mark.parametrize("format", formats)
+def test_inspect(method, format):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.cli,
+        ["-v", "inspect", "--format", format, method],
+    )
+
+    assert result.exit_code == 0, result.output
