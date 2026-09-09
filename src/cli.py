@@ -325,15 +325,14 @@ def validate(ctx, report, format):
 
     result_summary = summary.score_results()
 
-    if (check := result_summary.invalidate()) is not None:
-        ctx.eff.error(check)
-        sys.exit(1)
-
     match format:
         case "user":
+            if (check := result_summary.invalidate()) is not None:
+                ctx.eff.error(check)
+                sys.exit(1)
             result_summary.display()
         case "autolab":
-            print(json.dumps(result_summary.autolab_json()))
+            result_summary.display_autolab()
 
 
 @cli.command()
