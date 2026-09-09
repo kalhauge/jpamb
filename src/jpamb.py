@@ -11,6 +11,7 @@ import re
 import shlex
 import subprocess
 import sys
+import json
 from abc import ABC, abstractmethod
 from collections import Counter, OrderedDict, defaultdict
 from collections.abc import Iterable, Iterator
@@ -930,16 +931,51 @@ class ResultSummary:
     mean_rel_time: float
     total_abs_time: float
 
-    def autolab_json(self):
+    def display_autolab(self, file=sys.stdout):
+        invalid = self.invalidate()
+
+        json.dump(
+            {
+                "_presentation": "semantic",
+                "stages": ["Info", "Metrics", "Grade"],
+                "Info": {
+                    "Name": self.config.analysis.name,
+                    "Group": self.config.analysis.group,
+                },
+                "Metrics": {
+                    "Total Score": round(self.total_score, 2),
+                    "Relative Mean Time (Db)": round(self.mean_rel_time, 2),
+                    "Total Time (s)": round(self.total_abs_time / 10**9, 3),
+                },
+                "Grade": {
+                    "Valid": {
+                        "passed": invalid is None,
+                        "hint": "" if invalid is None else invalid,
+                    },
+                    "Pass": {
+                        "passed": invalid is None and self.total_score > 100,
+                        "hint": (
+                            "Report must be valid"
+                            if invalid is not None
+                            else "Total score needs to be above 100"
+                        ),
+                    },
+                },
+            },
+            fp=file,
+        )
+        file.write("\n")
+
         student_eval = {
             "scores": {},
         }
 
-        student_eval["scores"]["Total"] = self.total_score
+        student_eval["scores"]["Total"] = self.total_score if invalid is None else 0
         student_eval["scores"]["Time"] = 100 / max(1, self.mean_rel_time)
         student_eval["scores"]["Categories"] = 100 / len(self.categories)
 
-        return student_eval
+        json.dump(student_eval, fp=file)
+        file.write("\n")
 
     def display(self, file=sys.stdout):
         self.config.display(file=file)
@@ -1216,18 +1252,3 @@ def check_state_equality(s1: AnalysisState, s2: AnalysisState):
     assert s1.progress == s2.progress, (
         f"Progress differ\n{s1.progress}\n\n{s2.progress}"
     )
-
-
-def verify_summary(summary: AnalysisSummary) -> None:
-    result_summary = summary.score_results()
-    autolab_table = result_summary.autolab_json()
-
-    autolab_total = round(
-        sum([v for k, v in autolab_table["score"].items() if k != "RelativeTime"]), 3
-    )
-
-    assert result_summary.total_score == autolab_total, (
-        f"Autolab score: {autolab_total} differs from summary score: {result_summary.total_score}"
-    )
-
-    return autolab_table
