@@ -1,5 +1,9 @@
 # The Change Log
 
+## Version 0.X.X
+
+- Fix bug in `inspect`
+
 ## Version 0.5.1
 
 - Fix issue with floating point conversion (issue #62).
