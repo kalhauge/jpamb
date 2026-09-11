@@ -972,7 +972,7 @@ class ResultSummary:
 
         student_eval["scores"]["Total"] = self.total_score if invalid is None else 0
         student_eval["scores"]["Time"] = 100 / max(1, self.mean_rel_time)
-        student_eval["scores"]["Categories"] = 100 / len(self.categories)
+        student_eval["scores"]["Categories"] = 100 / max(1, len(self.categories))
 
         json.dump(student_eval, fp=file)
         file.write("\n")
