@@ -21,8 +21,8 @@ For example:
 ```python
 from sexpr import from_string, pretty
 
-parse = from_string('(foo bar :baz qux)')   # list of SExpr
-pretty(parse[0])                           # 'foo bar :baz qux'
+parse = from_string("(foo bar :baz qux)")  # list of SExpr
+pretty(parse[0])  # 'foo bar :baz qux'
 ```
 
 ### Building and Converting
