@@ -51,9 +51,7 @@ class StackValue(ABC):
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         if cls is StackValue:
-            return sexpr.to_union(
-                expr, targets=[StackInt, StackFloat, StackReference]
-            )
+            return sexpr.to_union(expr, targets=[StackInt, StackFloat, StackReference])
 
         return sexpr.to_dataclass(expr, target=cls)
 
@@ -223,9 +221,7 @@ class HeapValue(ABC):
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         if cls is HeapValue:
-            return sexpr.to_union(
-                expr, targets=[StackInt, StackFloat, StackReference]
-            )
+            return sexpr.to_union(expr, targets=[StackInt, StackFloat, StackReference])
 
         return sexpr.to_dataclass(expr, target=cls)
 
