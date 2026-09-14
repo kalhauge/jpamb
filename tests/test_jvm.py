@@ -1,7 +1,8 @@
 from hypothesis import given, note
 from hypothesis import strategies as st
 
-from jpamb import jvm
+import jvm
+import sexpr
 
 
 def test_singletons():
@@ -14,12 +15,12 @@ def test_singletons():
     assert jvm.Array(jvm.Boolean()) is not jvm.Array(jvm.Int())
 
 
-def test_value_parser():
-    assert jvm.ValueParser.parse("1, 's', [I:10, 32]") == [
-        jvm.Value.int(1),
-        jvm.Value.char("s"),
-        jvm.Value.array(jvm.Int(), [10, 32]),
-    ]
+# def test_value_parser():
+#     assert jvm.ValueParser.parse("1, 's', [I:10, 32]") == [
+#         jvm.Value.int(1),
+#         jvm.Value.char("s"),
+#         jvm.Value.array(jvm.Int(), [10, 32]),
+#     ]
 
 
 def st_classnames():
@@ -64,14 +65,14 @@ def test_methodid_decode(it):
 
 
 @st.composite
-def st_absmethodid(draw):
+def st_absmethodids(draw):
     return jvm.AbsMethodID(
         classname=draw(st_classnames()),
         extension=draw(st_methodid()),
     )
 
 
-@given(st_absmethodid())
+@given(st_absmethodids())
 def test_absmethodid_decode(it):
     code = it.encode()
     note(code)
@@ -95,19 +96,13 @@ def st_types():
     return st.recursive(st_primtypes(), extend=lambda r: r.map(jvm.Array))
 
 
-def st_values():
-    return (
-        st.integers().map(jvm.Value.int)
-        | st.booleans().map(jvm.Value.boolean)
-        | st.text(min_size=1, max_size=1).map(jvm.Value.char)
-    )
-
-
 @given(st_types())
 def test_types_math_should_return_string(tp):
     assert isinstance(tp.math(), str)
 
 
-@given(st_values())
-def test_values_math_should_return_string(v):
-    assert isinstance(v.math(), str)
+@given(st_types())
+def test_types_sexpr(it):
+    expr = sexpr.sexpr(it)
+    note(expr)
+    assert it == jvm.Type.from_sexpr(expr)

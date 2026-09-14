@@ -8,9 +8,10 @@ from pathlib import Path
 import click
 
 import jpamb
+import jpamb.interpret
 import jvm
 import sexpr
-from jpamb_utils import DockerRunner, Effect
+from jpamb.utils import DockerRunner, Effect
 
 
 @dataclasses.dataclass
@@ -83,101 +84,127 @@ def checkhealth(ctx, docker):
     ctx.suite.checkhealth(docker=docker, eff=ctx.eff)
 
 
-# @cli.command()
-# @click.option(
-#     "--max-steps",
-#     show_default=True,
-#     default=100,
-#     help="how many steps to execute",
-# )
-# @click.option(
-#     "--fail-fast / --no-fail-fast",
-#     show_default=True,
-#     default=False,
-#     help="stop at first failure",
-# )
-# @click.option(
-#     "--timeout",
-#     show_default=True,
-#     default=2.0,
-#     help="timeout in seconds.",
-# )
-# @click.option(
-#     "--filter",
-#     "-f",
-#     help="A regular expression which filter the methods to run on.",
-#     callback=re_parser,
-# )
-# @click.argument("PROGRAM", nargs=-1)
-# @click.pass_obj
-# def interpret(ctx, program, filter, timeout, max_steps, fail_fast):
-#     """Use PROGRAM as an interpreter."""
-#
-#     eff = ctx.eff
-#
-#     if ctx.suite.workdir != Path.cwd():
-#         eff.warning(f"Changing to {ctx.suite.workdir}")
-#         os.chdir(ctx.suite.workdir)
-#
-#     total = 0
-#     count = 0
-#     for case in ctx.suite.cases:
-#         if filter and not filter.search(str(case)):
-#             continue
-#
-#         with eff.context(f"Case {case}"):
-#             try:
-#                 out = eff.run(
-#                     program
-#                     + (case.methodid.encode(), case.input.encode(), str(max_steps)),
-#                     timeout=timeout,
-#                 )
-#             except subprocess.TimeoutExpired:
-#                 eff.error("timed out")
-#                 behaviors = set("timed out")
-#                 if fail_fast:
-#                     return
-#             except subprocess.CalledProcessError as e:
-#                 eff.error(e)
-#                 behaviors = set("failure")
-#                 if fail_fast:
-#                     return
-#
-#             else:
-#                 steps = sexpr.from_string(out)
-#
-#                 no_steps = 0
-#                 behaviors = set()
-#                 for step in steps:
-#                     if not isinstance(step, list):
-#                         raise TypeError(f"expected list, not {step}")
-#                     # (k, _, kwargs) = sexpr.dict_from_sexpr(step, keyfn=str)  # TODO
-#                     if k == "step":
-#                         no_steps += 1
-#
-#                         after = kwargs["after"]
-#                         if isinstance(after, str):
-#                             behaviors.add(after)
-#
-#                 eff.info(
-#                     f"Ran {no_steps} steps and terminated with behaviors: {', '.join(behaviors)}"
-#                 )
-#
-#                 if case.result not in behaviors:
-#                     if no_steps == max_steps:
-#                         eff.warning(
-#                             f"Terminated before finding behaviour: {case.result}"
-#                         )
-#                     else:
-#                         eff.error(f"Did not find behaviour: {case.result}")
-#                         if fail_fast:
-#                             return
-#                 else:
-#                     eff.success(f"Did find behaviour: {case.result}")
-#                     count += 1
-#
-#             total += 1
-#     eff.info(f"Total: {count}/{total}")
+@cli.command()
+@click.option(
+    "--max-steps",
+    show_default=True,
+    default=100,
+    help="how many steps to execute",
+)
+@click.option(
+    "--step-wise / --no-step-wise",
+    default=False,
+    help="in case of crash, restart from where we left off",
+)
+@click.option(
+    "--timeout",
+    show_default=True,
+    default=2.0,
+    help="timeout in seconds.",
+)
+@click.option(
+    "--report",
+    "-r",
+    default=None,
+    type=click.File("w"),
+    help="write the report here (disables filter)",
+)
+@click.option(
+    "--filter",
+    "-f",
+    default=".*",
+    help="A regular expression which filter the methods to run on.",
+    callback=re_parser,
+)
+@click.argument("PROGRAM", nargs=-1)
+@click.pass_obj
+def interpret(
+    ctx,
+    program,
+    filter,
+    step_wise,
+    report,
+    **kwargs,
+):
+    """Use PROGRAM as an interpreter."""
+
+    eff = ctx.eff
+
+    if ctx.suite.workdir != Path.cwd():
+        eff.warning(f"Changing to {ctx.suite.workdir}")
+        os.chdir(ctx.suite.workdir)
+
+    if step_wise and report:
+        raise click.UsageError("Cannot produce report in step wise mode")
+
+    if filter != re.compile(".*") and report:
+        raise click.UsageError(f"Cannot produce report in while filtering {filter}")
+
+    experiments = []
+    for case in sorted(ctx.suite.cases):
+        if not filter.search(str(case)):
+            eff.info(f"Skipping {case}, excluded by filter")
+            continue
+
+        experiments.append(case)
+
+    try:
+        config = jpamb.interpret.Config.from_cmd(
+            program,
+            experiments,
+            eff=eff,
+            **kwargs,
+        )
+    except Exception as e:  # ruff: ignore[BLE001]
+        eff.debug(f"Error: {e}")
+        eff.error("Failed to instantiate config")
+        sys.exit(1)
+
+    cache = ctx.suite.cache_folder(eff=eff)
+    state_file = cache / "interpret-state.sexp"
+
+    with eff.context("Trying to read state from cache"):
+        state = None
+        if step_wise:
+            try:
+                code = state_file.read_text()
+                state_cc = sexpr.from_string(code)[0]
+                state = jpamb.interpret.State.from_sexpr(state_cc)
+                if state.config != config:
+                    eff.warning("Old state ran with other config, restarting...")
+                    state = None
+            except FileNotFoundError:
+                eff.debug("No analysis cache")
+            except sexpr.FromSExprError as e:
+                eff.error(f"Malformed state in cache; remove {state_file}")
+                sys.exit(1)
+
+    if not state:
+        state = jpamb.interpret.State(config)
+
+    for cont in iter(lambda: state.run_next(eff=eff), None):
+        if step_wise and not cont:
+            state.rewind()
+            eff.error("Stopping early")
+            state_file.write_text(sexpr.pretty(sexpr.sexpr(state), indent=2))
+            eff.info(f"Saved state to {state_file!r}")
+            return
+
+    try:
+        state_file.unlink()
+    except FileNotFoundError:
+        pass
+
+    summary = state.summary()
+    results = summary.score_results()
+    results.display()
+
+    if report:
+        if (check := results.invalidate()) is not None:
+            eff.error(check)
+            eff.error("No report created")
+            sys.exit(1)
+        summary.report(file=report, eff=eff)
 
 
 @cli.command()
@@ -252,14 +279,17 @@ def analyse(
 
         experiments.append((methodid, expected))
 
-    config = jpamb.AnalysisConfig.from_cmd(
-        program,
-        experiments,
-        eff=eff,
-        **kwargs,
-    )
-
-    assert config is not None, "Failed to instantiate config"
+    try:
+        config = jpamb.analyse.Config.from_cmd(
+            program,
+            experiments,
+            eff=eff,
+            **kwargs,
+        )
+    except Exception as e:  # ruff: ignore[BLE001]
+        eff.debug(f"Error: {e}")
+        eff.error("Failed to instantiate config")
+        sys.exit(1)
 
     cache = ctx.suite.cache_folder(eff=eff)
 
@@ -271,7 +301,7 @@ def analyse(
         try:
             code = state_file.read_text()
             state_cc = sexpr.from_string(code)[0]
-            state = jpamb.AnalysisState.from_sexpr(state_cc)
+            state = jpamb.analyse.State.from_sexpr(state_cc)
             if state.config != config:
                 eff.warning("Old state ran with other config, restarting...")
                 state = None
@@ -279,27 +309,27 @@ def analyse(
             eff.debug("No analysis cache")
 
     if not state:
-        state = jpamb.AnalysisState(config)
+        state = jpamb.analyse.State(config)
 
     for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
         if step_wise and not cont:
+            state.progress -= 1
             eff.error("Stopping early")
             state_file.write_text(sexpr.pretty(sexpr.sexpr(state), indent=2))
             eff.info(f"Saved state to {state_file!r}")
             return
-
-        summary = state.summary()
 
     try:
         state_file.unlink()
     except FileNotFoundError:
         pass
 
+    summary = state.summary()
     results = summary.score_results()
     results.display()
 
     if report:
-        if (check := summary.score_results().invalidate()) is not None:
+        if (check := results.invalidate()) is not None:
             eff.error(check)
             eff.error("No report created")
             sys.exit(1)
@@ -321,7 +351,13 @@ def analyse(
 def validate(ctx, report, format):
     """Validate the report as a correct report, and score it."""
 
-    summary = jpamb.AnalysisSummary.from_sexpr(sexpr.from_string(report.read())[0])
+    summary = sexpr.to_tagged_union(
+        sexpr.from_string(report.read())[0],
+        targets={
+            "analysis-summary": jpamb.analyse.Summary,
+            "interpret-summary": jpamb.interpret.Summary,
+        },
+    )
 
     result_summary = summary.score_results()
 

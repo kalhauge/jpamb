@@ -1,6 +1,7 @@
 import dataclasses
 import io
 import re
+import types
 import typing
 from collections import OrderedDict
 from collections.abc import Callable, Iterable, Iterator, Sequence
@@ -85,11 +86,11 @@ class ToSExpr(Protocol):
 
 
 type LikeSExpr = (
-    ToSExpr | str | int | float | Iterable[LikeSExpr | Option[SExpr]] | None
+    ToSExpr | str | int | bool | float | Iterable[LikeSExpr | Option[SExpr]] | None
 )
 
 
-class ParseError(BaseException):
+class ParseError(Exception):
     msg: str
 
 
@@ -100,6 +101,8 @@ def sexpr(obj: LikeSExpr) -> SExpr:
         return v
     if isinstance(obj, str):
         return obj
+    if isinstance(obj, bool):
+        return str(obj).lower()
     if isinstance(obj, int):
         return str(obj)
     if isinstance(obj, float):
@@ -148,10 +151,15 @@ def from_dataclass(obj: DataclassInstance) -> list[Option[SExpr]]:
 
 
 def from_dataclass_values(obj: DataclassInstance) -> list[Option[SExpr]]:
-    return data(
-        sexprtag(obj.__class__),
-        *[getattr(obj, f.name) for f in dataclasses.fields(obj)],
-    )
+    kwargs = {}
+    args = []
+    for f in dataclasses.fields(obj):
+        if f.kw_only:
+            kwargs[f.name] = getattr(obj, f.name)
+        else:
+            args.append(getattr(obj, f.name))
+
+    return data(sexprtag(obj.__class__), *args, **kwargs)
 
 
 def sequence(
@@ -199,69 +207,89 @@ class Decodable(Protocol):
 
 
 def from_sexpr(expr: SExpr, *, target: type[Any]):
+    if isinstance(target, typing.TypeAliasType):
+        if target is SExpr:
+            return expr
+        return from_sexpr(expr, target=target.__value__)
+
     if hasattr(target, "from_sexpr"):
         return target.from_sexpr(expr)
 
     if target is int:
-        return int_from_sexpr(expr)
+        return to_int(expr)
 
     if target is float:
-        return float_from_sexpr(expr)
+        return to_float(expr)
 
     if target is str:
-        return str_from_sexpr(expr)
+        return to_str(expr)
+
+    if target is bool:
+        return to_bool(expr)
 
     origin = typing.get_origin(target)
 
     if origin is dict or origin is OrderedDict:
         tkey, tvalue = typing.get_args(target)
         if tkey is str:
-            return dict_from_sexpr(
-                expr, keyfn=str, valuefn=partial(from_sexpr, target=tvalue)
-            )
-
-        if issubclass(tkey, Decodable):
-            return dict_from_sexpr(
+            val = to_dict(expr, keyfn=str, valuefn=partial(from_sexpr, target=tvalue))
+        elif isinstance(tkey, type) and issubclass(tkey, Decodable):
+            val = to_dict(
                 expr, keyfn=tkey.decode, valuefn=partial(from_sexpr, target=tvalue)
             )
+        else:
+            raise NotImplementedError(
+                f"No implementation of type {typing.get_origin(target)} to {target}"
+            )
+
+        if origin is OrderedDict:
+            return OrderedDict(val)
+        return val
+
     if typing.get_origin(target) is tuple:
         args = typing.get_args(target)
 
         if len(args) == 2 and args[1] == Ellipsis:
             return tuple(
-                list_from_sexpr(
+                to_list(
                     expr,
-                    handler=partial(from_sexpr, target=args[0]),
+                    valuefn=partial(from_sexpr, target=args[0]),
                 )
             )
 
-        return tuple_from_sexpr(
-            expr, handlers=[partial(from_sexpr, target=t) for t in args]
-        )
+        return to_tuple(expr, handlers=[partial(from_sexpr, target=t) for t in args])
 
     if typing.get_origin(target) is set:
         (arg,) = typing.get_args(target)
 
         return set(
-            list_from_sexpr(
+            to_list(
                 expr,
-                handler=partial(from_sexpr, target=arg),
+                valuefn=partial(from_sexpr, target=arg),
             )
         )
 
     if typing.get_origin(target) is list:
         (arg,) = typing.get_args(target)
-        return list_from_sexpr(
+        if typing.get_origin(arg) is Option:
+            (arg,) = typing.get_args(arg)
+        return to_list(
             expr,
-            handler=partial(from_sexpr, target=arg),
+            valuefn=partial(from_sexpr, target=arg),
         )
+
+    if isinstance(target, types.UnionType):
+        return to_union(expr, targets=target.__args__)
+
+    if target is type(None):
+        return None
 
     raise NotImplementedError(
         f"No implementation of type {typing.get_origin(target)} to {target}"
     )
 
 
-def union_from_sexpr[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
+def to_union[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
     for t in targets:
         try:
             return from_sexpr(expr, target=t)
@@ -271,8 +299,20 @@ def union_from_sexpr[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
     raise FromSExprError(f"Could not match {expr} with any of {targets}")
 
 
-def dataclass_from_sexpr[T: DataclassInstance](expr: SExpr, *, target: type[T]) -> T:
-    kname, args, kwargs = data_from_sexpr(expr)
+def to_tagged_union[T](expr: SExpr, *, targets: dict[str, type[T]]) -> T:
+    options = to_options(expr)
+    if len(options) == 0:
+        raise FromSExprError("Expected tag, but got empty list ")
+
+    tag = options[0].unitem()
+
+    if tag not in targets:
+        raise FromSExprError(f"Could not find {tag!r} tag in {list(targets)}")
+    return from_sexpr(expr, target=targets[tag])
+
+
+def to_dataclass[T: DataclassInstance](expr: SExpr, *, target: type[T]) -> T:
+    kname, args, kwargs = to_data(expr)
 
     if kname != sexprtag(target):
         raise FromSExprError(f"Expected {sexprtag(target)}, but got {kname}")
@@ -284,9 +324,28 @@ def dataclass_from_sexpr[T: DataclassInstance](expr: SExpr, *, target: type[T]) 
             f"Expected {len(annotations)} arguments, but got {len(args)}: {args}"
         )
 
+    def is_resolvable_type(t):
+        return isinstance(
+            t,
+            type
+            | GenericAlias
+            | types.UnionType
+            | typing._GenericAlias
+            | typing.TypeAliasType,
+        )
+
+    keyed = []
+    positionals = []
+
+    for ann in annotations:
+        if ann.kw_only:
+            keyed.append(ann)
+        else:
+            positionals.append(ann)
+
     _args = []
-    for arg, field in zip(args, annotations):
-        if not isinstance(field.type, type | GenericAlias):
+    for arg, field in zip(args, positionals):
+        if not is_resolvable_type(field.type):
             raise TypeError(
                 f"Expected type of field {field.name!r} to be type, not {field.type!r}"
             )
@@ -294,13 +353,13 @@ def dataclass_from_sexpr[T: DataclassInstance](expr: SExpr, *, target: type[T]) 
         _args.append(from_sexpr(arg, target=field.type))
 
     _kwargs = {}
-    for field in annotations[len(args) :]:
+    for field in positionals[len(args) :] + keyed:
         if not field.name in kwargs:
             raise FromSExprError(
                 f"Expected {field.name!r} option, but only got {kwargs.keys()}"
             )
 
-        if not isinstance(field.type, type | GenericAlias):
+        if not is_resolvable_type(field.type):
             raise TypeError(
                 f"Expected type of field {field.name!r} to be type, not {field.type!r}"
             )
@@ -314,15 +373,15 @@ def dataclass_from_sexpr[T: DataclassInstance](expr: SExpr, *, target: type[T]) 
     return target(*_args, **_kwargs)
 
 
-def str_from_sexpr(expr: SExpr) -> str:
+def to_str(expr: SExpr) -> str:
     if not isinstance(expr, str):
         raise FromSExprError(f"expected symbol but found: {expr}")
 
     return expr
 
 
-def float_from_sexpr(sexpr: SExpr) -> float:
-    string = str_from_sexpr(sexpr)
+def to_float(sexpr: SExpr) -> float:
+    string = to_str(sexpr)
 
     try:
         return float(string)
@@ -330,8 +389,8 @@ def float_from_sexpr(sexpr: SExpr) -> float:
         raise FromSExprError(e)
 
 
-def int_from_sexpr(expr: SExpr) -> float:
-    string = str_from_sexpr(expr)
+def to_int(expr: SExpr) -> int:
+    string = to_str(expr)
 
     try:
         return int(string)
@@ -339,26 +398,48 @@ def int_from_sexpr(expr: SExpr) -> float:
         raise FromSExprError(e)
 
 
-def list_from_sexpr[T](expr: SExpr, *, handler: Callable[[SExpr], T]) -> list[T]:
+def to_bool(expr: SExpr) -> bool:
+    string = to_str(expr)
+
+    if string == "true":
+        return True
+
+    if string == "false":
+        return False
+
+    raise FromSExprError(f"Not a bool {expr!r}")
+
+
+def to_list[T](expr: SExpr, *, valuefn: Callable[[SExpr], T]) -> list[T]:
     if not isinstance(expr, list):
-        raise FromSExprError("expected list but fund symbol")
+        raise FromSExprError("expected list but found symbol")
 
     items: list[T] = []
     for v in expr:
         assert not v.key
-        items.append(handler(v.value))
+        items.append(valuefn(v.value))
 
     return items
 
 
-def tuple_from_sexpr(
-    expr: SExpr, *, handlers: Sequence[Callable[[SExpr], object]]
-) -> tuple:
+def to_options(expr: SExpr) -> list[Option[SExpr]]:
     if not isinstance(expr, list):
-        raise FromSExprError("expected list but fund symbol")
+        raise FromSExprError(f"expected list but found {expr!r}")
+    return expr
+
+
+def to_values(expr: SExpr) -> list[SExpr]:
+    if not isinstance(expr, list):
+        raise FromSExprError(f"expected list but found {expr!r}")
+    return [s.value for s in expr]
+
+
+def to_tuple(expr: SExpr, *, handlers: Sequence[Callable[[SExpr], object]]) -> tuple:
+    if not isinstance(expr, list):
+        raise FromSExprError("expected list but found symbol")
 
     if len(expr) != len(handlers):
-        raise FromSExprError(f"expected {len(handlers)} element but fund {len(expr)}")
+        raise FromSExprError(f"expected {len(handlers)} element but found {len(expr)}")
 
     items = []
     for e, h in zip(expr, handlers):
@@ -368,29 +449,29 @@ def tuple_from_sexpr(
     return tuple(items)
 
 
-def dict_from_sexpr[K, V](
+def to_dict[K, V](
     sexpr: SExpr,
     *,
     keyfn: Callable[[str], K],
     valuefn: Callable[[SExpr], V],
-) -> dict[Any, Any]:
+) -> dict[K, V]:
     if not isinstance(sexpr, list):
-        raise FromSExprError("expected list but fund symbol")
+        raise FromSExprError("expected list but found symbol")
 
-    items: dict[K, V] = OrderedDict()
+    result: dict[K, V] = {}
     for opt in sexpr:
         key = keyfn(opt.key)
-        assert key not in items
-        items[keyfn(opt.key)] = valuefn(opt.value)
+        assert key not in result
+        result[key] = valuefn(opt.value)
 
-    return items
+    return result
 
 
-def data_from_sexpr(
+def to_data(
     sexpr: SExpr,
 ) -> tuple[str, list[SExpr], dict[str, SExpr]]:
     if not isinstance(sexpr, list) or len(sexpr) == 0:
-        raise FromSExprError(f"Unexpected expression: {sexpr} of type {type(sexpr)}")
+        raise FromSExprError(f"Expected list but got: {sexpr!r}")
 
     key = sexpr[0]
 

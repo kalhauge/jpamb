@@ -120,7 +120,7 @@ class TestResponseParsing:
     def test_parse_simple_response(self):
         """Test parsing a simple response."""
         output = "ok;1.0\ndivide by zero;-1.0"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
 
         assert "ok" in response.predictions
@@ -131,7 +131,7 @@ class TestResponseParsing:
     def test_parse_percentage_response(self):
         """Test parsing responses with percentages."""
         output = "ok;75%\nassertion error;25%"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
 
         assert "ok" in response.predictions
@@ -140,7 +140,7 @@ class TestResponseParsing:
     def test_parse_ignores_invalid_queries(self):
         """Test that invalid queries are ignored."""
         output = "ok;1.0\ninvalid_query;1.0\ndivide by zero;0.5"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert warns == ["'invalid_query' not a known query"]
 
         assert "ok" in response.predictions
@@ -150,7 +150,7 @@ class TestResponseParsing:
     def test_parse_handles_malformed_lines(self):
         """Test that malformed lines are skipped gracefully."""
         output = "ok;1.0\nthis is not valid\ndivide by zero;0.5"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert warns == ["bad line: this is not valid"]
 
         # Should still parse the valid lines
@@ -160,7 +160,7 @@ class TestResponseParsing:
     def test_parse_empty_response(self):
         """Test parsing an empty response."""
         output = ""
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
         assert len(response.predictions) == 0
 
@@ -171,7 +171,7 @@ class TestResponseScoring:
     def test_score_perfect_response(self):
         """Test scoring a perfect response."""
         output = "ok;inf"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
         score = response.score(["ok"])
         assert score == 1
@@ -179,7 +179,7 @@ class TestResponseScoring:
     def test_score_multi_query_response(self):
         """Test scoring a response with multiple queries."""
         output = "ok;inf\ndivide by zero;-inf"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
         score = response.score(["ok"])
 
@@ -189,7 +189,7 @@ class TestResponseScoring:
     def test_score_partial_response(self):
         """Test scoring when not all queries are answered."""
         output = "ok;1.0"
-        response, warns = jpamb.Response.parse(output)
+        response, warns = jpamb.analyse.Response.parse(output)
         assert not warns
         score = response.score(["ok", "divide by zero"])
 
