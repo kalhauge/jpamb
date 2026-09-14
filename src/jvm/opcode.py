@@ -10,10 +10,11 @@ each instruction.
 import enum
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, fields
+from dataclasses import KW_ONLY, dataclass, fields
 
-from jvm import base as jvm
-from sexpr import SExpr
+from . import classfile
+from . import type as jvm_type
+from .base import *
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 class Opcode(ABC):
     """An opcode, as parsed from the jvm2json output."""
 
+    _: KW_ONLY
     offset: int
 
     def __post_init__(self):
@@ -33,63 +35,28 @@ class Opcode(ABC):
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
-        match json["opr"]:
-            case "push":
-                opr = Push
-            case "newarray":
-                opr = NewArray
-            case "dup":
-                opr = Dup
-            case "array_store":
-                opr = ArrayStore
-            case "array_load":
-                opr = ArrayLoad
-            case "binary":
-                opr = Binary
-            case "store":
-                opr = Store
-            case "load":
-                opr = Load
-            case "arraylength":
-                opr = ArrayLength
-            case "if":
-                opr = If
-            case "get":
-                opr = Get
-            case "ifz":
-                opr = Ifz
-            case "cast":
-                opr = Cast
-            case "new":
-                opr = New
-            case "throw":
-                opr = Throw
-            case "incr":
-                opr = Incr
-            case "goto":
-                opr = Goto
-            case "return":
-                opr = Return
-            case "negate":
-                opr = Negate
-            case "invoke":
-                match json["access"]:
-                    case "virtual":
-                        opr = InvokeVirtual
-                    case "static":
-                        opr = InvokeStatic
-                    case "interface":
-                        opr = InvokeInterface
-                    case "special":
-                        opr = InvokeSpecial
-                    case access:
-                        raise NotImplementedError(
-                            f"Unhandled invoke access {access!r} (implement yourself)"
-                        )
-            case opr:
-                raise NotImplementedError(
-                    f"Unhandled opcode {opr!r} (implement yourself)"
-                )
+        if json["opr"] in OPCODES:
+            opr = OPCODES[json["opr"]]
+        else:
+            match json["opr"]:
+                case "invoke":
+                    match json["access"]:
+                        case "virtual":
+                            opr = InvokeVirtual
+                        case "static":
+                            opr = InvokeStatic
+                        case "interface":
+                            opr = InvokeInterface
+                        case "special":
+                            opr = InvokeSpecial
+                        case access:
+                            raise NotImplementedError(
+                                f"Unhandled invoke access {access!r} (implement yourself)"
+                            )
+                case opr:
+                    raise NotImplementedError(
+                        f"Unhandled opcode {opr!r} (implement yourself)"
+                    )
         try:
             return opr.from_json(json)
         except NotImplementedError as e:
@@ -97,9 +64,9 @@ class Opcode(ABC):
 
     def help(self) -> str:
         out = f"It seems {self!r} is not implemented!"
-        out += "Instructions can be found at: " + self.url()
+        out += " Instructions can be found at: " + self.url()
         if self.semantics():
-            out += f"Semantics:\n {self.semantics()}"
+            out += f" Semantics:\n {self.semantics()}"
         return out
 
     def real(self) -> str:
@@ -121,28 +88,55 @@ class Opcode(ABC):
             + self.mnemonic()
         )
 
-    def __sexpr__(self) -> SExpr:
-        value: SExpr = self.__str__().split()  # ty: ignore
-        return value
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.from_dataclass_values(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        if cls is Opcode:
+            return sexpr.to_tagged_union(expr, targets=OPCODES)
+
+        return sexpr.to_dataclass(expr, target=cls)
 
 
 @dataclass(frozen=True, order=True)
 class Push(Opcode):
     """The push opcode"""
 
-    value: jvm.Value
+    type: jvm_type.Type
+    value: int | str | float
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
+        typedvalue = json["value"]
+        if typedvalue is None:
+            return cls(
+                offset=json["offset"],
+                type=jvm_type.Reference(),
+                value=0,
+            )
+
+        if not isinstance(typedvalue, dict):
+            raise NotImplementedError(f"Cannot handle {typedvalue!r}")
+
+        try:
+            type = jvm_type.Type.from_json(typedvalue["type"])
+            value = typedvalue["value"]
+        except NotImplementedError as e:
+            raise NotImplementedError(f"Cannot handle {typedvalue!r}") from e
+
+        assert isinstance(value, int | str)
+
         return cls(
             offset=json["offset"],
-            value=jvm.Value.from_json(json["value"]),
+            type=type,
+            value=value,
         )
 
     def real(self) -> str:
-        match self.value.type:
-            case jvm.Int():
-                match self.value.value:
+        match self.type:
+            case jvm_type.Int():
+                match self.value:
                     case -1:
                         return "iconst_m1"
                     case 0:
@@ -157,11 +151,11 @@ class Push(Opcode):
                         return "iconst_4"
                     case 5:
                         return "iconst_5"
-                return f"ldc [{self.value.value}]"
-            case jvm.Object(cn) if cn == jvm.ClassName("java.lang.String"):
-                return "ldc"
-            case jvm.Reference():
-                assert self.value.value is None, f"what is {self.value}"
+                return f"ldc [{self.value}]"
+            case jvm_type.Object(cn) if cn == ClassName("java.lang.String"):
+                return f"ldc [{self.value}]"
+            case jvm_type.Reference():
+                assert self.value is None, f"what is {self.value}"
                 return "aconst_null"
 
         raise NotImplementedError(f"Unhandled {self!r}")
@@ -177,36 +171,37 @@ class Push(Opcode):
         return None
 
     def mnemonic(self) -> str:
-        match self.value.type:
-            case jvm.Int():
-                assert isinstance(self.value.value, int)
+        match self.type:
+            case jvm_type.Int():
+                assert isinstance(self.value, int)
 
-                if -2 < self.value.value and self.value.value < 5:
+                if -2 < self.value and self.value < 5:
                     return "iconst_i"
                 else:
                     return "ldc"
-            case jvm.Object(cn) if cn.dotted() == "java.lang.String":
+            case jvm_type.Object(cn) if cn.dotted() == "java.lang.String":
                 return "ldc"
-            case jvm.Reference():
+            case jvm_type.Reference():
+                assert self.value == None
                 return "aconst_null"
 
         raise NotImplementedError(f"Unhandled {self!r}")
 
     def __str__(self):
-        return f"push:{self.value.type} {self.value.value}"
+        return f"push:{self.type} {self.value}"
 
 
 @dataclass(frozen=True, order=True)
 class Negate(Opcode):
     """The new array opcode"""
 
-    type: jvm.Type
+    type: jvm_type.Type
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
         )
 
     def real(self) -> str:
@@ -217,7 +212,7 @@ class Negate(Opcode):
 
     def mnemonic(self) -> str:
         match self.type:
-            case jvm.Int():
+            case jvm_type.Int():
                 return "ineg"
 
         raise NotImplementedError(f"{self.type}")
@@ -230,14 +225,14 @@ class Negate(Opcode):
 class NewArray(Opcode):
     """The new array opcode"""
 
-    type: jvm.Type
+    type: jvm_type.Type
     dim: int
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
             dim=json["dim"],
         )
 
@@ -299,20 +294,20 @@ class Dup(Opcode):
 class ArrayStore(Opcode):
     """The Array Store command that stores a value in the array."""
 
-    type: jvm.Type
+    type: jvm_type.Type
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
         )
 
     def real(self) -> str:
         match self.type:
-            case jvm.Reference():
+            case jvm_type.Reference():
                 return "aastore"
-            case jvm.Int():
+            case jvm_type.Int():
                 return "iastore"
 
         return super().real()
@@ -331,22 +326,22 @@ class ArrayStore(Opcode):
 class Cast(Opcode):
     """Cast one type to another"""
 
-    from_: jvm.Type
-    to_: jvm.Type
+    from_: jvm_type.Type
+    to_: jvm_type.Type
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
         return cls(
             offset=json["offset"],
-            from_=jvm.Type.from_json(json["from"]),
-            to_=jvm.Type.from_json(json["to"]),
+            from_=jvm_type.Type.from_json(json["from"]),
+            to_=jvm_type.Type.from_json(json["to"]),
         )
 
     def real(self) -> str:
         match self.from_:
-            case jvm.Int():
+            case jvm_type.Int():
                 match self.to_:
-                    case jvm.Short():
+                    case jvm_type.Short():
                         return "i2s"
 
         return super().real()
@@ -365,22 +360,22 @@ class Cast(Opcode):
 class ArrayLoad(Opcode):
     """The Array Load command that load a value from the array."""
 
-    type: jvm.Type
+    type: jvm_type.Type
 
     @classmethod
     def from_json(cls, json: dict) -> Opcode:
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
         )
 
     def real(self) -> str:
         match self.type:
-            case jvm.Reference():
+            case jvm_type.Reference():
                 return "aaload"
-            case jvm.Int():
+            case jvm_type.Int():
                 return "iaload"
-            case jvm.Char():
+            case jvm_type.Char():
                 return "caload"
 
         return super().real()
@@ -433,14 +428,14 @@ class ArrayLength(Opcode):
 class InvokeVirtual(Opcode):
     """The invoke virtual opcode for calling instance methods"""
 
-    method: jvm.AbsMethodID
+    method: classfile.AbsMethodID
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         assert json["opr"] == "invoke" and json["access"] == "virtual"
         return cls(
             offset=json["offset"],
-            method=jvm.AbsMethodID.from_json(json["method"]),
+            method=classfile.AbsMethodID.from_json(json["method"]),
         )
 
     def real(self) -> str:
@@ -468,14 +463,14 @@ class InvokeVirtual(Opcode):
 class InvokeStatic(Opcode):
     """The invoke static opcode for calling static methods"""
 
-    method: jvm.AbsMethodID
+    method: classfile.AbsMethodID
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         assert json["opr"] == "invoke" and json["access"] == "static"
         return cls(
             offset=json["offset"],
-            method=jvm.AbsMethodID.from_json(json["method"]),
+            method=classfile.AbsMethodID.from_json(json["method"]),
         )
 
     def real(self) -> str:
@@ -503,7 +498,7 @@ class InvokeStatic(Opcode):
 class InvokeInterface(Opcode):
     """The invoke interface opcode for calling interface methods"""
 
-    method: jvm.AbsMethodID
+    method: classfile.AbsMethodID
     stack_size: int
 
     @classmethod
@@ -511,7 +506,7 @@ class InvokeInterface(Opcode):
         assert json["opr"] == "invoke" and json["access"] == "interface"
         return cls(
             offset=json["offset"],
-            method=jvm.AbsMethodID.from_json(json["method"]),
+            method=classfile.AbsMethodID.from_json(json["method"]),
             stack_size=json["stack_size"],
         )
 
@@ -542,7 +537,7 @@ class InvokeSpecial(Opcode):
     """The invoke special opcode for calling constructors, private methods,
     and superclass methods.
 
-    According to the JVM spec, invokespecial:
+    According to the type spec, invokespecial:
     - Invokes instance method specially (non-virtual dispatch)
     - Used for:
       * Instance initialization methods (<init>)
@@ -551,7 +546,7 @@ class InvokeSpecial(Opcode):
     - The first argument must be an instance of current class or a subclass
     """
 
-    method: jvm.AbsMethodID
+    method: classfile.AbsMethodID
     is_interface: bool  # Whether the method is from an interface
 
     @classmethod
@@ -560,7 +555,7 @@ class InvokeSpecial(Opcode):
 
         return cls(
             offset=json["offset"],
-            method=jvm.AbsMethodID.from_json(json["method"]),
+            method=classfile.AbsMethodID.from_json(json["method"]),
             is_interface=json["method"]["is_interface"],
         )
 
@@ -591,23 +586,23 @@ class InvokeSpecial(Opcode):
 class Store(Opcode):
     """The store opcode that stores values to local variables"""
 
-    type: jvm.Type
+    type: jvm_type.Type
     index: int  # Adding the index field from CODEC.txt
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
             index=json["index"],
         )
 
     def real(self) -> str:
         # Handle reference type specifically since we see it in the error
-        if isinstance(self.type, jvm.Reference):
+        if isinstance(self.type, jvm_type.Reference):
             return f"astore_{self.index}" if self.index < 4 else f"astore {self.index}"
         # Handle integer type
-        elif isinstance(self.type, jvm.Int):
+        elif isinstance(self.type, jvm_type.Int):
             return f"istore_{self.index}" if self.index < 4 else f"istore {self.index}"
         return super().real()
 
@@ -615,10 +610,10 @@ class Store(Opcode):
         return None
 
     def mnemonic(self) -> str:
-        if isinstance(self.type, jvm.Reference):
+        if isinstance(self.type, jvm_type.Reference):
             return "astore_n" if self.index < 4 else "astore"
         # Handle integer type
-        elif isinstance(self.type, jvm.Int):
+        elif isinstance(self.type, jvm_type.Int):
             return "istore_n" if self.index < 4 else "istore"
         return ""
 
@@ -637,25 +632,32 @@ class CmpOpr(enum.Enum):
     Gt = enum.auto()
 
     @staticmethod
+    def from_str(name: str) -> "CmpOpr":
+        return CMP_OPRS[name.lower()]
+
+    @staticmethod
     def from_json(json_str: str) -> "CmpOpr":
-        match json_str.lower():
-            case "ne":
-                return CmpOpr.Ne
-            case "eq":
-                return CmpOpr.Eq
-            case "lt":
-                return CmpOpr.Lt
-            case "le":
-                return CmpOpr.Le
-            case "ge":
-                return CmpOpr.Ge
-            case "gt":
-                return CmpOpr.Gt
-            case _:
-                raise NotImplementedError(f"Unknown operator: {json_str}")
+        return CmpOpr.from_str(json_str)
 
     def __str__(self):
         return self.name.lower()
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return str(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        return CmpOpr.from_str(sexpr.to_str(expr))
+
+
+CMP_OPRS = {
+    "ne": CmpOpr.Ne,
+    "eq": CmpOpr.Eq,
+    "lt": CmpOpr.Lt,
+    "le": CmpOpr.Le,
+    "ge": CmpOpr.Ge,
+    "gt": CmpOpr.Gt,
+}
 
 
 class BinaryOpr(enum.Enum):
@@ -666,35 +668,43 @@ class BinaryOpr(enum.Enum):
     Rem = enum.auto()
 
     @staticmethod
-    def from_json(json: str) -> "BinaryOpr":
-        match json:
-            case "add":
-                return BinaryOpr.Add
-            case "sub":
-                return BinaryOpr.Sub
-            case "mul":
-                return BinaryOpr.Mul
-            case "div":
-                return BinaryOpr.Div
-            case "rem":
-                return BinaryOpr.Rem
-            case _:
-                raise NotImplementedError()
+    def from_str(name: str) -> Self:
+        return BIN_OPRS[name.lower()]
+
+    @staticmethod
+    def from_json(json: str) -> Self:
+        return BinaryOpr.from_str(json)
 
     def __str__(self):
         return self.name.lower()
 
+    def __sexpr__(self) -> sexpr.SExpr:
+        return str(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        return BinaryOpr.from_str(sexpr.to_str(expr))
+
+
+BIN_OPRS = {
+    "add": BinaryOpr.Add,
+    "sub": BinaryOpr.Sub,
+    "mul": BinaryOpr.Mul,
+    "div": BinaryOpr.Div,
+    "rem": BinaryOpr.Rem,
+}
+
 
 @dataclass(frozen=True, order=True)
 class Binary(Opcode):
-    type: jvm.Type
+    type: jvm_type.Type
     operant: BinaryOpr
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
             operant=BinaryOpr.from_json(json["operant"]),
         )
 
@@ -703,15 +713,15 @@ class Binary(Opcode):
 
     def real(self) -> str:
         match (self.type, self.operant):
-            case (jvm.Int(), BinaryOpr.Add):
+            case (jvm_type.Int(), BinaryOpr.Add):
                 return "iadd"
-            case (jvm.Int(), BinaryOpr.Rem):
+            case (jvm_type.Int(), BinaryOpr.Rem):
                 return "irem"
-            case (jvm.Int(), BinaryOpr.Div):
+            case (jvm_type.Int(), BinaryOpr.Div):
                 return "idiv"
-            case (jvm.Int(), BinaryOpr.Mul):
+            case (jvm_type.Int(), BinaryOpr.Mul):
                 return "imul"
-            case (jvm.Int(), BinaryOpr.Sub):
+            case (jvm_type.Int(), BinaryOpr.Sub):
                 return "isub"
         raise NotImplementedError(f"Unhandled real {self!r}")
 
@@ -726,23 +736,23 @@ class Binary(Opcode):
 class Load(Opcode):
     """The load opcode that loads values from local variables"""
 
-    type: jvm.Type
+    type: jvm_type.Type
     index: int
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
             offset=json["offset"],
-            type=jvm.Type.from_json(json["type"]),
+            type=jvm_type.Type.from_json(json["type"]),
             index=json["index"],
         )
 
     def real(self) -> str:
         # Handle reference type
-        if isinstance(self.type, jvm.Reference):
+        if isinstance(self.type, jvm_type.Reference):
             return f"aload_{self.index}" if self.index < 4 else f"aload {self.index}"
         # Handle integer type
-        elif isinstance(self.type, jvm.Int):
+        elif isinstance(self.type, jvm_type.Int):
             return f"iload_{self.index}" if self.index < 4 else f"iload {self.index}"
         return super().real()
 
@@ -750,10 +760,10 @@ class Load(Opcode):
         return None
 
     def mnemonic(self) -> str:
-        if isinstance(self.type, jvm.Reference):
+        if isinstance(self.type, jvm_type.Reference):
             return "aload_n" if self.index < 4 else "aload"
         # Handle integer type
-        elif isinstance(self.type, jvm.Int):
+        elif isinstance(self.type, jvm_type.Int):
             return "iload_n" if self.index < 4 else "iload"
         return ""
 
@@ -843,17 +853,18 @@ class Get(Opcode):
       * May trigger class initialization if not yet initialized
     """
 
+    field: classfile.AbsFieldID  # We need to add FieldID to base.py
+    _: KW_ONLY
     static: bool
-    field: jvm.AbsFieldID  # We need to add FieldID to base.py
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         # Construct field object from the json data
-        field = jvm.AbsFieldID(
-            classname=jvm.ClassName.from_slashed(json["field"]["class"]),
-            extension=jvm.FieldID(
+        field = classfile.AbsFieldID(
+            classname=ClassName.from_slashed(json["field"]["class"]),
+            extension=classfile.FieldID(
                 name=json["field"]["name"],
-                type=jvm.Type.from_json(json["field"]["type"]),
+                type=jvm_type.Type.from_json(json["field"]["type"]),
             ),
         )
 
@@ -971,13 +982,13 @@ class New(Opcode):
     - May trigger class initialization if the class is not yet initialized
     """
 
-    classname: jvm.ClassName  # The class to instantiate
+    classname: ClassName  # The class to instantiate
 
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         return cls(
             offset=json["offset"],
-            classname=jvm.ClassName.from_slashed(json["class"]),
+            classname=ClassName.from_slashed(json["class"]),
         )
 
     def real(self) -> str:
@@ -1123,7 +1134,7 @@ class Return(Opcode):
     - Return value (if any) must be assignable to declared return type
     """
 
-    type: jvm.Type | None  # Return type (None for void return)
+    type: jvm_type.Type | None  # Return type (None for void return)
 
     def __post_init__(self):
         assert self.type is None or self.type.is_stacktype(), (
@@ -1136,7 +1147,7 @@ class Return(Opcode):
         if type_info is None:
             return_type = None
         else:
-            return_type = jvm.Type.from_json(type_info)
+            return_type = jvm_type.Type.from_json(type_info)
 
         return cls(offset=json["offset"], type=return_type)
 
@@ -1146,15 +1157,15 @@ class Return(Opcode):
 
         # Map type to appropriate return instruction
         match self.type:
-            case jvm.Int():
+            case jvm_type.Int():
                 return "ireturn"
-            case jvm.Long():
+            case jvm_type.Long():
                 return "lreturn"
-            case jvm.Float():
+            case jvm_type.Float():
                 return "freturn"
-            case jvm.Double():
+            case jvm_type.Double():
                 return "dreturn"
-            case jvm.Reference():
+            case jvm_type.Reference():
                 return "areturn"
             case _:
                 raise ValueError(f"Unknown return type: {self.type}")
@@ -1179,3 +1190,34 @@ class Return(Opcode):
     def __str__(self):
         type = str(self.type) if self.type is not None else "V"
         return f"return:{type}"
+
+
+OPCODES = {
+    "return": Return,
+    "push": Push,
+    "negate": Negate,
+    "newarray": NewArray,
+    "new-array": NewArray,
+    "dup": Dup,
+    "array_store": ArrayStore,
+    "array-store": ArrayStore,
+    "cast": Cast,
+    "array_load": ArrayLoad,
+    "array-load": ArrayLoad,
+    "arraylength": ArrayLength,
+    "array-length": ArrayLength,
+    "invoke_virtual": InvokeVirtual,
+    "invoke_static": InvokeStatic,
+    "invoke_interface": InvokeInterface,
+    "invoke_special": InvokeSpecial,
+    "store": Store,
+    "binary": Binary,
+    "load": Load,
+    "if": If,
+    "get": Get,
+    "ifz": Ifz,
+    "new": New,
+    "throw": Throw,
+    "incr": Incr,
+    "goto": Goto,
+}

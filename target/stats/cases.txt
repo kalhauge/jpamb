@@ -1,4 +1,5 @@
 jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
+jpamb.cases.Arrays.arrayContentAboveMinus13:()V              () -> ok
 jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
 jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
 jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer

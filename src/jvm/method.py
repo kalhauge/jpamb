@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-import jvm.base
+import jvm.classfile
 import jvm.opcode
 
 
@@ -8,12 +8,12 @@ import jvm.opcode
 class Method:
     """A java method, (still) partial"""
 
-    id: jvm.base.AbsMethodID
+    id: jvm.classfile.AbsMethodID
     opcodes: list[jvm.opcode.Opcode]
     max_locals: int
 
     @classmethod
-    def from_json(cls, id: jvm.base.AbsMethodID, json) -> "Method":
+    def from_json(cls, id: jvm.classfile.AbsMethodID, json) -> "Method":
         opcodes = [jvm.opcode.Opcode.from_json(op) for op in json["code"]["bytecode"]]
         max_locals = json["code"]["max_locals"]
 

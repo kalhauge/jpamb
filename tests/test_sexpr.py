@@ -1,4 +1,4 @@
-from hypothesis import given, note
+from hypothesis import HealthCheck, given, note, settings
 from hypothesis import strategies as st
 
 import sexpr
@@ -51,6 +51,7 @@ def test_data():
     ]
 
 
+@settings(suppress_health_check=[HealthCheck.data_too_large])
 @given(
     st.text(),
     st.lists(st_sexpr()),
@@ -61,7 +62,7 @@ def test_data_tripping(key, args, kwargs):
 
     note(data)
 
-    (key2, args2, kwargs2) = sexpr.data_from_sexpr(data)
+    (key2, args2, kwargs2) = sexpr.to_data(data)
 
     assert key == key2
     assert args == args2
@@ -71,10 +72,10 @@ def test_data_tripping(key, args, kwargs):
 @given(st.floats())
 def test_float_tripping(value):
     data = sexpr.sexpr(value)
-    assert repr(value) == repr(sexpr.float_from_sexpr(data))
+    assert repr(value) == repr(sexpr.to_float(data))
 
 
 @given(st.integers())
 def test_int_tripping(value):
     data = sexpr.sexpr(value)
-    assert value == sexpr.int_from_sexpr(data)
+    assert value == sexpr.to_int(data)

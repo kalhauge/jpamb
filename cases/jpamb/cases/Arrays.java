@@ -57,7 +57,16 @@ public class Arrays {
   public static void arrayContent() {
     int array[] = {1, 2, 100, -13, 23};
     for (int i = 0; i < array.length; i++) {
-      assert i > 0;
+      assert array[i] > 0;
+    }
+  }
+
+  @Case("() -> ok")
+  @Tag({ARRAY})
+  public static void arrayContentAboveMinus13() {
+    int array[] = {1, 2, 100, -13, 23};
+    for (int i = 0; i < array.length; i++) {
+      assert array[i] >= -13;
     }
   }
 

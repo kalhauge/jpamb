@@ -9,6 +9,23 @@ from typing import IO
 import runit
 
 
+def dump_table(groups, *, align, file):
+    rows = []
+    for group in groups:
+        if isinstance(group, list):
+            rows += [group]
+        else:
+            c, _rows = group
+            rows += [[""] * len(align)]
+            rows += [[c] + [""] * (len(align) - 1)]
+            rows += [["  " + h, *rest] for h, *rest in _rows]
+
+    sizes = [max(map(len, col)) for col in zip(*rows)]
+
+    for row in rows:
+        print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)), file=file)
+
+
 @dataclass
 class Effect:
     """A trivial effect system. Pass to methods which need to do things with

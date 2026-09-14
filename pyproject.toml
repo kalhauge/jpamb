@@ -23,7 +23,8 @@ classifiers = [
 
 [project.scripts]
 jpamb = "cli:cli"
-jpamb-trivial = "basic:main"
+jpamb-analysis-dummy = "analysis_dummy:main"
+jpamb-interpreter-dummy = "interpreter_dummy:main"
 
 [dependency-groups]
 dev = [
