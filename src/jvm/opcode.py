@@ -182,7 +182,7 @@ class Push(Opcode):
             case jvm_type.Object(cn) if cn.dotted() == "java.lang.String":
                 return "ldc"
             case jvm_type.Reference():
-                assert self.value == None
+                assert self.value == 0, f"exected 0 but got {self.value}"
                 return "aconst_null"
 
         raise NotImplementedError(f"Unhandled {self!r}")
