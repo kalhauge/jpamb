@@ -155,7 +155,7 @@ class Push(Opcode):
             case jvm_type.Object(cn) if cn == ClassName("java.lang.String"):
                 return f"ldc [{self.value}]"
             case jvm_type.Reference():
-                assert self.value is None, f"what is {self.value}"
+                assert self.value == 0, f"Expected {self.value}"
                 return "aconst_null"
 
         raise NotImplementedError(f"Unhandled {self!r}")

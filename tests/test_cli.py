@@ -56,6 +56,20 @@ def test_analyse_report(tmp_path):
 
 
 @pytest.mark.slow
+def test_checkhealth(tmp_path):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.cli,
+        [
+            "checkhealth",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+
+
+@pytest.mark.slow
 def test_interpret(tmp_path):
     runner = CliRunner()
     result = runner.invoke(

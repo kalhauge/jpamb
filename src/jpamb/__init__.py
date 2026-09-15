@@ -10,7 +10,6 @@ import subprocess
 import sys
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator
-from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NoReturn
@@ -42,7 +41,7 @@ from jpamb.analyse import (
     Wager as Wager,
 )
 from jpamb.case import Case, Input
-from jpamb.utils import DockerRunner, Effect
+from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
 
 
 @dataclass(frozen=True)
@@ -196,8 +195,8 @@ class Suite:
     def checkhealth(self, docker, *, eff: Effect, failfast=False):
         """Checks the health of the repository through a sequence of tests"""
 
-        def check(msg):
-            return _check(msg, failfast=failfast, eff=eff)
+        checker = HealthChecker(eff=eff, failfast=failfast)
+        check = checker.check
 
         if docker is not None:
             with check("docker"):
@@ -205,37 +204,50 @@ class Suite:
 
         with check("The timer"):
             x = runit.timer.sieve(1000)
-            assert x == 7919, "should find correct prime."
+            if x != 7919:
+                checker.raise_issue("should find correct prime.")
 
         with check(f"The source folder [{self.sourcefiles_folder}]"):
-            assert self.sourcefiles_folder.exists(), "should exists"
-            assert self.sourcefiles_folder.is_dir(), "should be a folder"
+            if not self.sourcefiles_folder.exists():
+                checker.raise_issue("should exists")
+            if not self.sourcefiles_folder.is_dir():
+                checker.raise_issue("should be a folder")
             files = list(self.sourcefiles())
-            assert len(files) > 0, "should contain source files"
+            if not len(files) > 0:
+                checker.raise_issue("should contain source files")
             eff.info(f"Found {len(files)} files")
 
         with check(f"The classfiles folder [{self.classfiles_folder}]"):
-            assert self.classfiles_folder.exists(), "should exists"
-            assert self.classfiles_folder.is_dir(), "should be a folder"
+            if not self.classfiles_folder.exists():
+                checker.raise_issue("should exists")
+            if not self.classfiles_folder.is_dir():
+                checker.raise_issue("should be a folder")
             files = list(self.classfiles(eff=eff))
-            assert len(files) > 0, "should contain class files"
+            if not len(files) > 0:
+                checker.raise_issue("should contain class files")
             eff.info(f"Found {len(files)} files")
 
         with check(f"The decompiled folder [{self.decompiled_folder}]"):
-            assert self.decompiled_folder.exists(), "should exists"
-            assert self.decompiled_folder.is_dir(), "should be a folder"
+            if not self.decompiled_folder.exists():
+                checker.raise_issue("should exists")
+            if not self.decompiled_folder.is_dir():
+                checker.raise_issue("should be a folder")
             files = list(self.decompiledfiles())
-            assert len(files) > 0, "should contain decompiled class files"
+            if not len(files) > 0:
+                checker.raise_issue("should contain decompiled class files")
             eff.info(f"Found {len(files)} files")
 
             for cn in self.classes(eff=eff):
                 x = self.findclass(cn, eff=eff)
                 eff.info(f"Checking if {cn.dotted()} is decompiled.")
-                assert x["name"] == cn.slashed(), f"could not decompile {cn.dotted()}"
+                if x["name"] != cn.slashed():
+                    checker.raise_issue(f"could not decompile {cn.dotted()}")
 
         with check(f"The case file [{self.case_file}]"):
-            assert self.case_file.exists(), "should exist"
-            assert len(self.cases) > 0, "cases should be parsable and at least one"
+            if not self.case_file.exists():
+                checker.raise_issue("should exist")
+            if not len(self.cases) > 0:
+                checker.raise_issue("cases should be parsable and at least one")
             eff.info(f"Found {len(self.cases)} cases")
 
         with check("Opcodes"):
@@ -246,9 +258,9 @@ class Suite:
                         str(opr)
                         str(opr.real())
                 except NotImplementedError as e:
-                    raise AssertionError(
-                        f"All operations should be supported: {e}"
-                    ) from e
+                    raise HealthIssue(f"All operations should be supported: {e}") from e
+
+        checker.done()
 
     def build(self, *, docker: DockerRunner, eff: Effect):
         with eff.context("Compiling"):
@@ -393,24 +405,6 @@ def setup() -> tuple[Suite, Effect]:
 
     eff = Effect(None)
     return (Suite.from_workdir(Path.cwd(), eff=eff), eff)
-
-
-@contextmanager
-def _check(reason, *, eff: Effect, failfast=False):
-    """Used in the checkhealth command"""
-    with eff.context(reason):
-        try:
-            yield
-        except AssertionError as e:
-            msg = str(e)
-            if msg:
-                eff.error(f"FAILED: {e}")
-            else:
-                eff.error("FAILED")
-            if failfast:
-                raise AssertionError(f"{reason} {e.args!s}") from e
-        else:
-            eff.success("ok")
 
 
 def getmethodid(
