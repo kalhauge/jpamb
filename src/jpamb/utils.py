@@ -177,3 +177,41 @@ class DockerRunner:
         ]
         full_cmd += args[0]
         return eff.run(full_cmd, *args[1:], **kwargs)
+
+
+class HealthIssue(Exception):
+    pass
+
+
+@dataclass
+class HealthChecker:
+    eff: Effect
+    failfast: bool = False
+    issues: list[HealthIssue] = field(default_factory=list)
+
+    def raise_issue(self, reason: str):
+        raise HealthIssue(reason)
+
+    def done(self):
+        if self.issues:
+            raise HealthIssue(
+                f"Found {len(self.issues)} issues:{''.join(f'\n{e}' for e in self.issues)}"
+            )
+
+    @contextmanager
+    def check(self, reason: str):
+        """Used in the checkhealth command"""
+        with self.eff.context(reason):
+            try:
+                yield
+            except (AssertionError, HealthIssue) as e:
+                self.issues.append(e)
+                msg = str(e)
+                if msg:
+                    self.eff.error(f"FAILED: {e}")
+                else:
+                    self.eff.error("FAILED")
+                if self.failfast:
+                    raise HealthIssue(f"{reason} {e.args!s}") from e
+            else:
+                self.eff.success("ok")
