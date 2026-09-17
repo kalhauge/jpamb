@@ -9,15 +9,16 @@ from click.testing import CliRunner
 
 import cli
 
-solutions = [
+analyses = [
     "jpamb-analysis-dummy",
     "basic",
     "syntactic-regex",
+    "solution-dynamic-analysis",
 ]
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("solution", solutions)
+@pytest.mark.parametrize("solution", analyses)
 def test_analyse(solution):
     exe = shutil.which(solution)
     if exe is None:
@@ -69,14 +70,26 @@ def test_checkhealth(tmp_path):
     assert result.exit_code == 0, result.output
 
 
+interpreters = [
+    "solution-dynamic-interpreter",
+]
+
+
 @pytest.mark.slow
-def test_interpret(tmp_path):
+@pytest.mark.parametrize("solution", interpreters)
+def test_interpret(tmp_path, solution):
+    exe = shutil.which(solution)
+    if exe is None:
+        pytest.skip(f"Could not find {solution} on path")
+
     runner = CliRunner()
     result = runner.invoke(
         cli.cli,
         [
             "interpret",
-            "jpamb-interpreter-dummy",
+            "--report",
+            (tmp_path / "report.sexp"),
+            solution,
         ],
         catch_exceptions=False,
     )

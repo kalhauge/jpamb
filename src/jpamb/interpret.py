@@ -304,8 +304,9 @@ class ResultSummary:
                 ]
             )
 
-        table.append((f"{category_name}", category))
-        category_name = case.methodid
+        if category_name is not None:
+            table.append((f"{category_name}", category))
+            category_name = case.methodid
 
         table.append(["Total", f"{self.total_steps}", f"{good}/{total}"])
 
