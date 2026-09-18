@@ -2,6 +2,7 @@ from hypothesis import HealthCheck, given, note, settings
 from hypothesis import strategies as st
 
 import sexpr
+import copy
 
 
 def test_pretty():
@@ -79,3 +80,17 @@ def test_float_tripping(value):
 def test_int_tripping(value):
     data = sexpr.sexpr(value)
     assert value == sexpr.to_int(data)
+
+
+def st_sexpr_easy():
+    return st.recursive(
+        st.text(max_size=5, alphabet=st.characters(codec="ascii")),
+        extend=lambda xs: st.lists(st_options(xs)),
+    )
+
+
+@given(st_sexpr_easy(), st_sexpr_easy())
+def test_edits(expr1, expr2):
+    edits = sexpr.diff(expr1, expr2)
+    note(edits)
+    assert sexpr.apply(edits, expr1) == expr2

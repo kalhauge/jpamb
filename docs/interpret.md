@@ -21,15 +21,17 @@ First you emit the initial state as an (S-expression)\[/doc/sexpr.md\]:
 (init :state <initial-state>)
 ```
 
-Then you proceed by listing the states one by one, following the scheme:
+Then you proceed by changing the state step by step.
 
 ```lisp
-(step :before <before-state> :pc "<methodid>:<offset>" :after <after-state>)
+(step :pc "<methodid>:<offset>" 
+  :edit <edits-to-the-state>
+  :edit ...
+  ...
+)
 ```
 
-The after-state can either be a new state or final state, in which case it should be a string.
-
-**Note**, The before state must match the previous state.
+The edits can be one of `insert`, `update`, `delete`.
 
 ## Example
 
@@ -73,37 +75,58 @@ Then we emit all steps until we reach a final state.
 
 ```lisp
 (step
-    :before (state
-      :heap ()
-      :frames (
-        :00 (frame
-          :locals (
-            :00 (int 0)
-          )
-          :stack ()
-          :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0"
-        )
-      )
-    )
-    :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0"
-    :after (state
-      :heap ()
-      :frames (
-        :00 (frame
-          :locals (
-            :00 (int 0)
-          )
-          :stack (
-            :00 (int 0)
-          )
-          :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:1"
-        )
-      )
-    )
-  ) 
-... many steps later ...
+  :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0"
+  :edit (insert
+    :path (2/frames 0/00 2/stack 0/00)
+    :value (int 0)
+  )
+  :edit (update
+    :path (2/frames 0/00 3/pc)
+    :a "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:0"
+    :b "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:1"
+  )
+)
 (step
-    :before (state
+  :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:1"
+  :edit (delete
+    :path (2/frames 0/00 2/stack 0/00)
+    :value (int 0)
+  )
+  :edit (update
+    :path (2/frames 0/00 3/pc)
+    :a "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:1"
+    :b "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:2"
+  )
+)
+(step
+  :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:2"
+  :edit (insert
+    :path (2/frames 0/00 2/stack 0/00)
+    :value (int 0)
+  )
+  :edit (update
+    :path (2/frames 0/00 3/pc)
+    :a "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:2"
+    :b "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:3"
+  )
+)
+(step
+  :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:3"
+  :edit (delete
+    :path (2/frames 0/00 2/stack 0/00)
+    :value (int 0)
+  )
+  :edit (update
+    :path (2/frames 0/00 3/pc)
+    :a "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:3"
+    :b "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:4"
+  )
+)
+(step
+  :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:4"
+  :edit (update
+    :path ()
+    :a (state
       :heap ()
       :frames (
         :00 (frame
@@ -115,7 +138,7 @@ Then we emit all steps until we reach a final state.
         )
       )
     )
-    :pc "jpamb.cases.Simple.checkBeforeDivideByN:(I)I:4"
-    :after "assertion error"
+    :b "assertion error"
   )
+)
 ```

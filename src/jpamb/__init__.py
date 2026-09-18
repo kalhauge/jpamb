@@ -431,7 +431,7 @@ def getcase(
     group: str,
     tags: list[str],
     for_science: bool,
-) -> tuple[jvm.AbsMethodID, Input, int]:
+) -> tuple[jvm.AbsMethodID, Input | None, int]:
     """Get the case from the program arguments."""
 
     if len(sys.argv) == 2 and sys.argv[1] == "info":
@@ -471,7 +471,9 @@ def parse_methodid(mid) -> jvm.AbsMethodID:
     return jvm.AbsMethodID.decode(mid)
 
 
-def parse_input(i) -> Input:
+def parse_input(i) -> Input | None:
+    if i == "ALL":
+        return None
     return Input.decode(i)
 
 
@@ -496,7 +498,8 @@ def emit_step(
     assert isinstance(pc, jvm.state.PC), f"Expected PC but got {pc!r}"
 
     expr = sexpr.sexpr(after)
-    out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Step(before, pc, expr)), indent=2)
+    diff = sexpr.diff(before, expr)
+    out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Step(pc, tuple(diff))), indent=2)
     print(sexpr.pretty(expr, indent=2), file=sys.stderr)
     print(out)
     return expr

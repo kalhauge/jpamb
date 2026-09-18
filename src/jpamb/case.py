@@ -324,7 +324,7 @@ CASE_RE = re.compile(r"([^ ]*) +(\([^)]*\)) -> (.*)")
 
 
 @dataclass(frozen=True, order=True)
-class Case:
+class Case(sexpr.AsSExpr):
     """
     A 'Case' is an absolute method id, an input, and the expected result.
     """
@@ -332,6 +332,10 @@ class Case:
     methodid: jvm.AbsMethodID
     input: Input
     result: str
+
+    @property
+    def results(self) -> set[str]:
+        return {self.result}
 
     @staticmethod
     def match(line) -> re.Match:
@@ -366,9 +370,41 @@ class Case:
 
         return sorted(cases_by_id.items())
 
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
+    def as_test(self, interpreter: tuple[str, ...], max_steps: int) -> tuple[str, ...]:
+        return interpreter + (
+            self.methodid.encode(),
+            self.input.encode(),
+            str(max_steps),
+        )
 
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
+    def short(self) -> str:
+        return f"{self.methodid.extension.name}:{self.input.encode()}"
+
+
+ENTRY_RE = re.compile(r"([^ ]*) +(\([^)]*\)) -> (.*)")
+
+
+@dataclass(frozen=True, order=True)
+class Entry(sexpr.AsSExpr):
+    """
+    An 'Entry' is an absolute method id, and the set of expected result.
+    """
+
+    methodid: jvm.AbsMethodID
+    results: frozenset[str]
+
+    def __post_init__(self):
+        assert isinstance(self.results, frozenset)
+
+    def __str__(self) -> str:
+        return f"{self.methodid.encode()} -> {self.results}"
+
+    def short(self) -> str:
+        return f"{self.methodid.extension}"
+
+    def as_test(self, interpreter: tuple[str, ...], max_steps: int) -> tuple[str, ...]:
+        return interpreter + (
+            self.methodid.encode(),
+            "ALL",
+            str(max_steps),
+        )

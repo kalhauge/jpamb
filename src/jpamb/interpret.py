@@ -9,7 +9,7 @@ import jvm
 import jvm.state
 import sexpr
 from jpamb.analyse import AnalysisInfo, Category, Duration, Tracker
-from jpamb.case import Case
+from jpamb.case import Case, Entry
 from jpamb.utils import Effect, dump_table
 
 
@@ -27,9 +27,8 @@ class Init:
 
 @dataclass(frozen=True, slots=True)
 class Step:
-    before: sexpr.SExpr
     pc: jvm.state.PC
-    after: sexpr.SExpr
+    edits: tuple[sexpr.TreeEdit, ...]
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.from_dataclass(self)
@@ -37,6 +36,23 @@ class Step:
     @classmethod
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return [
+            sexpr.item("step"),
+            sexpr.Option("pc", sexpr.sexpr(self.pc)),
+        ] + sexpr.items(enumerate(self.edits), keyfmt=lambda a: "edit")
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        pc = None
+        items = []
+        name, pc, *rest = sexpr.to_options(expr)
+        pc = jvm.state.PC.from_sexpr(pc.value)
+        for option in rest:
+            items.append(sexpr.TreeEdit.from_sexpr(option.value))
+
+        return cls(pc, tuple(items))
 
 
 @dataclass(frozen=True)
@@ -85,32 +101,36 @@ class Response:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
 
-    def invalidate(self, *, result: str, max_steps: int) -> str | None:
-        current = self.init.state
-        results = set()
+    def invalidate(self, *, results: set[str], max_steps: int) -> str | None:
+        if not self.steps:
+            return f"No steps where emitted"
+
+        cursor = sexpr.cursor(self.init.state)
+
+        found = set()
         for i, step in enumerate(self.steps):
             if i >= max_steps:
                 return f"Exceeded {max_steps}"
 
-            if step.before != current:
-                return f"At step {i}: previous state does not match current:\n{sexpr.pretty(current, indent=2)}"
+            prev_state = cursor.value
+            try:
+                sexpr.iapply(cursor, step.edits)
+            except ValueError as e:
+                return f"Could not apply step {i}:\n{e}"
 
-            # TODO check conformance
+            if isinstance(cursor.value, str):
+                found.add(cursor.value)
+                cursor.value = prev_state
 
-            if isinstance(step.after, str):
-                results.add(step.after)
-
-            current = step.after
-
-        if i + 1 != max_steps and not result in results:
-            return f"The result {result!r} was not found in the final states reported {results!r}"
+        if i + 1 != max_steps and len(results - found) > 0:
+            return f"The results {results - found!r} was not found in the final states reported {found!r}"
 
 
 @dataclass(frozen=True, slots=True)
 class Result:
     __sexprtag__ = "interpret-result"
 
-    case: Case
+    case: Case | Entry
     response: Response | None
     duration: Duration
     calibrates: tuple[int, ...]
@@ -131,7 +151,7 @@ class Result:
             return "No reponse created"
 
         return self.response.invalidate(
-            result=self.case.result,
+            results=self.case.results,
             max_steps=config.max_steps,
         )
 
@@ -142,9 +162,10 @@ class Config:
 
     cmd: tuple[str, ...]
     analysis: AnalysisInfo
-    experiments: list[Case]
+    experiments: list[Case | Entry]
     timeout: float
     max_steps: int
+    all: bool
 
     def __post_init__(self):
         assert isinstance(self.experiments, list), (
@@ -174,6 +195,7 @@ class Config:
         max_steps: int,
         timeout: float,
         eff: Effect,
+        all: bool,
     ) -> "Self | None":
         with eff.context("Getting info about interpreter"):
             try:
@@ -197,20 +219,17 @@ class Config:
             experiments=list(experiments),
             timeout=timeout,
             max_steps=max_steps,
+            all=all,
         )
 
     def run_experiment(
         self,
-        case: Case,
+        case: Case | Entry,
         *,
         pedantic: bool = True,
         eff: Effect,
     ) -> Result:
-        cmd = self.cmd + (
-            case.methodid.encode(),
-            case.input.encode(),
-            str(self.max_steps),
-        )
+        cmd = case.as_test(self.cmd, self.max_steps)
         duration = Duration(0, 0)
         calibrations_ns = ()
         try:
@@ -255,7 +274,7 @@ class CaseScore:
 class ResultSummary:
     config: Config
     results: list[Result]
-    scores: dict[Case, CaseScore]
+    scores: dict[Case | Entry, CaseScore]
     total_steps: int
 
     def display_autolab(self, file=sys.stdout):
@@ -282,7 +301,7 @@ class ResultSummary:
         total = 0
         good = 0
 
-        for case, score in sorted(self.scores.items()):
+        for case, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
             total += 1
 
             if case.methodid.classname != category_name:
@@ -298,9 +317,9 @@ class ResultSummary:
 
             category.append(
                 [
-                    f"{case.methodid.extension.name}:{case.input.encode()}",
+                    f"{case.short()}",
                     f"{score.steps}",
-                    f"{score.error or 'ok'}",
+                    f"{(score.error or 'ok').splitlines()[0][:40]}",
                 ]
             )
 
@@ -347,7 +366,7 @@ class Summary:
         except OSError:
             eff.error("Failed to write report")
 
-    def score_results(self):
+    def score_results(self, *, eff):
         cases = {}
         total_steps = 0
         for r in self.results:
@@ -355,6 +374,10 @@ class Summary:
                 error=r.invalidate(config=self.config),
                 steps=len(r.response.steps) if r.response else 0,
             )
+
+            if score.error:
+                eff.warning(f"At {r.case.short()} got error: {score.error}")
+
             cases[r.case] = score
             total_steps += score.steps
 
@@ -367,18 +390,11 @@ class Summary:
 
 
 @dataclass
-class State:
+class State(sexpr.AsSExpr):
     config: Config
     progress: int = 0
     results: list[Result] = field(default_factory=list)
     categories: dict[Category, Tracker] = field(default_factory=dict)
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
 
     def rewind(self):
         self.progress -= 1
@@ -400,9 +416,10 @@ class State:
             self.progress += 1
             self.results.append(result)
 
-            if msg := result.invalidate(config=self.config):
+            msg = result.invalidate(config=self.config)
+            eff.info(f"{msg=}")
+            if msg is not None:
                 eff.warning(f"Invalid output: {msg}")
-
                 return False
 
         return True

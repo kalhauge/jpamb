@@ -97,6 +97,11 @@ def checkhealth(ctx, docker):
     help="in case of crash, restart from where we left off",
 )
 @click.option(
+    "--all / --no-all",
+    default=False,
+    help="also run the cases with the `all` input",
+)
+@click.option(
     "--timeout",
     show_default=True,
     default=2.0,
@@ -141,12 +146,18 @@ def interpret(
         raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
     experiments = []
+    entries = {}
     for case in sorted(ctx.suite.cases):
         if not filter.search(str(case)):
             eff.info(f"Skipping {case}, excluded by filter")
             continue
 
         experiments.append(case)
+        entries.setdefault(case.methodid, set()).add(case.result)
+
+    if kwargs["all"]:
+        for methodid, result in entries.items():
+            experiments.append(jpamb.case.Entry(methodid, frozenset(result)))
 
     try:
         config = jpamb.interpret.Config.from_cmd(
@@ -183,6 +194,7 @@ def interpret(
         state = jpamb.interpret.State(config)
 
     for cont in iter(lambda: state.run_next(eff=eff), None):
+        print(cont)
         if step_wise and not cont:
             state.rewind()
             eff.error("Stopping early")
@@ -196,7 +208,7 @@ def interpret(
         pass
 
     summary = state.summary()
-    results = summary.score_results()
+    results = summary.score_results(eff=eff)
     results.display()
 
     if report:
