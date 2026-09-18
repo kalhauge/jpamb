@@ -488,9 +488,7 @@ def emit_init(state: jvm.state.State) -> sexpr.SExpr:
 
 
 def emit_step(
-    before: sexpr.SExpr,
-    pc: jvm.state.PC,
-    after: jvm.state.State,
+    before: sexpr.SExpr, pc: jvm.state.PC, after: jvm.state.State, depth=2
 ) -> sexpr.SExpr:
     import jpamb.interpret
 
@@ -498,7 +496,7 @@ def emit_step(
     assert isinstance(pc, jvm.state.PC), f"Expected PC but got {pc!r}"
 
     expr = sexpr.sexpr(after)
-    diff = sexpr.diff(before, expr)
+    diff = sexpr.diff(before, expr, depth=depth)
     out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Step(pc, tuple(diff))), indent=2)
     print(sexpr.pretty(expr, indent=2), file=sys.stderr)
     print(out)

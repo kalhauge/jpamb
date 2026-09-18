@@ -873,14 +873,14 @@ def iapply(cursor: Option, edits: list[TreeEdit]) -> None:
             ) from e
 
 
-def diff(a: SExpr, b: SExpr, path=()) -> list[TreeEdit]:
+def diff(a: SExpr, b: SExpr, path=(), depth=-1) -> list[TreeEdit]:
     # Node was deleted
     assert a is not None and b is not None
 
     result = []
 
     # Node itself changed
-    if isinstance(a, str) or isinstance(b, str):
+    if isinstance(a, str) or isinstance(b, str) or depth >= 0 and len(path) >= depth:
         if a != b:
             return [Update(path, a=a, b=b)]
         else:
@@ -895,7 +895,12 @@ def diff(a: SExpr, b: SExpr, path=()) -> list[TreeEdit]:
                 Rename(path + (Index(a[i].key, i),), a[i].key, b[i].key),
             )
         result.extend(
-            diff(a[i].value, b[i].value, path + (Index(a[i].key, i),)),
+            diff(
+                a[i].value,
+                b[i].value,
+                path + (Index(a[i].key, i),),
+                depth=depth,
+            ),
         )
 
     # Extra children in old tree were deleted
