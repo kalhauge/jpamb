@@ -8,6 +8,10 @@ in
       type = types.str;
     };
 
+    kind = mkOption {
+      type = types.str;
+    };
+
     general.display_name = mkOption {
       type = types.str;
     };

@@ -24,19 +24,23 @@
             ];
           };
           config = evaluated.config;
+          makefile = pkgs.replaceVars ./autograde-Makefile {
+            kind = config.kind;
+          };
         in
         pkgs.runCommand "${config.name}.tar"
           {
             json = builtins.toJSON config.configuration;
             passthru = {
               config = config.configuration;
+              inherit makefile;
             };
           }
           ''
             name=${config.name}
             mkdir "$name"
 
-            cp ${./autograde-Makefile} "$name/autograde-Makefile"
+            cp ${makefile} "$name/autograde-Makefile"
             cp ${autograder} "$name/autograde.tar"
             echo "$json" > "$name/${config.name}.yml"
 
@@ -49,7 +53,11 @@
 
       config.packages =
         let
-          syntactic = mkAssignment ./syntactic;
+          syntactic = mkAssignment ./assignments/syntactic.nix;
+          dynamic = mkAssignment ./assignments/dynamic.nix;
+          static = mkAssignment ./assignments/static.nix;
+          concrete = mkAssignment ./assignments/concrete.nix;
+          abstract = mkAssignment ./assignments/abstract.nix;
         in
         {
           assignments =
@@ -62,6 +70,10 @@
               ''
                 mkdir -p $out
                 cp ${syntactic} $out/syntactic.tar
+                cp ${dynamic} $out/dynamic.tar
+                cp ${static} $out/static.tar
+                cp ${concrete} $out/concrete.tar
+                cp ${abstract} $out/abstract.tar
               '';
         };
     };

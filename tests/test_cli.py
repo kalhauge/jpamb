@@ -127,7 +127,7 @@ def test_validate_analysis(format):
         [
             "-v",
             "validate",
-            "analysis",
+            "analyse",
             "--format",
             format,
             "tests/data/analysis-report.sexp",

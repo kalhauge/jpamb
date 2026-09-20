@@ -363,7 +363,7 @@ def analyse(
     "kind",
     default=None,
     type=click.Choice(
-        ["analysis", "interpret", "abstract-interpret"], case_sensitive=True
+        ["analyse", "interpret", "abstract-interpret"], case_sensitive=True
     ),
 )
 @click.argument(
@@ -376,7 +376,7 @@ def validate(ctx, kind, report, format):
 
     expr = sexpr.from_string(report.read())[0]
     match kind:
-        case "analysis":
+        case "analyse":
             summary = jpamb.analyse.Summary.from_sexpr(expr)
         case "interpret":
             summary = jpamb.interpret.Summary.from_sexpr(expr)
