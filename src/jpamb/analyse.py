@@ -627,6 +627,8 @@ class Summary:
 
 def mean(results):
     res = [r for r in results if not math.isnan(r)]
+    if not res:
+        return float("nan")
     return sum(res) / len(res)
 
 

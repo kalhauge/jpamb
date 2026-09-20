@@ -353,6 +353,9 @@ class Suite:
 
                 reachable = set()
                 result = dynamic.run_experiment(case.experiment, eff=eff)
+                if result.response is None:
+                    eff.error(f"No response for {case.experiment}")
+                    continue
                 for step in result.response.steps:
                     reachable.add(step.pc)
 

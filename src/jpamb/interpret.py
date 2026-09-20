@@ -57,14 +57,14 @@ class Response:
         assert isinstance(self.init, Init)
 
     @staticmethod
-    def parse(out) -> Self | None:
+    def parse(out) -> tuple[Self, list[str]] | None:
         warnings = []
         steps = []
         exprs = sexpr.from_string(out)
 
         if not exprs:
             warnings.append("Expected an initial state, but got nothing")
-            return None
+            return None, warnings
 
         try:
             init = Init.from_sexpr(exprs[0])
@@ -72,7 +72,7 @@ class Response:
             warnings.append(
                 f"Could not interpret expr {sexpr.pretty(exprs[0])!r} as initial state: {e}"
             )
-            return None
+            return None, warnings
 
         try:
             for s in exprs[1:]:
@@ -309,7 +309,7 @@ class ResultSummary:
         for experiment, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
             total += 1
 
-            if experiment.entry.classname != category_name:
+            if experiment.entry.classname != category_name and category_name is not None:
                 table.append((f"{category_name}", category))
                 category_name = None
                 category = []
@@ -330,7 +330,6 @@ class ResultSummary:
 
         if category_name is not None:
             table.append((f"{category_name}", category))
-            category_name = experiment.entry
 
         table.append(["Total", f"{self.total_steps}", f"{good}/{total}"])
 
@@ -391,7 +390,8 @@ class Summary:
             experiments = set()
             for result in self.results:
                 experiments.add(result.experiment)
-                return result.invalidate(benchmark=benchmark, config=self.config)
+                if invalid := result.invalidate(benchmark=benchmark, config=self.config):
+                    return invalid
 
             unrun = all_experiments - experiments
 

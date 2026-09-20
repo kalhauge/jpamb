@@ -412,7 +412,7 @@ class Case(sexpr.AsSExpr):
 
     @property
     def input(self) -> Input:
-        assert input is not None
+        assert self.experiment.input is not None
         return self.experiment.input
 
     @property
