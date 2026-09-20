@@ -12,6 +12,7 @@ import jpamb
 import jpamb.interpret
 import jvm
 import sexpr
+from jpamb.report import write_report
 from jpamb.utils import DockerRunner, Effect
 
 
@@ -218,7 +219,7 @@ def interpret(
             eff.error(results.invalid)
             eff.error("No report created")
             sys.exit(1)
-        summary.report(file=report, eff=eff)
+        write_report(summary, file=report, eff=eff)
 
 
 @cli.command()
@@ -349,7 +350,7 @@ def analyse(
             eff.error(results.invalid)
             eff.error("No report created")
             sys.exit(1)
-        summary.report(file=report, eff=eff)
+        write_report(summary, file=report, eff=eff)
 
 
 @cli.command()

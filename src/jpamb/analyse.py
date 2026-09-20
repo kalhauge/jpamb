@@ -7,63 +7,14 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, TextIO
+from typing import Self
 
 import jvm
 import jvm.state
 import sexpr
 from jpamb.case import Benchmark, Entry
-from jpamb.utils import Duration, Effect, dump_table
-
-
-@dataclass(frozen=True)
-class AnalysisInfo:
-    name: str
-    version: str
-    group: str
-    tags: tuple[str, ...]
-    system: str
-
-    @staticmethod
-    def parse(output: str):
-        lines = output.splitlines()
-        if len(lines) == 5:
-            [name, version, group, ltags, lsystem] = lines
-        elif len(lines) == 4:
-            [name, version, group, ltags] = lines
-            lsystem = ""
-        else:
-            raise ValueError(f"Expected 5 lines, but got {len(output.splitlines())}")
-
-        tags = []
-        for t in ltags.split(","):
-            tags.append(t.strip())
-
-        system = lsystem.strip()
-
-        return AnalysisInfo(
-            name.strip(),
-            version.strip(),
-            group.strip(),
-            tuple(tags),
-            system,
-        )
-
-    def display(self, *, file=sys.stdout):
-        file.write("Analysis:\n")
-        file.write(f" Name:         {self.name}\n")
-        file.write(f" Version:      {self.version}\n")
-        file.write(f" Group:        {self.group}\n")
-        file.write(f" Tags:         {self.tags}\n")
-        file.write(f" System:       {self.system}\n")
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
-
+from jpamb.report import AnalysisInfo, Duration
+from jpamb.utils import Effect, dump_table
 
 QUERIES = (
     "*",
@@ -323,21 +274,12 @@ class Config:
         iterations: int,
         eff: Effect,
     ) -> "Self":
-        with eff.context("Getting info about analysis"):
-            try:
-                out = eff.run(
-                    cmd + ("info",),
-                    timeout=timeout,
-                )
-                info = AnalysisInfo.parse(out)
-            except subprocess.CalledProcessError as e:
-                eff.error(f"Ran {shlex.join(cmd)} info, and got error:\n{e.stderr}")
-                raise
-            except ValueError:
-                eff.error("Expected info, but got:")
-                for o in out.splitlines():
-                    eff.error(o)
-                raise
+        info = AnalysisInfo.from_cmd(
+            cmd,
+            timeout=timeout,
+            eff=eff,
+            context="analysis",
+        )
 
         return cls(
             cmd,
@@ -615,14 +557,6 @@ class Summary:
             total_rel_time / hits,
             total_abs_time,
         )
-
-    def report(cls, *, file: TextIO, eff: Effect) -> None:
-        content = sexpr.pretty(cls.__sexpr__(), indent=2)
-        try:
-            file.write(content)
-            eff.success(f"Succesfully wrote report to {file.name}")
-        except OSError:
-            eff.error("Failed to write report")
 
 
 def mean(results):

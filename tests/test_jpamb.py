@@ -30,7 +30,7 @@ def st_queries(draw):
 
 @st.composite
 def st_durations(draw):
-    return jpamb.Duration(
+    return jpamb.report.Duration(
         absolute=draw(st.integers(min_value=0)),
         relative=draw(st.floats(allow_nan=False)),
     )
@@ -40,7 +40,7 @@ def st_durations(draw):
 def test_durations_from_sexpr(it):
     expr = sexpr.sexpr(it)
     note(expr)
-    assert it == jpamb.Duration.from_sexpr(expr)
+    assert it == jpamb.report.Duration.from_sexpr(expr)
 
 
 # suite, _eff = jpamb.setup()

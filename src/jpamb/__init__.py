@@ -23,10 +23,9 @@ import jvm.state
 import sexpr
 from jpamb import interpret
 from jpamb.analyse import QUERIES as QUERIES
-from jpamb.analyse import AnalysisInfo as AnalysisInfo
 from jpamb.case import Benchmark, Case, Control, Coverage, Experiment, Input
+from jpamb.report import AnalysisInfo as AnalysisInfo
 from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
-from jpamb.utils import Duration as Duration
 
 __version__ = version("jpamb")
 

@@ -3,14 +3,14 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, TextIO
+from typing import Self
 
 import jvm
 import jvm.state
 import sexpr
-from jpamb.analyse import AnalysisInfo
 from jpamb.case import Benchmark, Control, Experiment
-from jpamb.utils import Duration, Effect, dump_table
+from jpamb.report import AnalysisInfo, Duration
+from jpamb.utils import Effect, dump_table
 
 
 @dataclass(frozen=True, slots=True)
@@ -201,21 +201,12 @@ class Config:
         eff: Effect,
         abstract: bool,
     ) -> "Self | None":
-        with eff.context("Getting info about interpreter"):
-            try:
-                out = eff.run(
-                    cmd + ("info",),
-                    timeout=timeout,
-                )
-                info = AnalysisInfo.parse(out)
-            except subprocess.CalledProcessError as e:
-                eff.error(f"Ran {shlex.join(cmd)} info, and got error:\n{e.stderr}")
-                raise
-            except ValueError:
-                eff.error("Expected info, but got:")
-                for o in out.splitlines():
-                    eff.error(o)
-                raise
+        info = AnalysisInfo.from_cmd(
+            cmd,
+            timeout=timeout,
+            eff=eff,
+            context="interpreter",
+        )
 
         return cls(
             cmd,
@@ -309,7 +300,10 @@ class ResultSummary:
         for experiment, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
             total += 1
 
-            if experiment.entry.classname != category_name and category_name is not None:
+            if (
+                experiment.entry.classname != category_name
+                and category_name is not None
+            ):
                 table.append((f"{category_name}", category))
                 category_name = None
                 category = []
@@ -337,26 +331,11 @@ class ResultSummary:
 
 
 @dataclass(frozen=True)
-class Summary:
+class Summary(sexpr.AsSExpr):
     config: Config
     results: list[Result]
 
     __sexprtag__ = "interpret-summary"
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
-
-    def report(cls, *, file: TextIO, eff: Effect) -> None:
-        content = sexpr.pretty(cls.__sexpr__(), indent=2)
-        try:
-            file.write(content)
-            eff.success(f"Succesfully wrote report to {file.name}")
-        except OSError:
-            eff.error("Failed to write report")
 
     def score_results(self, *, benchmark: Benchmark, eff: Effect):
         experiments = {}
@@ -390,7 +369,9 @@ class Summary:
             experiments = set()
             for result in self.results:
                 experiments.add(result.experiment)
-                if invalid := result.invalidate(benchmark=benchmark, config=self.config):
+                if invalid := result.invalidate(
+                    benchmark=benchmark, config=self.config
+                ):
                     return invalid
 
             unrun = all_experiments - experiments
