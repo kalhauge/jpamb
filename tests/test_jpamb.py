@@ -28,14 +28,6 @@ def st_queries(draw):
     return draw(st.sampled_from(jpamb.QUERIES))
 
 
-def isfloat(value: str) -> bool:
-    try:
-        float(value)
-        return True
-    except ValueError:
-        return False
-
-
 @st.composite
 def st_durations(draw):
     return jpamb.Duration(

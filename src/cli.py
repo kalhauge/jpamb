@@ -2,8 +2,8 @@ import dataclasses
 import json
 import os
 import re
-import sys
 import shutil
+import sys
 from pathlib import Path
 
 import click
@@ -381,11 +381,11 @@ def validate(ctx, kind, report, format):
         case "interpret":
             summary = jpamb.interpret.Summary.from_sexpr(expr)
             if summary.config.abstract:
-                return f"Evaluated using the --abstract flag"
+                return "Evaluated using the --abstract flag"
         case "abstract-interpret":
             summary = jpamb.interpret.Summary.from_sexpr(expr)
             if not summary.config.abstract:
-                return f"Did not evaluate using the --abstract flag"
+                return "Did not evaluate using the --abstract flag"
 
     benchmark = ctx.suite.benchmark(eff=ctx.eff)
 
@@ -397,7 +397,7 @@ def validate(ctx, kind, report, format):
     match format:
         case "user":
             if result_summary.invalid is not None:
-                ctx.eff.error(check)
+                ctx.eff.error(result_summary.invalid)
                 sys.exit(1)
             result_summary.display()
         case "autolab":
@@ -451,7 +451,7 @@ def build(ctx, compile, document, test, benchmark):
         for tool in tools:
             tool_bin = shutil.which(tool)
             if not tool_bin:
-                eff.warning(f"did not have {tool} installed...")
+                ctx.eff.warning(f"did not have {tool} installed...")
 
             config = jpamb.interpret.Config.from_cmd(
                 (tool_bin,),

@@ -12,9 +12,8 @@ from typing import Self, TextIO
 import jvm
 import jvm.state
 import sexpr
-from jpamb.utils import Effect, dump_table, Duration
-
-from jpamb.case import Entry, Benchmark
+from jpamb.case import Benchmark, Entry
+from jpamb.utils import Duration, Effect, dump_table
 
 
 @dataclass(frozen=True)

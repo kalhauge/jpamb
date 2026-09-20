@@ -1,8 +1,8 @@
+import copy
 import dataclasses
 import io
 import re
 import types
-import copy
 import typing
 from collections import OrderedDict
 from collections.abc import Callable, Iterable, Iterator, Sequence
@@ -17,8 +17,6 @@ from typing import (
     Self,
     TypeIs,
     runtime_checkable,
-    Any,
-    Literal,
 )
 
 if TYPE_CHECKING:

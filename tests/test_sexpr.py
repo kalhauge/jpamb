@@ -1,8 +1,8 @@
+
 from hypothesis import HealthCheck, given, note, settings
 from hypothesis import strategies as st
 
 import sexpr
-import copy
 
 
 def test_pretty():

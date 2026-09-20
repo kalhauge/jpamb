@@ -5,13 +5,14 @@ This module provides the basic data model for working with the JPAMB.
 
 """
 
-import json
 import copy
+import json
 import subprocess
 import sys
-from collections import Counter, defaultdict, OrderedDict
+from collections import Counter, OrderedDict
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
+from importlib.metadata import version
 from pathlib import Path
 from typing import NoReturn
 
@@ -20,14 +21,12 @@ import runit
 import jvm
 import jvm.state
 import sexpr
+from jpamb import interpret
 from jpamb.analyse import QUERIES as QUERIES
 from jpamb.analyse import AnalysisInfo as AnalysisInfo
-from jpamb.case import Case, Input, Benchmark, Experiment, Control, Coverage
-from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue, Duration
-
-import jpamb.interpret as interpret
-
-from importlib.metadata import version
+from jpamb.case import Benchmark, Case, Control, Coverage, Experiment, Input
+from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
+from jpamb.utils import Duration as Duration
 
 __version__ = version("jpamb")
 
@@ -220,7 +219,7 @@ class Suite:
                 if x["name"] != cn.slashed():
                     checker.raise_issue(f"could not decompile {cn.dotted()}")
 
-        cases = list()
+        cases = []
         entries = set()
 
         with check(f"The case file [{self.case_file}]"):
@@ -267,7 +266,7 @@ class Suite:
 
                     if not case.result in all_control.results:
                         checker.raise_issue(
-                            f"Expected {casel.result} in {all_control.result} experiments"
+                            f"Expected {case.result} in {all_control.result} experiments"
                         )
 
         with check("Opcodes"):
@@ -330,8 +329,8 @@ class Suite:
                                 folder.relative_to(self.workdir).as_posix(),
                                 "-ea",
                                 "jpamb.Runtime",
-                                experiments.methodid.encode(),
-                                experiments.input.encode(),
+                                case.methodid.encode(),
+                                case.input.encode(),
                             ],
                             timeout=5,
                             eff=eff,
@@ -339,18 +338,16 @@ class Suite:
                     except subprocess.TimeoutExpired:
                         res = "*"
 
-                    if experiments.result == res.strip():
+                    if case.result == res.strip():
                         eff.success("Correct")
                     else:
-                        eff.error(
-                            f"Incorrect (got {res.strip()}) expected {experiments}"
-                        )
+                        eff.error(f"Incorrect (got {res.strip()}) expected {case}")
 
     def run_benchmark(self, dynamic: interpret.Config, *, eff: Effect):
         with eff.context("Benchmark"):
             experiments = OrderedDict()
 
-            entries = dict()
+            entries = {}
             for case in self.cases(eff=eff):
                 eff.info(f"Running {case.experiment}")
 
@@ -359,11 +356,11 @@ class Suite:
                 for step in result.response.steps:
                     reachable.add(step.pc)
 
-                methods = set(pc.method for pc in reachable)
+                methods = {pc.method for pc in reachable}
 
                 coverage = {
                     m: Coverage(
-                        reachable=set(pc.offset for pc in reachable if pc.method == m)
+                        reachable={pc.offset for pc in reachable if pc.method == m}
                     )
                     for m in methods
                 }
@@ -377,7 +374,7 @@ class Suite:
         for entry, controls in entries.items():
             experiment = Experiment(entry, None)
 
-            coverage = dict()
+            coverage = {}
             results = set()
             for control in controls:
                 results |= control.results

@@ -11,7 +11,7 @@ from .test_jpamb import (
     st_durations,
 )
 from .test_jpamb_case import st_values
-from .test_sexpr import st_sexpr, st_edits
+from .test_sexpr import st_edits, st_sexpr
 
 
 @st.composite

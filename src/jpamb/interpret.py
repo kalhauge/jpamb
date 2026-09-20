@@ -8,8 +8,8 @@ from typing import Self, TextIO
 import jvm
 import jvm.state
 import sexpr
-from jpamb.analyse import AnalysisInfo, Duration, Tracker
-from jpamb.case import Experiment, Control, Benchmark
+from jpamb.analyse import AnalysisInfo, Duration
+from jpamb.case import Benchmark, Control, Experiment
 from jpamb.utils import Effect, dump_table
 
 
@@ -31,13 +31,6 @@ class Step:
     edits: tuple[sexpr.TreeEdit, ...]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
-
-    def __sexpr__(self) -> sexpr.SExpr:
         return [
             sexpr.item("step"),
             sexpr.Option("pc", sexpr.sexpr(self.pc)),
@@ -47,7 +40,7 @@ class Step:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         pc = None
         items = []
-        name, pc, *rest = sexpr.to_options(expr)
+        _name, pc, *rest = sexpr.to_options(expr)
         pc = jvm.state.PC.from_sexpr(pc.value)
         for option in rest:
             items.append(sexpr.TreeEdit.from_sexpr(option.value))
@@ -103,7 +96,7 @@ class Response:
 
     def invalidate(self, *, control: Control, max_steps: int) -> str | None:
         if not self.steps:
-            return f"No steps where emitted"
+            return "No steps where emitted"
 
         cursor = sexpr.cursor(self.init.state)
 
@@ -391,11 +384,11 @@ class Summary:
                 return f"You must the intepreter exactly 100 steps, was {self.config.max_steps}"
 
             if self.config.abstract:
-                all_experiments = set(e for e in benchmark.experiments)
+                all_experiments = set(benchmark.experiments)
             else:
-                all_experiments = set(
+                all_experiments = {
                     e for e in benchmark.experiments if e.input is not None
-                )
+                }
 
             experiments = set()
             for result in self.results:
