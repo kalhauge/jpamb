@@ -12,7 +12,9 @@ from typing import Self, TextIO
 import jvm
 import jvm.state
 import sexpr
-from jpamb.utils import Effect, dump_table
+from jpamb.utils import Effect, dump_table, Duration
+
+from jpamb.case import Entry, Benchmark
 
 
 @dataclass(frozen=True)
@@ -72,19 +74,6 @@ QUERIES = (
     "ok",
     "out of bounds",
 )
-
-
-@dataclass(frozen=True, slots=True)
-class Duration:
-    absolute: int
-    relative: float
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
 
 
 class Prediction(ABC):
@@ -302,7 +291,7 @@ class Config:
 
     cmd: tuple[str, ...]
     analysis: AnalysisInfo
-    experiments: OrderedDict[jvm.AbsMethodID, set[str]]
+    experiments: OrderedDict[Entry, set[str]]
     iterations: int
     timeout: float
 
@@ -329,7 +318,7 @@ class Config:
     def from_cmd(
         cls,
         cmd: tuple[str],
-        experiments: Iterable[tuple[jvm.AbsMethodID, set[str]]],
+        experiments: Iterable[Entry],
         *,
         timeout: float,
         iterations: int,
@@ -354,7 +343,7 @@ class Config:
         return cls(
             cmd,
             info,
-            experiments=OrderedDict(experiments),
+            experiments=OrderedDict([(e, set()) for e in experiments]),
             timeout=timeout,
             iterations=iterations,
         )
@@ -412,14 +401,13 @@ class ResultSummary:
     config: Config
     results: list[tuple[str, list[ResultRow]]]
     categories: list[tuple[Category, Tracker]]
+    invalid: str | None
     total_score: float
     mean_rel_time: float
     total_abs_time: float
 
     def display_autolab(self, file=sys.stdout):
         import json
-
-        invalid = self.invalidate()
 
         json.dump(
             {
@@ -436,14 +424,14 @@ class ResultSummary:
                 },
                 "Grade": {
                     "Valid": {
-                        "passed": invalid is None,
-                        "hint": "" if invalid is None else invalid,
+                        "passed": self.invalid is None,
+                        "hint": "" if self.invalid is None else self.invalid,
                     },
                     "Pass": {
-                        "passed": invalid is None and self.total_score > 100,
+                        "passed": self.invalid is None and self.total_score > 100,
                         "hint": (
                             "Report must be valid"
-                            if invalid is not None
+                            if self.invalid is not None
                             else "Total score needs to be above 100"
                         ),
                     },
@@ -457,7 +445,9 @@ class ResultSummary:
             "scores": {},
         }
 
-        student_eval["scores"]["Total"] = self.total_score if invalid is None else 0
+        student_eval["scores"]["Total"] = (
+            self.total_score if self.invalid is None else 0
+        )
         student_eval["scores"]["Time"] = 100 / max(1, self.mean_rel_time)
         student_eval["scores"]["Categories"] = 100 / len(self.categories)
 
@@ -527,31 +517,11 @@ class ResultSummary:
 
         dump_table(categories, align="<>>>>>>", file=file)
 
-    def invalidate(self) -> str | None:
-        if self.config.analysis.group == "The Rice Theorem Cookers":
-            return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
-
-        if (iters := self.config.iterations) != 3:
-            return f"Analysis report should be based on 3 iterations, found {iters}"
-
-        found_methods = []
-        for _, rs in self.results:
-            for r in rs:
-                if not (r.score <= 6.0):
-                    return f"Invalid score {r.score} found for {r.methodname}"
-                if r.abs_time <= 0:
-                    return f"Found negative time value {r.abs_time}"
-                if r.methodname in found_methods:
-                    return f"Found duplicate method {r.methodname}"
-            found_methods.append(r.methodname)
-
-        return None
-
 
 @dataclass(frozen=True)
 class Summary:
     config: Config
-    results: dict[jvm.AbsMethodID, list[Result]]
+    results: dict[Entry, list[Result]]
 
     __sexprtag__ = "analysis-summary"
 
@@ -580,7 +550,7 @@ class Summary:
 
         return dict(categories)
 
-    def score_results(self) -> ResultSummary:
+    def score_results(self, *, benchmark: Benchmark, eff: Effect) -> ResultSummary:
         byclasses = {}
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
@@ -615,10 +585,33 @@ class Summary:
 
             groups += [(str(clz), rows)]
 
+        def invalidate():
+            if self.config.analysis.group == "The Rice Theorem Cookers":
+                return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
+
+            if (iters := self.config.iterations) != 3:
+                return f"Analysis report should be based on 3 iterations, found {iters}"
+
+            found_methods = []
+            for _, rs in groups:
+                for r in rs:
+                    if not (r.score <= 6.0):
+                        return f"Invalid score {r.score} found for {r.methodname}"
+                    if r.abs_time <= 0:
+                        return f"Found negative time value {r.abs_time}"
+                    if r.methodname in found_methods:
+                        return f"Found duplicate method {r.methodname}"
+                found_methods.append(r.methodname)
+
+            return None
+
+        invalid = invalidate()
+
         return ResultSummary(
             self.config,
             groups,
             tracker_categories,
+            invalid,
             total_score,
             total_rel_time / hits,
             total_abs_time,

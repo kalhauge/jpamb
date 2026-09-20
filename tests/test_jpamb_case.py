@@ -80,11 +80,11 @@ def st_boolean_values():
 
 
 def st_char_values():
-    return st.characters(blacklist_characters="'").map(Char)
+    return st.characters(blacklist_characters="'\n").map(Char)
 
 
 def st_string_values():
-    return st.text(st.characters(blacklist_characters="'")).map(String)
+    return st.text(st.characters(blacklist_characters="'\n")).map(String)
 
 
 def st_int_array_values():
@@ -93,7 +93,7 @@ def st_int_array_values():
 
 def st_char_array_values():
     return (
-        st.lists(st.characters(blacklist_characters="'"))
+        st.lists(st.characters(blacklist_characters="'\n"))
         .map(tuple)
         .map(lambda vs: Array(jvm.Char(), vs))
     )

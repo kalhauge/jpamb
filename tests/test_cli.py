@@ -120,19 +120,37 @@ def test_inspect(method, format):
 
 @pytest.mark.slow
 @pytest.mark.parametrize("format", ["autolab", "user"])
-@pytest.mark.parametrize(
-    "report", ["tests/data/analysis-report.sexp", "tests/data/interpret-report.sexp"]
-)
-def test_validate(format, report):
+def test_validate_analysis(format):
     runner = CliRunner()
     result = runner.invoke(
         cli.cli,
         [
             "-v",
             "validate",
+            "analysis",
             "--format",
             format,
-            report,
+            "tests/data/analysis-report.sexp",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("format", ["autolab", "user"])
+def test_validate_interpret(format):
+    runner = CliRunner()
+    result = runner.invoke(
+        cli.cli,
+        [
+            "-v",
+            "validate",
+            "interpret",
+            "--format",
+            format,
+            "tests/data/interpret-report.sexp",
         ],
         catch_exceptions=False,
     )

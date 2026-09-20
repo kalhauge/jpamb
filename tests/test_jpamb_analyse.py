@@ -10,11 +10,8 @@ import sexpr
 from . import test_jvm
 from .test_jpamb import (
     st_analysis_infos,
-    st_categories,
     st_durations,
-    st_predictions,
     st_queries,
-    st_trackers,
 )
 
 
@@ -39,6 +36,55 @@ def st_analysis_results(draw):
         duration=draw(st_durations()),
         calibrates=draw(st.lists(st.integers(min_value=0)).map(tuple)),
     )
+
+
+@st.composite
+def st_wagers(draw):
+    return jpamb.analyse.Wager(draw(st.floats(allow_nan=False)))
+
+
+def isfloat(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+
+@st.composite
+def st_categories(draw):
+    return jpamb.analyse.Category(draw(st.text().filter(lambda a: not isfloat(a))))
+
+
+@given(st_categories())
+def test_categories_from_sexpr(category):
+    expr = sexpr.sexpr(category)
+    note(expr)
+    assert category == jpamb.analyse.Category.from_sexpr(expr)
+
+
+@st.composite
+def st_predictions(draw):
+    return draw(st_wagers() | st_categories())
+
+
+@given(st_predictions())
+def test_predictions_from_sexpr(prediction):
+    expr = sexpr.sexpr(prediction)
+    note(expr)
+    assert prediction == jpamb.analyse.Prediction.from_sexpr(expr)
+
+
+@given(st_wagers())
+def test_wagers_from_sexpr(wager):
+    expr = sexpr.sexpr(wager)
+    assert sexpr.issexpr(expr)
+    note(f"{expr=}")
+    assert wager == jpamb.analyse.Wager.from_sexpr(expr)
+
+
+def test_wagers_examples():
+    assert sexpr.sexpr(jpamb.analyse.Wager(0.0)) == "0.0"
 
 
 @given(st_analysis_results())
@@ -122,3 +168,18 @@ def test_analysis_states_from_sexpr(it):
     expr = sexpr.sexpr(it)
     note(expr)
     assert it == jpamb.analyse.State.from_sexpr(expr)
+
+
+@st.composite
+def st_trackers(draw):
+    return jpamb.analyse.Tracker(
+        hits=draw(st.integers(min_value=0)),
+        counts=draw(st.integers(min_value=0)),
+    )
+
+
+@given(st_trackers())
+def test_tracker_from_sexpr(it):
+    expr = sexpr.sexpr(it)
+    note(expr)
+    assert it == jpamb.analyse.Tracker.from_sexpr(expr)

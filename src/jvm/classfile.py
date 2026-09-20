@@ -28,10 +28,10 @@ class Parameters:
         return "".join(e.encode() for e in self._elements)
 
     @staticmethod
-    def decode(input: str) -> Self:
+    def decode(code: str) -> Self:
         params = []
-        while input:
-            (tt, input) = Type.decode(input)
+        while code:
+            (tt, code) = Type.decode_more(code)
             params.append(tt)
 
         return Parameters(tuple(params))
@@ -70,13 +70,13 @@ class MethodID:
             raise ValueError(f"No '.' allowed in name: {self.name!r}")
 
     @staticmethod
-    def decode(input: str):
-        if (match := METHOD_ID_RE.match(input)) is None:
-            raise ValueError(f"invalid method name: {input!r}")
+    def decode(code: str):
+        if (match := METHOD_ID_RE.match(code)) is None:
+            raise ValueError(f"invalid method name: {code!r}")
 
         return_type = None
         if match["return"] != "V":
-            return_type, more = Type.decode(match["return"])
+            return_type, more = Type.decode_more(match["return"])
             if more:
                 raise ValueError(
                     f"could not decode method id, bad return type {match['return']!r}"
@@ -107,11 +107,11 @@ class FieldID:
         return f"{self.name}:{self.type.encode()}"
 
     @staticmethod
-    def decode(input: str) -> "FieldID":
-        if ":" not in input:
-            raise ValueError(f"invalid field id format: {input}")
-        name, type_str = input.split(":", 1)
-        type_obj, remaining = Type.decode(type_str)
+    def decode(code: str) -> "FieldID":
+        if ":" not in code:
+            raise ValueError(f"invalid field id format: {code}")
+        name, type_str = code.split(":", 1)
+        type_obj, remaining = Type.decode_more(type_str)
         if remaining:
             raise ValueError(f"extra characters in field type: {remaining}")
         return FieldID(name=name, type=type_obj)

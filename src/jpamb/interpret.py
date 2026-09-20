@@ -8,8 +8,8 @@ from typing import Self, TextIO
 import jvm
 import jvm.state
 import sexpr
-from jpamb.analyse import AnalysisInfo, Category, Duration, Tracker
-from jpamb.case import Case, Entry
+from jpamb.analyse import AnalysisInfo, Duration, Tracker
+from jpamb.case import Experiment, Control, Benchmark
 from jpamb.utils import Effect, dump_table
 
 
@@ -101,16 +101,19 @@ class Response:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
 
-    def invalidate(self, *, results: set[str], max_steps: int) -> str | None:
+    def invalidate(self, *, control: Control, max_steps: int) -> str | None:
         if not self.steps:
             return f"No steps where emitted"
 
         cursor = sexpr.cursor(self.init.state)
 
+        pcs = set()
         found = set()
         for i, step in enumerate(self.steps):
             if i >= max_steps:
                 return f"Exceeded {max_steps}"
+
+            pcs.add(step.pc)
 
             prev_state = cursor.value
             try:
@@ -122,15 +125,19 @@ class Response:
                 found.add(cursor.value)
                 cursor.value = prev_state
 
-        if i + 1 != max_steps and len(results - found) > 0:
-            return f"The results {results - found!r} was not found in the final states reported {found!r}"
+        uncover = control.reachable() - pcs
+        if len(uncover) > 0:
+            return f"Did not cover all reachable program points: {''.join(f'\n{pc}' for pc in uncover)}"
+
+        if i + 1 != max_steps and len(control.results - found) > 0:
+            return f"The results {control.results - found!r} was not found in the final states reported {found!r}"
 
 
 @dataclass(frozen=True, slots=True)
 class Result:
     __sexprtag__ = "interpret-result"
 
-    case: Case | Entry
+    experiment: Experiment
     response: Response | None
     duration: Duration
     calibrates: tuple[int, ...]
@@ -146,12 +153,17 @@ class Result:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
 
-    def invalidate(self, *, config) -> str | None:
+    def invalidate(self, *, benchmark: Benchmark, config: "Config") -> str | None:
         if self.response is None:
             return "No reponse created"
 
+        print(self.experiment)
+        print(hash(self.experiment))
+        if self.experiment not in benchmark.experiments:
+            return f"Experiment {self.experiment} not in benchmarks."
+
         return self.response.invalidate(
-            results=self.case.results,
+            control=benchmark.experiments[self.experiment],
             max_steps=config.max_steps,
         )
 
@@ -162,10 +174,10 @@ class Config:
 
     cmd: tuple[str, ...]
     analysis: AnalysisInfo
-    experiments: list[Case | Entry]
+    experiments: list[Experiment]
     timeout: float
     max_steps: int
-    all: bool
+    abstract: bool
 
     def __post_init__(self):
         assert isinstance(self.experiments, list), (
@@ -178,6 +190,7 @@ class Config:
         file.write(f"Experiments:   {len(self.experiments)}\n")
         file.write(f"Max Steps:     {self.max_steps}\n")
         file.write(f"Timeout:       {self.timeout}\n")
+        file.write(f"Abstract:      {self.abstract}\n")
 
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.from_dataclass(self)
@@ -190,12 +203,12 @@ class Config:
     def from_cmd(
         cls,
         cmd: tuple[str],
-        experiments: Iterable[Case],
+        experiments: Iterable[Experiment],
         *,
         max_steps: int,
         timeout: float,
         eff: Effect,
-        all: bool,
+        abstract: bool,
     ) -> "Self | None":
         with eff.context("Getting info about interpreter"):
             try:
@@ -219,21 +232,21 @@ class Config:
             experiments=list(experiments),
             timeout=timeout,
             max_steps=max_steps,
-            all=all,
+            abstract=abstract,
         )
 
     def run_experiment(
         self,
-        case: Case | Entry,
+        experiment: Experiment,
         *,
         pedantic: bool = True,
         eff: Effect,
     ) -> Result:
-        cmd = case.as_test(self.cmd, self.max_steps)
+        cmd = experiment.as_test(self.cmd, self.max_steps)
         duration = Duration(0, 0)
         calibrations_ns = ()
         try:
-            experiment = eff.experiment(
+            result = eff.experiment(
                 cmd,
                 timeout=self.timeout,
             )
@@ -246,9 +259,9 @@ class Config:
             )
             response = None
         else:
-            duration = Duration(experiment.time_ns, experiment.time_relative)
-            calibrations_ns = tuple(experiment.calibrations_ns)
-            response, warns = Response.parse(experiment.output)
+            duration = Duration(result.time_ns, result.time_relative)
+            calibrations_ns = tuple(result.calibrations_ns)
+            response, warns = Response.parse(result.output)
 
             if warns:
                 for warn in warns:
@@ -257,7 +270,7 @@ class Config:
                     response = None
 
         return Result(
-            case,
+            experiment,
             response,
             duration,
             calibrations_ns,
@@ -265,7 +278,7 @@ class Config:
 
 
 @dataclass(frozen=True)
-class CaseScore:
+class ExperimentScore:
     error: str | None
     steps: int
 
@@ -274,18 +287,19 @@ class CaseScore:
 class ResultSummary:
     config: Config
     results: list[Result]
-    scores: dict[Case | Entry, CaseScore]
+    scores: dict[Experiment, ExperimentScore]
+    invalid: str | None
     total_steps: int
 
     def display_autolab(self, file=sys.stdout):
         import json
 
-        invalid = self.invalidate()
-
         student_eval = {}
 
         student_eval["scores"] = {}
-        student_eval["scores"]["Total"] = len(self.results) if invalid is None else 0
+        student_eval["scores"]["Total"] = (
+            len(self.results) if self.invalid is None else 0
+        )
 
         json.dump(student_eval, fp=file)
         file.write("\n")
@@ -294,30 +308,30 @@ class ResultSummary:
         self.config.display(file=file)
 
         file.write("\n")
-        table = [["Case", "Steps", "Valid"]]
+        table = [["Experiment", "Steps", "Valid"]]
         category_name = None
         category = []
 
         total = 0
         good = 0
 
-        for case, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
+        for experiment, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
             total += 1
 
-            if case.methodid.classname != category_name:
+            if experiment.entry.classname != category_name:
                 table.append((f"{category_name}", category))
                 category_name = None
                 category = []
 
             if category_name is None:
-                category_name = case.methodid.classname
+                category_name = experiment.entry.classname
 
             if not score.error:
                 good += 1
 
             category.append(
                 [
-                    f"{case.short()}",
+                    f"{experiment.short()}",
                     f"{score.steps}",
                     f"{(score.error or 'ok').splitlines()[0][:40]}",
                 ]
@@ -325,23 +339,11 @@ class ResultSummary:
 
         if category_name is not None:
             table.append((f"{category_name}", category))
-            category_name = case.methodid
+            category_name = experiment.entry
 
         table.append(["Total", f"{self.total_steps}", f"{good}/{total}"])
 
         dump_table(table, align="<><", file=file)
-
-    def invalidate(self) -> str | None:
-        if self.config.analysis.group == "The Rice Theorem Cookers":
-            return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
-
-        if self.config.max_steps != 100:
-            return f"You must the intepreter exactly 100 steps, was {self.config.max_steps}"
-
-        for result in self.results:
-            return result.invalidate(config=self.config)
-
-        return None
 
 
 @dataclass(frozen=True)
@@ -366,26 +368,55 @@ class Summary:
         except OSError:
             eff.error("Failed to write report")
 
-    def score_results(self, *, eff):
-        cases = {}
+    def score_results(self, *, benchmark: Benchmark, eff: Effect):
+        experiments = {}
         total_steps = 0
         for r in self.results:
-            score = CaseScore(
-                error=r.invalidate(config=self.config),
+            score = ExperimentScore(
+                error=r.invalidate(benchmark=benchmark, config=self.config),
                 steps=len(r.response.steps) if r.response else 0,
             )
 
             if score.error:
-                eff.warning(f"At {r.case.short()} got error: {score.error}")
+                eff.warning(f"At {r.experiment.short()} got error: {score.error}")
 
-            cases[r.case] = score
+            experiments[r.experiment] = score
             total_steps += score.steps
+
+        def invalidate() -> str | None:
+            if self.config.analysis.group == "The Rice Theorem Cookers":
+                return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
+
+            if self.config.max_steps != 100:
+                return f"You must the intepreter exactly 100 steps, was {self.config.max_steps}"
+
+            if self.config.abstract:
+                all_experiments = set(e for e in benchmark.experiments)
+            else:
+                all_experiments = set(
+                    e for e in benchmark.experiments if e.input is not None
+                )
+
+            experiments = set()
+            for result in self.results:
+                experiments.add(result.experiment)
+                return result.invalidate(benchmark=benchmark, config=self.config)
+
+            unrun = all_experiments - experiments
+
+            if len(unrun) > 0:
+                return f"Did not run all experiments, missing: {''.join(f'\n{e}' for e in unrun)}"
+
+            return None
+
+        invalid = invalidate()
 
         return ResultSummary(
             self.config,
             self.results,
+            invalid=invalid,
             total_steps=total_steps,
-            scores=cases,
+            scores=experiments,
         )
 
 
@@ -394,30 +425,30 @@ class State(sexpr.AsSExpr):
     config: Config
     progress: int = 0
     results: list[Result] = field(default_factory=list)
-    categories: dict[Category, Tracker] = field(default_factory=dict)
 
     def rewind(self):
         self.progress -= 1
         self.results.pop(-1)
 
-    def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool | None:
+    def run_next(
+        self, *, benchmark: Benchmark, score_limit: float | None = None, eff: Effect
+    ) -> bool | None:
         no_experiments = len(self.config.experiments)
 
         if self.progress >= no_experiments:
             return None
 
-        case = self.config.experiments[self.progress % no_experiments]
+        experiment = self.config.experiments[self.progress % no_experiments]
 
         with eff.context(
-            f"Experiment {self.progress % no_experiments + 1}/{no_experiments} {case}"
+            f"Experiment {self.progress % no_experiments + 1}/{no_experiments} {experiment}"
         ):
-            result = self.config.run_experiment(case, eff=eff)
+            result = self.config.run_experiment(experiment, eff=eff)
 
             self.progress += 1
             self.results.append(result)
 
-            msg = result.invalidate(config=self.config)
-            eff.info(f"{msg=}")
+            msg = result.invalidate(benchmark=benchmark, config=self.config)
             if msg is not None:
                 eff.warning(f"Invalid output: {msg}")
                 return False

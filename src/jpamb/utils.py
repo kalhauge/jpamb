@@ -4,9 +4,10 @@ import shutil
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import IO
+from typing import IO, Self
 
 import runit
+import sexpr
 
 
 def dump_table(groups, *, align, file):
@@ -215,3 +216,16 @@ class HealthChecker:
                     raise HealthIssue(f"{reason} {e.args!s}") from e
             else:
                 self.eff.success("ok")
+
+
+@dataclass(frozen=True, slots=True)
+class Duration:
+    absolute: int
+    relative: float
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.from_dataclass(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+        return sexpr.to_dataclass(expr, target=cls)

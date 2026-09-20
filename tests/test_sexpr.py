@@ -89,6 +89,14 @@ def st_sexpr_easy():
     )
 
 
+@st.composite
+def st_edits(draw):
+    expr1 = draw(st_sexpr_easy())
+    expr2 = draw(st_sexpr_easy())
+    edits = sexpr.diff(expr1, expr2)
+    return edits
+
+
 @given(st_sexpr_easy(), st_sexpr_easy())
 def test_edits(expr1, expr2):
     edits = sexpr.diff(expr1, expr2)

@@ -22,7 +22,14 @@ class Type(ABC):
         return False
 
     @staticmethod
-    def decode(input) -> tuple["Type", str]:
+    def decode(code: str) -> Self:
+        ex, rem = Type.decode_more(code)
+        if rem != "":
+            raise ValueError(f"Expected only one type, but got {rem!r}")
+        return ex
+
+    @staticmethod
+    def decode_more(input) -> tuple["Type", str]:
         r, stack = None, []
         i = 0
         r = None

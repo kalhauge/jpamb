@@ -252,6 +252,12 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
 
     if origin is dict or origin is OrderedDict:
         tkey, tvalue = typing.get_args(target)
+
+        try:
+            tkey = tkey.__value__
+        except AttributeError:
+            pass
+
         if tkey is str:
             val = to_dict(expr, keyfn=str, valuefn=partial(from_sexpr, target=tvalue))
         elif isinstance(tkey, type) and issubclass(tkey, Decodable):
@@ -260,7 +266,7 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
             )
         else:
             raise NotImplementedError(
-                f"No implementation of type {typing.get_origin(target)} to {target}"
+                f"No implementation of key-type {tkey!r} to {target}"
             )
 
         if origin is OrderedDict:
@@ -492,7 +498,8 @@ def to_dict[K, V](
     result: dict[K, V] = {}
     for opt in sexpr:
         key = keyfn(opt.key)
-        assert key not in result
+        if key in result:
+            raise FromSExprError(f"Duplicate key: {key} in dictionary")
         result[key] = valuefn(opt.value)
 
     return result
