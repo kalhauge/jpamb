@@ -440,12 +440,6 @@ class Case(sexpr.AsSExpr):
         return f"{self.methodid.classname}.{self.methodid.extension.encode()} {self.input.encode()} -> {self.result}"
 
     @staticmethod
-    def by_methodid(
-        iterable: Iterable["Case"],
-    ) -> list[tuple[jvm.AbsMethodID, list["Case"]]]:
-        return Case.by_entry(iterable)
-
-    @staticmethod
     def by_entry(
         iterable: Iterable["Case"],
     ) -> list[tuple[jvm.AbsMethodID, list["Case"]]]:
@@ -461,7 +455,7 @@ class Case(sexpr.AsSExpr):
 @dataclass(slots=True)
 class Coverage(sexpr.AsSExpr):
     reachable: set[int] | None = None
-    unreachable: set[int] | None = None
+    # unreachable: set[int] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -470,9 +464,11 @@ class Control(sexpr.AsSExpr):
     results: set[str]
 
     def is_reachable(self, pc: jvm.state.PC) -> bool:
+        coverage = self.coverage.get(pc.method)
         return (
-            pc.method not in self.coverage
-            or pc.offset not in self.coverage[pc.method].reachable
+            coverage is not None
+            and coverage.reachable is not None
+            and pc.offset in coverage.reachable
         )
 
     def reachable(self) -> set[jvm.state.PC]:

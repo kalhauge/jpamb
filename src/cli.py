@@ -57,7 +57,7 @@ def cli(ctx, workdir: Path, verbose, docker_image):
     """This is the jpamb main entry point."""
     eff = Effect(sys.stderr)
     eff.level = 25 - verbose * 10
-    suite = jpamb.Suite.from_workdir(workdir, eff=eff)
+    suite = jpamb.Suite.from_workdir(workdir)
     ctx.obj = Context(
         eff=eff,
         docker_image=docker_image,
@@ -452,6 +452,7 @@ def build(ctx, compile, document, test, benchmark):
             tool_bin = shutil.which(tool)
             if not tool_bin:
                 ctx.eff.warning(f"did not have {tool} installed...")
+                continue
 
             config = jpamb.interpret.Config.from_cmd(
                 (tool_bin,),

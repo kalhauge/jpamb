@@ -8,9 +8,9 @@ from typing import Self, TextIO
 import jvm
 import jvm.state
 import sexpr
-from jpamb.analyse import AnalysisInfo, Duration
+from jpamb.analyse import AnalysisInfo
 from jpamb.case import Benchmark, Control, Experiment
-from jpamb.utils import Effect, dump_table
+from jpamb.utils import Duration, Effect, dump_table
 
 
 @dataclass(frozen=True, slots=True)

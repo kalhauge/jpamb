@@ -38,7 +38,7 @@ class Suite:
     workdir: Path
 
     @classmethod
-    def from_workdir(cls, workdir: Path, *, eff: Effect | None = None):
+    def from_workdir(cls, workdir: Path):
         return cls(workdir)
 
     def __post_init__(self):
@@ -361,12 +361,12 @@ class Suite:
 
                 methods = {pc.method for pc in reachable}
 
-                coverage = {
-                    m: Coverage(
-                        reachable={pc.offset for pc in reachable if pc.method == m}
+                coverage = {}
+                for m in methods:
+                    offsets = {pc.offset for pc in reachable if pc.method == m}
+                    coverage[m] = Coverage(
+                        reachable=offsets,
                     )
-                    for m in methods
-                }
 
                 control = Control(coverage=coverage, results={case.result})
                 entries.setdefault(case.experiment.entry, []).append(control)
@@ -387,7 +387,6 @@ class Suite:
                         coverage[m] = copy.deepcopy(r)
                     else:
                         coverage[m].reachable.update(r.reachable)
-                        # coverage[m].unreachable.intersection_update(r.unreachable)
 
             control = Control(coverage=coverage, results=results)
             experiments[experiment] = control
@@ -478,7 +477,7 @@ def setup() -> tuple[Suite, Effect]:
     """Get a suite in the current working directory"""
 
     eff = Effect(None)
-    return (Suite.from_workdir(Path.cwd(), eff=eff), eff)
+    return (Suite.from_workdir(Path.cwd()), eff)
 
 
 def getmethodid(
