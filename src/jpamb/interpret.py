@@ -150,8 +150,6 @@ class Result:
         if self.response is None:
             return "No reponse created"
 
-        print(self.experiment)
-        print(hash(self.experiment))
         if self.experiment not in benchmark.experiments:
             return f"Experiment {self.experiment} not in benchmarks."
 

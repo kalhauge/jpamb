@@ -536,14 +536,15 @@ def printinfo(
     tags: list[str],
     for_science: bool,
 ) -> NoReturn:
-    print(name)
-    print(version)
-    print(group)
-    print(",".join(tags))
+    sys.stdout.write(f"{name}\n")
+    sys.stdout.write(f"{version}\n")
+    sys.stdout.write(f"{group}\n")
+    sys.stdout.write(f"{','.join(tags)}\n")
+
     if for_science:
         import platform
 
-        print(platform.platform())
+        sys.stdout.write(f"{platform.platform()}\n")
 
     sys.exit(0)
 
@@ -559,12 +560,14 @@ def parse_input(i) -> Input | None:
 
 
 def emit_init(state: jvm.state.State) -> sexpr.SExpr:
+    import sys
+
     import jpamb.interpret
 
     expr = sexpr.sexpr(state)
     out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Init(expr)), indent=2)
-    print(sexpr.pretty(expr, indent=2), file=sys.stderr)
-    print(out)
+    sys.stderr.write(sexpr.pretty(expr, indent=2) + "\n")
+    sys.stdout.write(out + "\n")
     return expr
 
 
@@ -579,6 +582,6 @@ def emit_step(
     expr = sexpr.sexpr(after)
     diff = sexpr.diff(before, expr, depth=depth)
     out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Step(pc, tuple(diff))), indent=2)
-    print(sexpr.pretty(expr, indent=2), file=sys.stderr)
-    print(out)
+    sys.stderr.write(sexpr.pretty(expr, indent=2) + "\n")
+    sys.stdout.write(out + "\n")
     return expr

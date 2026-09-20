@@ -490,7 +490,7 @@ def inspect(ctx, method, format):
                 res = repr(op)
             case "json":
                 res = json.dumps(res)
-        print(f"{i:03d} | {res}")
+        sys.stdout.write(f"{i:03d} | {res}\n")
 
 
 if __name__ == "__main__":

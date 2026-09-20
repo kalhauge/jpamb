@@ -25,7 +25,9 @@ def dump_table(groups, *, align, file):
     sizes = [max(map(len, col)) for col in zip(*rows)]
 
     for row in rows:
-        print("  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)), file=file)
+        file.write(
+            "  ".join(f"{r:{a}{s}}" for r, a, s in zip(row, align, sizes)) + "\n"
+        )
 
 
 @dataclass
@@ -50,14 +52,14 @@ class Effect:
     def context(self, title):
         old = self.prefix
         if self.report:
-            print(f"{self.prefix[:-1]}┌ {title}", file=self.report)
+            self.report.write(f"{self.prefix[:-1]}┌ {title}\n")
         self.prefix = f"{self.prefix[:-1]}│ "
         try:
             yield
         finally:
             self.prefix = old
             if self.report:
-                print(f"{self.prefix[:-1]}└ {title}", file=self.report)
+                self.report.write(f"{self.prefix[:-1]}└ {title}\n")
 
     def output(self, msgs):
         if self.report is None:
@@ -67,7 +69,7 @@ class Effect:
             msgs = str(msgs)
 
         for msg in msgs.splitlines():
-            print(f"{self.prefix}{msg}", file=self.report)
+            self.report.write(f"{self.prefix}{msg}\n")
 
     def log(self, level, msg):
         if level >= self.level:
