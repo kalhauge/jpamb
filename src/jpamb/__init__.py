@@ -265,7 +265,7 @@ class Suite:
 
                     if not case.result in all_control.results:
                         checker.raise_issue(
-                            f"Expected {case.result} in {all_control.result} experiments"
+                            f"Expected {case.result} in {all_control.results} experiments"
                         )
 
         with check("Opcodes"):
@@ -284,7 +284,7 @@ class Suite:
         with eff.context("Compiling"):
             docker.run(
                 ["javac", "-g", "-d", "target/classes"]
-                + [a.relative_to(self.workdir).as_posix() for a in self.sourcefiles()],
+                + [a.relative_to(self.workdir).as_posix() for a in self.sourcefiles(eff=eff)],
                 timeout=600,
                 eff=eff,
             )
@@ -399,10 +399,10 @@ class Suite:
             opcode_counts = Counter()
             opcode_urls = {}
             class_opcodes = {}
-            for experiment in self.experiments:
-                class_opcodes[str(experiment.methodid.classname).split(".")[-1]] = set()
+            for experiment in self.experiments(eff=eff):
+                class_opcodes[str(experiment.entry.classname).split(".")[-1]] = set()
                 list_ops = []
-                for opcode in self.method_opcodes(experiment.methodid, eff=eff):
+                for opcode in self.method_opcodes(experiment.entry, eff=eff):
                     index = opcode.mnemonic()  # opcode.real().split()[0]
                     list_ops.append(index)
 
@@ -416,7 +416,7 @@ class Suite:
 
                 for o in list_ops:
                     class_opcodes[
-                        str(experiment.methodid.classname).split(".")[-1]
+                        str(experiment.entry.classname).split(".")[-1]
                     ].add(o)
 
             with (
@@ -573,7 +573,7 @@ def emit_init(state: jvm.state.State) -> sexpr.SExpr:
 
 
 def emit_step(
-    before: sexpr.SExpr, pc: jvm.state.PC, after: jvm.state.State, depth=2
+    before: sexpr.SExpr, pc: jvm.state.PC, after: jvm.state.State | str, depth=2
 ) -> sexpr.SExpr:
     import jpamb.interpret
 

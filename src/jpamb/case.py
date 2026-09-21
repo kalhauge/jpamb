@@ -3,9 +3,10 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NoReturn, Optional, Self
+from typing import NoReturn, Optional
 
 import jvm
+import jvm.state
 import sexpr
 
 
@@ -27,7 +28,7 @@ class Value(ABC):
         return sexpr.pretty(sexpr.sexpr(self))
 
     @classmethod
-    def from_sexpr_with_type(cls, expr: sexpr.SExpr, *, type: jvm.Type) -> Self:
+    def from_sexpr_with_type(cls, expr: sexpr.SExpr, *, type: jvm.Type) -> "Value":
         match type:
             case jvm.Boolean():
                 return Boolean(sexpr.to_str(expr).lower() == "true")
@@ -52,7 +53,7 @@ class Value(ABC):
                 raise sexpr.FromSExprError(f"{expr} is not a known value")
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Value":
         values = sexpr.to_values(expr)
         if len(values) < 1:
             raise sexpr.FromSExprError("Expected one or more elements")
@@ -282,7 +283,7 @@ class InputParser:
         parser = parser or self.parse_value
         inputs = [parser()]
 
-        while self.head and self.head.kind == "COMMA":
+        while self.head is not None and self.head.kind == "COMMA":
             self.next()
             inputs.append(parser())
 
@@ -313,7 +314,7 @@ class Input:
         return self.encode()
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Input":
         return cls.decode(sexpr.to_str(expr))
 
     def parameter_types(self) -> jvm.Parameters:
@@ -352,7 +353,7 @@ class Experiment:
         return self.encode() < other.encode()
 
     @classmethod
-    def decode(cls, code: str) -> str:
+    def decode(cls, code: str) -> "Experiment":
         result = EXPERIMENT_RE.fullmatch(code)
         assert result, code
         cn = jvm.ClassName.decode(result.group("classname"))
@@ -384,13 +385,15 @@ class Experiment:
         )
 
     def short(self) -> str:
-        return f"{self.entry.extension.name}:{self.input.encode()}"
+        if self.input is not None:
+            return f"{self.entry.extension.name}:{self.input.encode()}"
+        return f"{self.entry.extension.name}:ALL"
 
     def __sexpr__(self) -> sexpr.SExpr:
         return self.encode()
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Experiment":
         return cls.decode(sexpr.to_str(expr))
 
 
@@ -474,7 +477,8 @@ class Control(sexpr.AsSExpr):
     def reachable(self) -> set[jvm.state.PC]:
         reachable = set()
         for m, c in self.coverage.items():
-            reachable.update(jvm.state.PC(m, o) for o in c.reachable)
+            if c.reachable is not None:
+                reachable.update(jvm.state.PC(m, o) for o in c.reachable)
         return reachable
 
 
@@ -486,10 +490,12 @@ class Benchmark:
     experiments: collections.OrderedDict[Experiment, Control]
 
     def __sexpr__(self) -> sexpr.SExpr:
-        return [sexpr.item("benchmark")] + sexpr.sexpr(self.experiments)
+        experiments = sexpr.sexpr(self.experiments)
+        assert isinstance(experiments, list)
+        return [sexpr.item("benchmark")] + experiments
 
     @classmethod
-    def from_sexpr(cls, expr) -> Self:
+    def from_sexpr(cls, expr) -> "Benchmark":
         options = sexpr.to_options(expr)
         return Benchmark(
             sexpr.from_sexpr(

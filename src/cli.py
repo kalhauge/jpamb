@@ -175,6 +175,11 @@ def interpret(
         eff.error("Failed to instantiate config")
         sys.exit(1)
 
+    if config is None:
+        eff.debug("No config created")
+        eff.error("Failed to instantiate config")
+        sys.exit(1)
+
     cache = ctx.suite.cache_folder(eff=eff)
     state_file = cache / "interpret-state.sexp"
 
@@ -194,7 +199,7 @@ def interpret(
                 eff.error(f"Malformed state in cache; remove {state_file}")
                 sys.exit(1)
 
-    if not state:
+    if state is None:
         state = jpamb.interpret.State(config)
 
     for cont in iter(lambda: state.run_next(benchmark=benchmark, eff=eff), None):

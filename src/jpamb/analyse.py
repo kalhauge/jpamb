@@ -28,7 +28,7 @@ QUERIES = (
 
 class Prediction(ABC):
     @abstractmethod
-    def as_wager(self, categories: "dict[str, Wager]") -> "Wager": ...
+    def as_wager(self, categories: "dict[Category, Wager]") -> "Wager": ...
 
     @staticmethod
     def parse(string: str) -> "Wager | Category":
@@ -88,7 +88,7 @@ class Wager(Prediction):
         r = (w + 1) / (w + 2)
         return r if self.wager > 0 else 1 - r
 
-    def as_wager(self, categories: dict[str, Self]) -> Self:
+    def as_wager(self, categories: "dict[Category, Wager]") -> "Wager":
         return self
 
     def score(self, happens: bool) -> float:
@@ -195,12 +195,15 @@ class Response:
         return Response(predictions), warnings
 
     def score(self, correct: set[str], categories: dict[Category, Wager] | None = None):
+        wagers: dict[Category, Wager]
         if categories is None:
-            categories = {}
+            wagers = {}
+        else:
+            wagers = categories
 
         total = 0
         for q, prd in self.predictions.items():
-            total += prd.as_wager(categories).score(q in correct)
+            total += prd.as_wager(wagers).score(q in correct)
         return total
 
     @classmethod
@@ -341,7 +344,7 @@ class ResultRow:
 class ResultSummary:
     config: Config
     results: list[tuple[str, list[ResultRow]]]
-    categories: list[tuple[Category, Tracker]]
+    categories: dict[Category, Tracker]
     invalid: str | None
     total_score: float
     mean_rel_time: float
@@ -398,7 +401,7 @@ class ResultSummary:
     def display(self, file=sys.stdout):
         self.config.display(file=file)
 
-        groups = [
+        groups: list[list[str] | tuple[str, list[list[str]]]] = [
             [
                 "Method",
                 "Score",
@@ -602,6 +605,7 @@ class State:
             if result is None:
                 return False
 
+            categories: dict[Category, Wager]
             if iteration > 0:
                 # If we are at our second iteration, use the categories.
                 categories = {k: v.wager() for k, v in self.categories.items()}

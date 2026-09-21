@@ -207,7 +207,8 @@ class HealthChecker:
             try:
                 yield
             except (AssertionError, HealthIssue) as e:
-                self.issues.append(e)
+                issue = HealthIssue(str(e)) if isinstance(e, AssertionError) else e
+                self.issues.append(issue)
                 msg = str(e)
                 if msg:
                     self.eff.error(f"FAILED: {e}")

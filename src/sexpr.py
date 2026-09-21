@@ -4,18 +4,19 @@ import io
 import re
 import types
 import typing
+from abc import abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable, Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
-    GenericAlias,
     NamedTuple,
     Protocol,
     Self,
     TypeIs,
+    cast,
     runtime_checkable,
 )
 
@@ -88,7 +89,7 @@ class ToSExpr(Protocol):
 
 class AsSExpr:
     def __sexpr__(self) -> SExpr:
-        return from_dataclass(self)
+        return from_dataclass(cast(DataclassInstance, self))
 
     @classmethod
     def from_sexpr(cls, expr: SExpr) -> Self:
@@ -97,7 +98,7 @@ class AsSExpr:
 
 class AsPosSExpr:
     def __sexpr__(self) -> SExpr:
-        return from_dataclass_values(self)
+        return from_dataclass_values(cast(DataclassInstance, self))
 
     @classmethod
     def from_sexpr(cls, expr: SExpr) -> Self:
@@ -225,7 +226,20 @@ class Decodable(Protocol):
     def decode(cls, code: str) -> Self: ...
 
 
-def from_sexpr(expr: SExpr, *, target: type[Any]):
+type AnyType = type[Any] | types.GenericAlias | types.UnionType | typing.TypeAliasType
+
+
+def is_resolvable_type(t: object) -> TypeIs[AnyType]:
+    return isinstance(
+        t,
+        type
+        | types.GenericAlias
+        | types.UnionType
+        | typing.TypeAliasType,
+    )
+
+
+def from_sexpr(expr: SExpr, *, target: AnyType):
     if isinstance(target, typing.TypeAliasType):
         if target is SExpr:
             return expr
@@ -334,39 +348,32 @@ def to_union[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
     raise FromSExprError(f"Could not match {expr} with any of {targets}")
 
 
-def to_tagged_union[T](expr: SExpr, *, targets: dict[str, type[T]]) -> T:
+def to_tagged_union[T](expr: SExpr, *, targets: Mapping[str, type[T]]) -> T:
     options = to_options(expr)
     if len(options) == 0:
         raise FromSExprError("Expected tag, but got empty list ")
 
     tag = options[0].unitem()
 
+    if not isinstance(tag, str):
+        raise FromSExprError(f"Expected tag to be a symbol, but got {tag!r}")
+
     if tag not in targets:
         raise FromSExprError(f"Could not find {tag!r} tag in {list(targets)}")
     return from_sexpr(expr, target=targets[tag])
 
 
-def to_dataclass[T: DataclassInstance](expr: SExpr, *, target: type[T]) -> T:
+def to_dataclass[T](expr: SExpr, *, target: type[T]) -> T:
     kname, args, kwargs = to_data(expr)
 
     if kname != sexprtag(target):
         raise FromSExprError(f"Expected {sexprtag(target)}, but got {kname}")
 
-    annotations = list(dataclasses.fields(target))
+    annotations = list(dataclasses.fields(cast(type[DataclassInstance], target)))
 
     if len(args) > len(annotations):
         raise FromSExprError(
             f"Expected {len(annotations)} arguments, but got {len(args)}: {args}"
-        )
-
-    def is_resolvable_type(t):
-        return isinstance(
-            t,
-            type
-            | GenericAlias
-            | types.UnionType
-            | typing._GenericAlias
-            | typing.TypeAliasType,
         )
 
     keyed = []
@@ -751,15 +758,21 @@ class Index:
 class TreeEdit:
     path: tuple[Index, ...]
 
+    @abstractmethod
+    def iapply(self, cursor: Option) -> None: ...
+
+    @abstractmethod
+    def __sexpr__(self) -> SExpr: ...
+
     @classmethod
     def from_sexpr(cls, expr: SExpr) -> Self:
         if cls is TreeEdit:
-            return to_tagged_union(expr, targets=EDITS)
+            return cast(Self, to_tagged_union(expr, targets=EDITS))
         return to_dataclass(expr, target=cls)
 
 
 @dataclass(frozen=True, slots=True)
-class Insert(TreeEdit, AsSExpr):
+class Insert(AsSExpr, TreeEdit):
     value: SExpr
 
     def iapply(self, cursor: Option):
@@ -779,7 +792,7 @@ class Insert(TreeEdit, AsSExpr):
 
 
 @dataclass(frozen=True, slots=True)
-class Delete(TreeEdit, AsSExpr):
+class Delete(AsSExpr, TreeEdit):
     value: SExpr
 
     def iapply(self, cursor: Option):
@@ -797,14 +810,14 @@ class Delete(TreeEdit, AsSExpr):
 
         if option != cursor.value[offset]:
             raise ValueError(
-                f"Cannot delete {option!r} from {cursor.value}[{offset}] was {cursor.value[self.offset]!r} at {' '.join(str(p) for p in self.path)}"
+                f"Cannot delete {option!r} from {cursor.value}[{offset}] was {cursor.value[offset]!r} at {' '.join(str(p) for p in self.path)}"
             )
 
         del cursor.value[offset]
 
 
 @dataclass(frozen=True, slots=True)
-class Update(TreeEdit, AsSExpr):
+class Update(AsSExpr, TreeEdit):
     a: SExpr
     b: SExpr
 
@@ -820,7 +833,7 @@ class Update(TreeEdit, AsSExpr):
 
 
 @dataclass(frozen=True, slots=True)
-class Rename(TreeEdit, AsSExpr):
+class Rename(AsSExpr, TreeEdit):
     a: str
     b: str
 
@@ -868,7 +881,7 @@ def cursor(expr: SExpr) -> Option:
     return Option("", expr)
 
 
-def iapply(cursor: Option, edits: list[TreeEdit]) -> None:
+def iapply(cursor: Option, edits: Iterable[TreeEdit]) -> None:
     for edit in edits:
         try:
             edit.iapply(cursor)

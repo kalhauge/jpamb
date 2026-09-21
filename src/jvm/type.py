@@ -18,11 +18,14 @@ class Type(ABC):
     @abstractmethod
     def math(self) -> str: ...
 
+    @abstractmethod
+    def __sexpr__(self) -> SExpr: ...
+
     def is_stacktype(self) -> bool:
         return False
 
     @staticmethod
-    def decode(code: str) -> Self:
+    def decode(code: str) -> "Type":
         ex, rem = Type.decode_more(code)
         if rem != "":
             raise ValueError(f"Expected only one type, but got {rem!r}")
@@ -122,7 +125,7 @@ class Type(ABC):
         return self.encode()
 
     @classmethod
-    def from_sexpr(cls, expr: SExpr) -> Self:
+    def from_sexpr(cls, expr: SExpr) -> "Type":
         match expr:
             case "bool":
                 return Boolean()

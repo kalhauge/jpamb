@@ -92,7 +92,7 @@ class Opcode(ABC):
         return sexpr.from_dataclass_values(self)
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Opcode":
         if cls is Opcode:
             return sexpr.to_tagged_union(expr, targets=OPCODES)
 
@@ -646,7 +646,7 @@ class CmpOpr(enum.Enum):
         return str(self)
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "CmpOpr":
         return CmpOpr.from_str(sexpr.to_str(expr))
 
 
@@ -668,11 +668,11 @@ class BinaryOpr(enum.Enum):
     Rem = enum.auto()
 
     @staticmethod
-    def from_str(name: str) -> Self:
+    def from_str(name: str) -> "BinaryOpr":
         return BIN_OPRS[name.lower()]
 
     @staticmethod
-    def from_json(json: str) -> Self:
+    def from_json(json: str) -> "BinaryOpr":
         return BinaryOpr.from_str(json)
 
     def __str__(self):
@@ -682,7 +682,7 @@ class BinaryOpr(enum.Enum):
         return str(self)
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "BinaryOpr":
         return BinaryOpr.from_str(sexpr.to_str(expr))
 
 

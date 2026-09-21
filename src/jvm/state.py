@@ -2,10 +2,15 @@ from abc import ABC
 from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self
+from typing import TYPE_CHECKING, Self, cast
 
 import jvm
 import sexpr
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
+else:
+    DataclassInstance = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +37,7 @@ class PC:
         return f"{self.method.encode()}:{self.offset}"
 
     @classmethod
-    def decode(cls, code: str) -> str:
+    def decode(cls, code: str) -> Self:
         method, offset = code.rsplit(":", 1)
         return cls(jvm.AbsMethodID.decode(method), int(offset))
 
@@ -46,10 +51,10 @@ class PC:
 
 class StackValue(ABC):
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass_values(self)
+        return sexpr.from_dataclass_values(cast(DataclassInstance, self))
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "StackValue":
         if cls is StackValue:
             return sexpr.to_union(expr, targets=[StackInt, StackFloat, StackReference])
 
@@ -132,7 +137,7 @@ class Locals:
         value = self.locals[key]
         if value is None:
             raise IndexError(key)
-        return self.locals[key]
+        return value
 
     def __setitem__(self, key: int, value: StackValue):
         assert isinstance(value, StackValue)
@@ -216,12 +221,12 @@ class CallStack:
 
 class HeapValue(ABC):
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
+        return sexpr.from_dataclass(cast(DataclassInstance, self))
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "HeapValue":
         if cls is HeapValue:
-            return sexpr.to_union(expr, targets=[StackInt, StackFloat, StackReference])
+            return sexpr.to_union(expr, targets=[HeapArray, HeapObject, HeapString])
 
         return sexpr.to_dataclass(expr, target=cls)
 

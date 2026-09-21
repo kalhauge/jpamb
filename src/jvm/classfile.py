@@ -28,7 +28,7 @@ class Parameters:
         return "".join(e.encode() for e in self._elements)
 
     @staticmethod
-    def decode(code: str) -> Self:
+    def decode(code: str) -> "Parameters":
         params = []
         while code:
             (tt, code) = Type.decode_more(code)
@@ -37,7 +37,7 @@ class Parameters:
         return Parameters(tuple(params))
 
     @staticmethod
-    def from_json(json: JSON, annotated=False) -> Self:
+    def from_json(json: JSON, annotated=False) -> "Parameters":
         if not isinstance(json, list):
             raise NotImplementedError(f"Cannot handle {json!r}")
 

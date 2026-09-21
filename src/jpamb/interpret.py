@@ -57,7 +57,7 @@ class Response:
         assert isinstance(self.init, Init)
 
     @staticmethod
-    def parse(out) -> tuple[Self, list[str]] | None:
+    def parse(out) -> tuple["Response | None", list[str]]:
         warnings = []
         steps = []
         exprs = sexpr.from_string(out)
