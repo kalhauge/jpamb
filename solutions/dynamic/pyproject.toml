@@ -9,6 +9,7 @@ description = "The start of an interperter"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+  "hypothesis>=6.168.0",
   "jpamb",
 ]
 
