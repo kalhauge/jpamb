@@ -12,7 +12,7 @@ from typing import Self
 import jvm
 import jvm.state
 import sexpr
-from jpamb.case import Benchmark, Entry
+from jpamb.case import Benchmark, Entry, Experiment
 from jpamb.report import AnalysisInfo, Duration
 from jpamb.utils import Effect, dump_table
 
@@ -476,13 +476,11 @@ class Summary:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
 
-    def calculate_categories(self) -> dict[Category, Tracker]:
-        experiments = dict(self.config.experiments)
-
+    def calculate_categories(self, *, benchmark: Benchmark) -> dict[Category, Tracker]:
         categories = defaultdict(Tracker)
 
         for method, results in self.results.items():
-            expected = experiments[method]
+            expected = benchmark.experiments[Experiment(method, None)].results
 
             for result in results:
                 for key, pred in result.response.predictions.items():
@@ -501,10 +499,9 @@ class Summary:
 
         total_score = total_abs_time = total_rel_time = 0
 
-        experiments = dict(self.config.experiments)
         groups = []
 
-        tracker_categories = self.calculate_categories()
+        tracker_categories = self.calculate_categories(benchmark=benchmark)
 
         categories = {k: v.wager() for k, v in tracker_categories.items()}
 
@@ -513,7 +510,7 @@ class Summary:
             rows = []
             for method in sorted(methods):
                 results = self.results[method]
-                expected = experiments[method]
+                expected = benchmark.experiments[Experiment(method, None)].results
                 score = mean(
                     result.response.score(expected, categories) for result in results
                 )
@@ -583,7 +580,9 @@ class State:
     def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
         return sexpr.to_dataclass(expr, target=cls)
 
-    def run_next(self, *, score_limit: float | None = None, eff: Effect) -> bool | None:
+    def run_next(
+        self, *, benchmark: Benchmark, score_limit: float | None = None, eff: Effect
+    ) -> bool | None:
         no_experiments = len(self.config.experiments)
         iteration = self.progress // no_experiments
 
@@ -591,16 +590,16 @@ class State:
             return None
 
         # TODO fix this
-        methodid, expected = list(self.config.experiments.items())[
-            self.progress % no_experiments
-        ]
+        entry, _ = list(self.config.experiments.items())[self.progress % no_experiments]
+
+        expected = benchmark.experiments[Experiment(entry, None)].results
 
         with eff.context(
-            f"Iteration {iteration + 1}/{self.config.iterations}, Experiment {self.progress % no_experiments + 1}/{no_experiments} {methodid}"
+            f"Iteration {iteration + 1}/{self.config.iterations}, Experiment {self.progress % no_experiments + 1}/{no_experiments} {entry}"
         ):
             self.progress += 1
 
-            result = self.config.run_experiment(methodid, eff=eff)
+            result = self.config.run_experiment(entry, eff=eff)
 
             if result is None:
                 return False
@@ -636,7 +635,7 @@ class State:
                     if key in expected:
                         tracker.hits += 1
 
-            self.results.setdefault(methodid, []).append(result)
+            self.results.setdefault(entry, []).append(result)
 
         return True
 

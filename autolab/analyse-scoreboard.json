@@ -1,1 +1,15 @@
-{ "scoreboard" : [{"hdr":"Total"},{"hdr": "Time","asc":1},{"hdr": "Categories","asc":1}]}
+{
+  "scoreboard": [
+    {
+      "hdr": "Total"
+    },
+    {
+      "hdr": "Time",
+      "asc": 1
+    },
+    {
+      "hdr": "Categories",
+      "asc": 1
+    }
+  ]
+}
