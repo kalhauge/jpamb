@@ -284,7 +284,10 @@ class Suite:
         with eff.context("Compiling"):
             docker.run(
                 ["javac", "-g", "-d", "target/classes"]
-                + [a.relative_to(self.workdir).as_posix() for a in self.sourcefiles(eff=eff)],
+                + [
+                    a.relative_to(self.workdir).as_posix()
+                    for a in self.sourcefiles(eff=eff)
+                ],
                 timeout=600,
                 eff=eff,
             )
@@ -415,9 +418,7 @@ class Suite:
                     opcode_counts[index] += 1
 
                 for o in list_ops:
-                    class_opcodes[
-                        str(experiment.entry.classname).split(".")[-1]
-                    ].add(o)
+                    class_opcodes[str(experiment.entry.classname).split(".")[-1]].add(o)
 
             with (
                 eff.context("Writing OPCODES.md"),

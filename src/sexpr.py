@@ -232,10 +232,7 @@ type AnyType = type[Any] | types.GenericAlias | types.UnionType | typing.TypeAli
 def is_resolvable_type(t: object) -> TypeIs[AnyType]:
     return isinstance(
         t,
-        type
-        | types.GenericAlias
-        | types.UnionType
-        | typing.TypeAliasType,
+        type | types.GenericAlias | types.UnionType | typing.TypeAliasType,
     )
 
 

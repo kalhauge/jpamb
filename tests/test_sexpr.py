@@ -1,4 +1,3 @@
-
 from hypothesis import HealthCheck, given, note, settings
 from hypothesis import strategies as st
 
