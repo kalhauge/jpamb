@@ -333,7 +333,10 @@ def analyse(
     if not state:
         state = jpamb.analyse.State(config)
 
-    for cont in iter(lambda: state.run_next(score_limit=score_limit, eff=eff), None):
+    for cont in iter(
+        lambda: state.run_next(benchmark=benchmark, score_limit=score_limit, eff=eff),
+        None,
+    ):
         if step_wise and not cont:
             state.progress -= 1
             eff.error("Stopping early")
