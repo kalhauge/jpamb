@@ -470,7 +470,8 @@ def build(ctx, compile, document, test, benchmark):
             )
             tool_configs.append(config)
 
-        ctx.suite.run_benchmark(*tool_configs, eff=ctx.eff)
+        if tools:
+            ctx.suite.run_benchmark(*tool_configs, eff=ctx.eff)
 
 
 @cli.command()

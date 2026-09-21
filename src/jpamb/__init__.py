@@ -12,7 +12,6 @@ import sys
 from collections import Counter, OrderedDict
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from importlib.metadata import version
 from pathlib import Path
 from typing import NoReturn
 
@@ -27,7 +26,7 @@ from jpamb.case import Benchmark, Case, Control, Coverage, Experiment, Input
 from jpamb.report import AnalysisInfo as AnalysisInfo
 from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
 
-__version__ = version("jpamb")
+__version__ = "0.7.0"
 
 
 @dataclass(frozen=True)
