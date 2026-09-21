@@ -271,10 +271,50 @@ class ResultSummary:
     results: list[Result]
     scores: dict[Experiment, ExperimentScore]
     invalid: str | None
-    total_steps: int
+
+    @property
+    def total_score(self):
+        return sum(1 for v in self.scores.values() if v.error is None)
+
+    @property
+    def total_steps(self):
+        return sum(v.steps for v in self.scores.values())
 
     def display_autolab(self, file=sys.stdout):
         import json
+
+        half = len(self.scores) // 2
+
+        json.dump(
+            {
+                "_presentation": "semantic",
+                "stages": ["Info", "Metrics", "Grade"],
+                "Info": {
+                    "Name": self.config.analysis.name,
+                    "Group": self.config.analysis.group,
+                },
+                "Metrics": {
+                    "Total Score": self.total_score,
+                    "Total Steps": self.total_steps,
+                },
+                "Grade": {
+                    "Valid": {
+                        "passed": self.invalid is None,
+                        "hint": "" if self.invalid is None else self.invalid,
+                    },
+                    "Pass": {
+                        "passed": self.invalid is None and self.total_score > half,
+                        "hint": (
+                            "Report must be valid"
+                            if self.invalid is not None
+                            else f"Total score needs to be above {half}"
+                        ),
+                    },
+                },
+            },
+            fp=file,
+        )
+        file.write("\n")
 
         student_eval = {}
 
@@ -295,7 +335,6 @@ class ResultSummary:
         category = []
 
         total = 0
-        good = 0
 
         for experiment, score in sorted(self.scores.items(), key=lambda x: str(x[0])):
             total += 1
@@ -311,9 +350,6 @@ class ResultSummary:
             if category_name is None:
                 category_name = experiment.entry.classname
 
-            if not score.error:
-                good += 1
-
             category.append(
                 [
                     f"{experiment.short()}",
@@ -325,7 +361,7 @@ class ResultSummary:
         if category_name is not None:
             table.append((f"{category_name}", category))
 
-        table.append(["Total", f"{self.total_steps}", f"{good}/{total}"])
+        table.append(["Total", f"{self.total_steps}", f"{self.total_score}/{total}"])
 
         dump_table(table, align="<><", file=file)
 
@@ -339,7 +375,6 @@ class Summary(sexpr.AsSExpr):
 
     def score_results(self, *, benchmark: Benchmark, eff: Effect):
         experiments = {}
-        total_steps = 0
         for r in self.results:
             score = ExperimentScore(
                 error=r.invalidate(benchmark=benchmark, config=self.config),
@@ -350,7 +385,6 @@ class Summary(sexpr.AsSExpr):
                 eff.warning(f"At {r.experiment.short()} got error: {score.error}")
 
             experiments[r.experiment] = score
-            total_steps += score.steps
 
         def invalidate() -> str | None:
             if self.config.analysis.group == "The Rice Theorem Cookers":
@@ -369,10 +403,6 @@ class Summary(sexpr.AsSExpr):
             experiments = set()
             for result in self.results:
                 experiments.add(result.experiment)
-                if invalid := result.invalidate(
-                    benchmark=benchmark, config=self.config
-                ):
-                    return invalid
 
             unrun = all_experiments - experiments
 
@@ -387,7 +417,6 @@ class Summary(sexpr.AsSExpr):
             self.config,
             self.results,
             invalid=invalid,
-            total_steps=total_steps,
             scores=experiments,
         )
 
