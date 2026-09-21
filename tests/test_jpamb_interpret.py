@@ -8,12 +8,10 @@ import sexpr
 from . import test_jvm, test_jvm_state
 from .test_jpamb import (
     st_analysis_infos,
-    st_categories,
     st_durations,
-    st_trackers,
 )
 from .test_jpamb_case import st_values
-from .test_sexpr import st_sexpr
+from .test_sexpr import st_edits, st_sexpr
 
 
 @st.composite
@@ -24,10 +22,30 @@ def st_inputs(draw):
 
 
 @st.composite
+def st_experiments(draw):
+    input = draw(st_inputs() | st.none())
+    if input is not None:
+        entry = draw(test_jvm.st_absmethodids(params=input.parameter_types()))
+    else:
+        entry = draw(test_jvm.st_absmethodids())
+
+    return jpamb.case.Experiment(
+        entry=entry,
+        input=input,
+    )
+
+
+@given(st_experiments())
+def test_experiment_from_sexpr(it):
+    expr = sexpr.sexpr(it)
+    note(expr)
+    assert it == jpamb.case.Experiment.from_sexpr(expr)
+
+
+@st.composite
 def st_cases(draw):
     return jpamb.case.Case(
-        methodid=draw(test_jvm.st_absmethodids()),
-        input=draw(st_inputs()),
+        experiment=draw(st_experiments()),
         result=draw(st.text()),
     )
 
@@ -35,9 +53,8 @@ def st_cases(draw):
 @st.composite
 def st_steps(draw):
     return jpamb.interpret.Step(
-        before=draw(st_sexpr()),
         pc=draw(test_jvm_state.st_pcs()),
-        after=draw(st_sexpr()),
+        edits=tuple(draw(st_edits())),
     )
 
 
@@ -59,7 +76,7 @@ def st_interpret_responses(draw):
 @st.composite
 def st_interpret_results(draw):
     return jpamb.interpret.Result(
-        case=draw(st_cases()),
+        experiment=draw(st_experiments()),
         response=draw(st_interpret_responses()),
         duration=draw(st_durations()),
         calibrates=draw(st.lists(st.integers(min_value=0)).map(tuple)),
@@ -79,9 +96,10 @@ def st_interpret_configs(draw):
     return jpamb.interpret.Config(
         cmd=draw(st.lists(st.text()).map(tuple)),
         analysis=draw(st_analysis_infos()),
-        experiments=draw(st.lists(st_cases())),
+        experiments=draw(st.lists(st_experiments())),
         timeout=draw(st.floats(min_value=0)),
         max_steps=draw(st.integers(min_value=0)),
+        abstract=draw(st.booleans()),
     )
 
 
@@ -100,7 +118,6 @@ def st_interpret_states(draw):
         config=config,
         progress=draw(st.integers(min_value=0)),
         results=draw(st.lists(st_interpret_results())),
-        categories=draw(st.dictionaries(st_categories(), st_trackers())),
     )
 
 

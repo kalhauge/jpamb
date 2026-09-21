@@ -1,6 +1,6 @@
 all:
 	tar -xf autograde.tar
-	cd jpamb; . /home/autograde/jpamb/.venv/bin/activate; PYTHONPATH=/home/autograde/autolab/jpamb/src python -m cli validate --format autolab ../report.sexp
+	cd jpamb; . /home/autograde/jpamb/.venv/bin/activate; PYTHONPATH=/home/autograde/autolab/jpamb/src python -m cli validate @kind@ --format autolab ../report.sexp
 
 clean:
 	rm -rf ../report.sexp jpamb

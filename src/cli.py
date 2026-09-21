@@ -2,6 +2,7 @@ import dataclasses
 import json
 import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -11,6 +12,7 @@ import jpamb
 import jpamb.interpret
 import jvm
 import sexpr
+from jpamb.report import write_report
 from jpamb.utils import DockerRunner, Effect
 
 
@@ -56,7 +58,7 @@ def cli(ctx, workdir: Path, verbose, docker_image):
     """This is the jpamb main entry point."""
     eff = Effect(sys.stderr)
     eff.level = 25 - verbose * 10
-    suite = jpamb.Suite.from_workdir(workdir, eff=eff)
+    suite = jpamb.Suite.from_workdir(workdir)
     ctx.obj = Context(
         eff=eff,
         docker_image=docker_image,
@@ -97,6 +99,11 @@ def checkhealth(ctx, docker):
     help="in case of crash, restart from where we left off",
 )
 @click.option(
+    "--abstract / --no-abstract",
+    default=False,
+    help="also run the cases with the `all` input",
+)
+@click.option(
     "--timeout",
     show_default=True,
     default=2.0,
@@ -124,6 +131,7 @@ def interpret(
     filter,
     step_wise,
     report,
+    abstract,
     **kwargs,
 ):
     """Use PROGRAM as an interpreter."""
@@ -140,23 +148,35 @@ def interpret(
     if filter != re.compile(".*") and report:
         raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
+    benchmark = ctx.suite.benchmark(eff=eff)
+
     experiments = []
-    for case in sorted(ctx.suite.cases):
-        if not filter.search(str(case)):
-            eff.info(f"Skipping {case}, excluded by filter")
+    for experiment in sorted(benchmark.experiments):
+        if not filter.search(str(experiment)):
+            eff.debug(f"Skipping {experiment}, excluded by filter")
             continue
 
-        experiments.append(case)
+        if not abstract and experiment.input is None:
+            eff.debug(f"Skipping {experiment}, not included by --abstract")
+            continue
+
+        experiments.append(experiment)
 
     try:
         config = jpamb.interpret.Config.from_cmd(
             program,
             experiments,
             eff=eff,
+            abstract=abstract,
             **kwargs,
         )
     except Exception as e:  # ruff: ignore[BLE001]
         eff.debug(f"Error: {e}")
+        eff.error("Failed to instantiate config")
+        sys.exit(1)
+
+    if config is None:
+        eff.debug("No config created")
         eff.error("Failed to instantiate config")
         sys.exit(1)
 
@@ -179,10 +199,10 @@ def interpret(
                 eff.error(f"Malformed state in cache; remove {state_file}")
                 sys.exit(1)
 
-    if not state:
+    if state is None:
         state = jpamb.interpret.State(config)
 
-    for cont in iter(lambda: state.run_next(eff=eff), None):
+    for cont in iter(lambda: state.run_next(benchmark=benchmark, eff=eff), None):
         if step_wise and not cont:
             state.rewind()
             eff.error("Stopping early")
@@ -196,15 +216,15 @@ def interpret(
         pass
 
     summary = state.summary()
-    results = summary.score_results()
+    results = summary.score_results(benchmark=benchmark, eff=eff)
     results.display()
 
     if report:
-        if (check := results.invalidate()) is not None:
-            eff.error(check)
+        if results.invalid is not None:
+            eff.error(results.invalid)
             eff.error("No report created")
             sys.exit(1)
-        summary.report(file=report, eff=eff)
+        write_report(summary, file=report, eff=eff)
 
 
 @cli.command()
@@ -271,18 +291,20 @@ def analyse(
     if filter != re.compile(".*") and report:
         raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
-    experiments = []
-    for methodid, expected in sorted(ctx.suite.case_methods().items()):
-        if not filter.search(str(methodid)):
-            eff.info(f"Skipping {methodid}, excluded by filter")
+    benchmark = ctx.suite.benchmark(eff=eff)
+
+    entries = []
+    for entry in benchmark.entries():
+        if not filter.search(str(entry)):
+            eff.info(f"Skipping {entry}, excluded by filter")
             continue
 
-        experiments.append((methodid, expected))
+        entries.append(entry)
 
     try:
         config = jpamb.analyse.Config.from_cmd(
             program,
-            experiments,
+            entries,
             eff=eff,
             **kwargs,
         )
@@ -325,15 +347,15 @@ def analyse(
         pass
 
     summary = state.summary()
-    results = summary.score_results()
+    results = summary.score_results(benchmark=benchmark, eff=eff)
     results.display()
 
     if report:
-        if (check := results.invalidate()) is not None:
-            eff.error(check)
+        if results.invalid is not None:
+            eff.error(results.invalid)
             eff.error("No report created")
             sys.exit(1)
-        summary.report(file=report, eff=eff)
+        write_report(summary, file=report, eff=eff)
 
 
 @cli.command()
@@ -344,27 +366,44 @@ def analyse(
     type=click.Choice(["user", "autolab"], case_sensitive=True),
 )
 @click.argument(
+    "kind",
+    default=None,
+    type=click.Choice(
+        ["analyse", "interpret", "abstract-interpret"], case_sensitive=True
+    ),
+)
+@click.argument(
     "report",
     default=None,
     type=click.File("r"),
 )
-def validate(ctx, report, format):
+def validate(ctx, kind, report, format):
     """Validate the report as a correct report, and score it."""
 
-    summary = sexpr.to_tagged_union(
-        sexpr.from_string(report.read())[0],
-        targets={
-            "analysis-summary": jpamb.analyse.Summary,
-            "interpret-summary": jpamb.interpret.Summary,
-        },
-    )
+    expr = sexpr.from_string(report.read())[0]
+    match kind:
+        case "analyse":
+            summary = jpamb.analyse.Summary.from_sexpr(expr)
+        case "interpret":
+            summary = jpamb.interpret.Summary.from_sexpr(expr)
+            if summary.config.abstract:
+                return "Evaluated using the --abstract flag"
+        case "abstract-interpret":
+            summary = jpamb.interpret.Summary.from_sexpr(expr)
+            if not summary.config.abstract:
+                return "Did not evaluate using the --abstract flag"
 
-    result_summary = summary.score_results()
+    benchmark = ctx.suite.benchmark(eff=ctx.eff)
+
+    result_summary = summary.score_results(
+        benchmark=benchmark,
+        eff=ctx.eff,
+    )
 
     match format:
         case "user":
-            if (check := result_summary.invalidate()) is not None:
-                ctx.eff.error(check)
+            if result_summary.invalid is not None:
+                ctx.eff.error(result_summary.invalid)
                 sys.exit(1)
             result_summary.display()
         case "autolab":
@@ -387,11 +426,16 @@ def validate(ctx, report, format):
     help="test that all cases are correct.",
     default=None,
 )
+@click.option(
+    "--benchmark / --no-benchmark",
+    help="test that all cases are correct.",
+    default=None,
+)
 @click.pass_obj
-def build(ctx, compile, document, test):
+def build(ctx, compile, document, test, benchmark):
     """Rebuild all benchmarks."""
 
-    if not any(s for s in [compile, document, test]):
+    if not any(s for s in [compile, document, test, benchmark]):
         compile = compile is None
         document = document is None
         test = test is None
@@ -406,6 +450,28 @@ def build(ctx, compile, document, test):
 
     if test:
         ctx.suite.test(docker=docker, eff=ctx.eff)
+
+    if benchmark:
+        tools = ["solution-dynamic-interpreter"]
+        tool_configs = []
+        for tool in tools:
+            tool_bin = shutil.which(tool)
+            if not tool_bin:
+                ctx.eff.warning(f"did not have {tool} installed...")
+                continue
+
+            config = jpamb.interpret.Config.from_cmd(
+                (tool_bin,),
+                experiments=[],
+                max_steps=100,
+                timeout=5.0,
+                eff=ctx.eff,
+                abstract=False,
+            )
+            tool_configs.append(config)
+
+        if tools:
+            ctx.suite.run_benchmark(*tool_configs, eff=ctx.eff)
 
 
 @cli.command()
@@ -432,7 +498,7 @@ def inspect(ctx, method, format):
                 res = repr(op)
             case "json":
                 res = json.dumps(res)
-        print(f"{i:03d} | {res}")
+        sys.stdout.write(f"{i:03d} | {res}\n")
 
 
 if __name__ == "__main__":

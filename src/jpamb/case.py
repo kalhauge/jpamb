@@ -3,9 +3,10 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NoReturn, Optional, Self
+from typing import NoReturn, Optional
 
 import jvm
+import jvm.state
 import sexpr
 
 
@@ -27,7 +28,7 @@ class Value(ABC):
         return sexpr.pretty(sexpr.sexpr(self))
 
     @classmethod
-    def from_sexpr_with_type(cls, expr: sexpr.SExpr, *, type: jvm.Type) -> Self:
+    def from_sexpr_with_type(cls, expr: sexpr.SExpr, *, type: jvm.Type) -> "Value":
         match type:
             case jvm.Boolean():
                 return Boolean(sexpr.to_str(expr).lower() == "true")
@@ -52,7 +53,7 @@ class Value(ABC):
                 raise sexpr.FromSExprError(f"{expr} is not a known value")
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Value":
         values = sexpr.to_values(expr)
         if len(values) < 1:
             raise sexpr.FromSExprError("Expected one or more elements")
@@ -282,14 +283,14 @@ class InputParser:
         parser = parser or self.parse_value
         inputs = [parser()]
 
-        while self.head and self.head.kind == "COMMA":
+        while self.head is not None and self.head.kind == "COMMA":
             self.next()
             inputs.append(parser())
 
         return inputs
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Input:
     """
     An 'Input' to a 'Case' is a comma seperated list of JVM values
@@ -298,10 +299,10 @@ class Input:
     values: tuple[Value, ...]
 
     @staticmethod
-    def decode(input: str) -> "Input":
-        if input[0] != "(" and input[-1] != ")":
-            raise ValueError(f"Expected input to be in parenthesis, but got {input}")
-        vp = InputParser(input)
+    def decode(code: str) -> "Input":
+        if code[0] != "(" and code[-1] != ")":
+            raise ValueError(f"Expected input to be in parenthesis, but got {code}")
+        vp = InputParser(code)
         values = vp.parse_comma_seperated_values()
         vp.eof()
         return Input(tuple(values))
@@ -309,14 +310,90 @@ class Input:
     def encode(self) -> str:
         return "(" + ", ".join(v.encode() for v in self.values) + ")"
 
+    def __sexpr__(self) -> sexpr.SExpr:
+        return self.encode()
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Input":
+        return cls.decode(sexpr.to_str(expr))
+
+    def parameter_types(self) -> jvm.Parameters:
+        return jvm.Parameters(tuple(v.type for v in self.values))
+
+
+EXPERIMENT_RE = re.compile(
+    r"(?P<classname>[^(]+)\.(?P<methodname>[^(]+)(?P<input>[:!]\(.*\))(?P<retype>[^)]+)",
+    re.MULTILINE,
+)
+
+
+@dataclass(frozen=True, eq=True, slots=True)
+class Experiment:
+    entry: jvm.AbsMethodID
+    input: Input | None
+
+    def __post_init__(self):
+        if self.input is not None:
+            assert self.entry.extension.params == self.input.parameter_types(), (
+                f"Input did not match method: {self.entry.extension} {self.input}"
+            )
+
+    def encode(self) -> str:
+        if self.input is not None:
+            method = self.entry.extension
+            rt = method.return_type.encode() if method.return_type is not None else "V"
+            return f"{self.entry.classname}.{self.entry.extension.name}!{self.input.encode()}{rt}"
+        else:
+            return self.entry.encode()
+
+    def __str__(self) -> str:
+        return self.encode()
+
     def __lt__(self, other):
         return self.encode() < other.encode()
+
+    @classmethod
+    def decode(cls, code: str) -> "Experiment":
+        result = EXPERIMENT_RE.fullmatch(code)
+        assert result, code
+        cn = jvm.ClassName.decode(result.group("classname"))
+        mn = result.group("methodname")
+        inp = result.group("input")
+        if inp.startswith(":"):
+            i = None
+            params = jvm.Parameters.decode(inp[2:-1])
+        else:
+            i = Input.decode(inp[1:])
+            params = i.parameter_types()
+        rt = (
+            jvm.Type.decode(result.group("retype"))
+            if result.group("retype") != "V"
+            else None
+        )
+        assert not isinstance(rt, tuple), rt
+        entry = jvm.AbsMethodID(
+            cn,
+            jvm.MethodID(name=mn, params=params, return_type=rt),
+        )
+        return Experiment(entry, i)
+
+    def as_test(self, interpreter: tuple[str, ...], max_steps: int) -> tuple[str, ...]:
+        return interpreter + (
+            self.entry.encode(),
+            "ALL" if self.input is None else self.input.encode(),
+            str(max_steps),
+        )
+
+    def short(self) -> str:
+        if self.input is not None:
+            return f"{self.entry.extension.name}:{self.input.encode()}"
+        return f"{self.entry.extension.name}:ALL"
 
     def __sexpr__(self) -> sexpr.SExpr:
         return self.encode()
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "Experiment":
         return cls.decode(sexpr.to_str(expr))
 
 
@@ -324,14 +401,26 @@ CASE_RE = re.compile(r"([^ ]*) +(\([^)]*\)) -> (.*)")
 
 
 @dataclass(frozen=True, order=True)
-class Case:
+class Case(sexpr.AsSExpr):
     """
     A 'Case' is an absolute method id, an input, and the expected result.
     """
 
-    methodid: jvm.AbsMethodID
-    input: Input
+    experiment: Experiment
     result: str
+
+    @property
+    def methodid(self) -> jvm.AbsMethodID:
+        return self.experiment.entry
+
+    @property
+    def input(self) -> Input:
+        assert self.experiment.input is not None
+        return self.experiment.input
+
+    @property
+    def results(self) -> set[str]:
+        return {self.result}
 
     @staticmethod
     def match(line) -> re.Match:
@@ -343,22 +432,21 @@ class Case:
     def decode(line):
         m = Case.match(line)
         return Case(
-            jvm.AbsMethodID.decode(m.group(1)),
-            Input.decode(m.group(2)),
+            Experiment(
+                jvm.AbsMethodID.decode(m.group(1)),
+                Input.decode(m.group(2)),
+            ),
             m.group(3),
         )
-
-    def __str__(self) -> str:
-        return f"{self.methodid.classname}.{self.methodid.extension.name}:{self.input.encode()} -> {self.result}"
 
     def encode(self) -> str:
         return f"{self.methodid.classname}.{self.methodid.extension.encode()} {self.input.encode()} -> {self.result}"
 
     @staticmethod
-    def by_methodid(
+    def by_entry(
         iterable: Iterable["Case"],
-    ) -> list[tuple[jvm.Absolute[jvm.MethodID], list["Case"]]]:
-        """Given an interable of cases, group the cases by the methodid"""
+    ) -> list[tuple[jvm.AbsMethodID, list["Case"]]]:
+        """Given an interable of cases, group the cases by the entry"""
         cases_by_id = collections.defaultdict(list)
 
         for c in iterable:
@@ -366,9 +454,58 @@ class Case:
 
         return sorted(cases_by_id.items())
 
+
+@dataclass(slots=True)
+class Coverage(sexpr.AsSExpr):
+    reachable: set[int] | None = None
+    # unreachable: set[int] | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Control(sexpr.AsSExpr):
+    coverage: dict[jvm.AbsMethodID, Coverage]
+    results: set[str]
+
+    def is_reachable(self, pc: jvm.state.PC) -> bool:
+        coverage = self.coverage.get(pc.method)
+        return (
+            coverage is not None
+            and coverage.reachable is not None
+            and pc.offset in coverage.reachable
+        )
+
+    def reachable(self) -> set[jvm.state.PC]:
+        reachable = set()
+        for m, c in self.coverage.items():
+            if c.reachable is not None:
+                reachable.update(jvm.state.PC(m, o) for o in c.reachable)
+        return reachable
+
+
+type Entry = jvm.AbsMethodID
+
+
+@dataclass(frozen=True, slots=True)
+class Benchmark:
+    experiments: collections.OrderedDict[Experiment, Control]
+
     def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
+        experiments = sexpr.sexpr(self.experiments)
+        assert isinstance(experiments, list)
+        return [sexpr.item("benchmark")] + experiments
 
     @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
+    def from_sexpr(cls, expr) -> "Benchmark":
+        options = sexpr.to_options(expr)
+        return Benchmark(
+            sexpr.from_sexpr(
+                options[1:], target=collections.OrderedDict[Experiment, Control]
+            )
+        )
+
+    def entries(self) -> Iterable[Entry]:
+        entries = set()
+        for e in self.experiments:
+            if e.entry not in entries:
+                yield e.entry
+                entries.add(e)

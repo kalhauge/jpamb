@@ -7,62 +7,14 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Self, TextIO
+from typing import Self
 
 import jvm
 import jvm.state
 import sexpr
+from jpamb.case import Benchmark, Entry
+from jpamb.report import AnalysisInfo, Duration
 from jpamb.utils import Effect, dump_table
-
-
-@dataclass(frozen=True)
-class AnalysisInfo:
-    name: str
-    version: str
-    group: str
-    tags: tuple[str, ...]
-    system: str
-
-    @staticmethod
-    def parse(output: str):
-        lines = output.splitlines()
-        if len(lines) == 5:
-            [name, version, group, ltags, lsystem] = lines
-        elif len(lines) == 4:
-            [name, version, group, ltags] = lines
-            lsystem = ""
-        else:
-            raise ValueError(f"Expected 5 lines, but got {len(output.splitlines())}")
-
-        tags = []
-        for t in ltags.split(","):
-            tags.append(t.strip())
-
-        system = lsystem.strip()
-
-        return AnalysisInfo(
-            name.strip(),
-            version.strip(),
-            group.strip(),
-            tuple(tags),
-            system,
-        )
-
-    def display(self, *, file=sys.stdout):
-        file.write("Analysis:\n")
-        file.write(f" Name:         {self.name}\n")
-        file.write(f" Version:      {self.version}\n")
-        file.write(f" Group:        {self.group}\n")
-        file.write(f" Tags:         {self.tags}\n")
-        file.write(f" System:       {self.system}\n")
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
-
 
 QUERIES = (
     "*",
@@ -74,22 +26,9 @@ QUERIES = (
 )
 
 
-@dataclass(frozen=True, slots=True)
-class Duration:
-    absolute: int
-    relative: float
-
-    def __sexpr__(self) -> sexpr.SExpr:
-        return sexpr.from_dataclass(self)
-
-    @classmethod
-    def from_sexpr(cls, expr: sexpr.SExpr) -> Self:
-        return sexpr.to_dataclass(expr, target=cls)
-
-
 class Prediction(ABC):
     @abstractmethod
-    def as_wager(self, categories: "dict[str, Wager]") -> "Wager": ...
+    def as_wager(self, categories: "dict[Category, Wager]") -> "Wager": ...
 
     @staticmethod
     def parse(string: str) -> "Wager | Category":
@@ -149,7 +88,7 @@ class Wager(Prediction):
         r = (w + 1) / (w + 2)
         return r if self.wager > 0 else 1 - r
 
-    def as_wager(self, categories: dict[str, Self]) -> Self:
+    def as_wager(self, categories: "dict[Category, Wager]") -> "Wager":
         return self
 
     def score(self, happens: bool) -> float:
@@ -256,12 +195,15 @@ class Response:
         return Response(predictions), warnings
 
     def score(self, correct: set[str], categories: dict[Category, Wager] | None = None):
+        wagers: dict[Category, Wager]
         if categories is None:
-            categories = {}
+            wagers = {}
+        else:
+            wagers = categories
 
         total = 0
         for q, prd in self.predictions.items():
-            total += prd.as_wager(categories).score(q in correct)
+            total += prd.as_wager(wagers).score(q in correct)
         return total
 
     @classmethod
@@ -302,7 +244,7 @@ class Config:
 
     cmd: tuple[str, ...]
     analysis: AnalysisInfo
-    experiments: OrderedDict[jvm.AbsMethodID, set[str]]
+    experiments: OrderedDict[Entry, set[str]]
     iterations: int
     timeout: float
 
@@ -329,32 +271,23 @@ class Config:
     def from_cmd(
         cls,
         cmd: tuple[str],
-        experiments: Iterable[tuple[jvm.AbsMethodID, set[str]]],
+        experiments: Iterable[Entry],
         *,
         timeout: float,
         iterations: int,
         eff: Effect,
     ) -> "Self":
-        with eff.context("Getting info about analysis"):
-            try:
-                out = eff.run(
-                    cmd + ("info",),
-                    timeout=timeout,
-                )
-                info = AnalysisInfo.parse(out)
-            except subprocess.CalledProcessError as e:
-                eff.error(f"Ran {shlex.join(cmd)} info, and got error:\n{e.stderr}")
-                raise
-            except ValueError:
-                eff.error("Expected info, but got:")
-                for o in out.splitlines():
-                    eff.error(o)
-                raise
+        info = AnalysisInfo.from_cmd(
+            cmd,
+            timeout=timeout,
+            eff=eff,
+            context="analysis",
+        )
 
         return cls(
             cmd,
             info,
-            experiments=OrderedDict(experiments),
+            experiments=OrderedDict([(e, set()) for e in experiments]),
             timeout=timeout,
             iterations=iterations,
         )
@@ -411,15 +344,14 @@ class ResultRow:
 class ResultSummary:
     config: Config
     results: list[tuple[str, list[ResultRow]]]
-    categories: list[tuple[Category, Tracker]]
+    categories: dict[Category, Tracker]
+    invalid: str | None
     total_score: float
     mean_rel_time: float
     total_abs_time: float
 
     def display_autolab(self, file=sys.stdout):
         import json
-
-        invalid = self.invalidate()
 
         json.dump(
             {
@@ -436,14 +368,14 @@ class ResultSummary:
                 },
                 "Grade": {
                     "Valid": {
-                        "passed": invalid is None,
-                        "hint": "" if invalid is None else invalid,
+                        "passed": self.invalid is None,
+                        "hint": "" if self.invalid is None else self.invalid,
                     },
                     "Pass": {
-                        "passed": invalid is None and self.total_score > 100,
+                        "passed": self.invalid is None and self.total_score > 100,
                         "hint": (
                             "Report must be valid"
-                            if invalid is not None
+                            if self.invalid is not None
                             else "Total score needs to be above 100"
                         ),
                     },
@@ -457,7 +389,9 @@ class ResultSummary:
             "scores": {},
         }
 
-        student_eval["scores"]["Total"] = self.total_score if invalid is None else 0
+        student_eval["scores"]["Total"] = (
+            self.total_score if self.invalid is None else 0
+        )
         student_eval["scores"]["Time"] = 100 / max(1, self.mean_rel_time)
         student_eval["scores"]["Categories"] = 100 / len(self.categories)
 
@@ -467,7 +401,7 @@ class ResultSummary:
     def display(self, file=sys.stdout):
         self.config.display(file=file)
 
-        groups = [
+        groups: list[list[str] | tuple[str, list[list[str]]]] = [
             [
                 "Method",
                 "Score",
@@ -527,31 +461,11 @@ class ResultSummary:
 
         dump_table(categories, align="<>>>>>>", file=file)
 
-    def invalidate(self) -> str | None:
-        if self.config.analysis.group == "The Rice Theorem Cookers":
-            return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
-
-        if (iters := self.config.iterations) != 3:
-            return f"Analysis report should be based on 3 iterations, found {iters}"
-
-        found_methods = []
-        for _, rs in self.results:
-            for r in rs:
-                if not (r.score <= 6.0):
-                    return f"Invalid score {r.score} found for {r.methodname}"
-                if r.abs_time <= 0:
-                    return f"Found negative time value {r.abs_time}"
-                if r.methodname in found_methods:
-                    return f"Found duplicate method {r.methodname}"
-            found_methods.append(r.methodname)
-
-        return None
-
 
 @dataclass(frozen=True)
 class Summary:
     config: Config
-    results: dict[jvm.AbsMethodID, list[Result]]
+    results: dict[Entry, list[Result]]
 
     __sexprtag__ = "analysis-summary"
 
@@ -580,7 +494,7 @@ class Summary:
 
         return dict(categories)
 
-    def score_results(self) -> ResultSummary:
+    def score_results(self, *, benchmark: Benchmark, eff: Effect) -> ResultSummary:
         byclasses = {}
         for method in self.results:
             byclasses.setdefault(method.classname, set()).add(method)
@@ -615,26 +529,43 @@ class Summary:
 
             groups += [(str(clz), rows)]
 
+        def invalidate():
+            if self.config.analysis.group == "The Rice Theorem Cookers":
+                return "You must pick a group name which is different from 'The Rice Theorem Cookers'"
+
+            if (iters := self.config.iterations) != 3:
+                return f"Analysis report should be based on 3 iterations, found {iters}"
+
+            found_methods = []
+            for _, rs in groups:
+                for r in rs:
+                    if not (r.score <= 6.0):
+                        return f"Invalid score {r.score} found for {r.methodname}"
+                    if r.abs_time <= 0:
+                        return f"Found negative time value {r.abs_time}"
+                    if r.methodname in found_methods:
+                        return f"Found duplicate method {r.methodname}"
+                found_methods.append(r.methodname)
+
+            return None
+
+        invalid = invalidate()
+
         return ResultSummary(
             self.config,
             groups,
             tracker_categories,
+            invalid,
             total_score,
             total_rel_time / hits,
             total_abs_time,
         )
 
-    def report(cls, *, file: TextIO, eff: Effect) -> None:
-        content = sexpr.pretty(cls.__sexpr__(), indent=2)
-        try:
-            file.write(content)
-            eff.success(f"Succesfully wrote report to {file.name}")
-        except OSError:
-            eff.error("Failed to write report")
-
 
 def mean(results):
     res = [r for r in results if not math.isnan(r)]
+    if not res:
+        return float("nan")
     return sum(res) / len(res)
 
 
@@ -674,6 +605,7 @@ class State:
             if result is None:
                 return False
 
+            categories: dict[Category, Wager]
             if iteration > 0:
                 # If we are at our second iteration, use the categories.
                 categories = {k: v.wager() for k, v in self.categories.items()}

@@ -5,50 +5,52 @@ import jpamb
 import jvm
 
 suite, eff = jpamb.setup()
+benchmark = suite.benchmark(eff=eff)
 
 
-def st_casemethods():
-    methods = list(suite.case_methods().keys())
-    return st.sampled_from(methods)
+def st_entries():
+    return st.sampled_from(list(benchmark.entries()))
 
 
-@given(st_casemethods())
-def test_findmethod(method):
-    assert isinstance(suite.findmethod(method, eff=eff), dict)
+@given(st_entries())
+def test_findmethod(entry):
+    assert isinstance(suite.findmethod(entry, eff=eff), dict)
 
 
-def st_caseopcodes():
-    opcodes = sorted(set(suite.case_opcodes(eff=eff)), key=str)
-    return st.sampled_from(opcodes)
-
-
-@given(st_casemethods())
+@given(st_entries())
 def test_parse_opcode(method):
     for opcode in suite.findmethod(method, eff=eff)["code"]["bytecode"]:
         op = jvm.Opcode.from_json(opcode)
         assert isinstance(op, jvm.Opcode)
 
 
-@given(st_caseopcodes())
+@st.composite
+def st_opcodes(draw):
+    entry = draw(st_entries())
+    opcode = draw(st.sampled_from(suite.findmethod(entry, eff=eff)["code"]["bytecode"]))
+    return jvm.Opcode.from_json(opcode)
+
+
+@given(st_opcodes())
 def test_opcode_correct(op):
     assert isinstance(op, jvm.Opcode)
 
 
-@given(st_caseopcodes())
+@given(st_opcodes())
 def test_opcode_str(op):
     assert str(op)
 
 
-@given(st_caseopcodes())
+@given(st_opcodes())
 def test_opcode_repr(op):
     assert repr(op)
 
 
-@given(st_caseopcodes())
+@given(st_opcodes())
 def test_opcode_real(op):
     assert op.real()
 
 
-@given(st_caseopcodes())
+@given(st_opcodes())
 def test_opcode_hash(op):
     assert hash(op)

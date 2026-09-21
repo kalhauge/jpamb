@@ -1,15 +1,17 @@
 {
-  name = "syntactic";
+  name = "static";
   general = {
-    category_name = "Syntactic";
-    display_name = "Syntactic Assignment";
+    category_name = "Static";
+    display_name = "Static Analysis Assignment";
   };
 
   dates = {
-    due_at = "2026-09-13 23:59:59 +0200";
-    end_at = "2026-09-30 11:53:32 +0200";
-    start_at = "2026-09-08 11:53:32 +0200";
+    due_at = "2026-10-11 23:59:59 +0200";
+    end_at = "2026-10-19 11:53:32 +0200";
+    start_at = "2026-09-28 11:53:32 +0200";
   };
+
+  kind = "analyse";
 
   problems = [
     {

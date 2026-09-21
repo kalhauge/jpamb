@@ -1,20 +1,22 @@
+import copy
 import dataclasses
 import io
 import re
 import types
 import typing
+from abc import abstractmethod
 from collections import OrderedDict
-from collections.abc import Callable, Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from functools import partial
 from typing import (
     TYPE_CHECKING,
     Any,
-    GenericAlias,
     NamedTuple,
     Protocol,
     Self,
     TypeIs,
+    cast,
     runtime_checkable,
 )
 
@@ -36,7 +38,7 @@ def encode(obj: str | Encodable) -> str:
     return obj.encode()
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(slots=True)
 class Option[T]:
     key: str
     value: T
@@ -83,6 +85,24 @@ def issexpr(expr: object, *, deep=True) -> TypeIs[SExpr]:
 @runtime_checkable
 class ToSExpr(Protocol):
     def __sexpr__(self) -> SExpr: ...
+
+
+class AsSExpr:
+    def __sexpr__(self) -> SExpr:
+        return from_dataclass(cast(DataclassInstance, self))
+
+    @classmethod
+    def from_sexpr(cls, expr: SExpr) -> Self:
+        return to_dataclass(expr, target=cls)
+
+
+class AsPosSExpr:
+    def __sexpr__(self) -> SExpr:
+        return from_dataclass_values(cast(DataclassInstance, self))
+
+    @classmethod
+    def from_sexpr(cls, expr: SExpr) -> Self:
+        return to_dataclass(expr, target=cls)
 
 
 type LikeSExpr = (
@@ -206,7 +226,17 @@ class Decodable(Protocol):
     def decode(cls, code: str) -> Self: ...
 
 
-def from_sexpr(expr: SExpr, *, target: type[Any]):
+type AnyType = type[Any] | types.GenericAlias | types.UnionType | typing.TypeAliasType
+
+
+def is_resolvable_type(t: object) -> TypeIs[AnyType]:
+    return isinstance(
+        t,
+        type | types.GenericAlias | types.UnionType | typing.TypeAliasType,
+    )
+
+
+def from_sexpr(expr: SExpr, *, target: AnyType):
     if isinstance(target, typing.TypeAliasType):
         if target is SExpr:
             return expr
@@ -231,6 +261,12 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
 
     if origin is dict or origin is OrderedDict:
         tkey, tvalue = typing.get_args(target)
+
+        try:
+            tkey = tkey.__value__
+        except AttributeError:
+            pass
+
         if tkey is str:
             val = to_dict(expr, keyfn=str, valuefn=partial(from_sexpr, target=tvalue))
         elif isinstance(tkey, type) and issubclass(tkey, Decodable):
@@ -239,7 +275,7 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
             )
         else:
             raise NotImplementedError(
-                f"No implementation of type {typing.get_origin(target)} to {target}"
+                f"No implementation of key-type {tkey!r} to {target}"
             )
 
         if origin is OrderedDict:
@@ -269,6 +305,16 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
             )
         )
 
+    if typing.get_origin(target) is frozenset:
+        (arg,) = typing.get_args(target)
+
+        return frozenset(
+            to_list(
+                expr,
+                valuefn=partial(from_sexpr, target=arg),
+            )
+        )
+
     if typing.get_origin(target) is list:
         (arg,) = typing.get_args(target)
         if typing.get_origin(arg) is Option:
@@ -284,8 +330,8 @@ def from_sexpr(expr: SExpr, *, target: type[Any]):
     if target is type(None):
         return None
 
-    raise NotImplementedError(
-        f"No implementation of type {typing.get_origin(target)} to {target}"
+    raise FromSExprError(
+        f"No handler of {target}, when handeling:\n {pretty(expr, indent=2)}"
     )
 
 
@@ -299,39 +345,32 @@ def to_union[T](expr: SExpr, *, targets: Iterable[type[T]]) -> T:
     raise FromSExprError(f"Could not match {expr} with any of {targets}")
 
 
-def to_tagged_union[T](expr: SExpr, *, targets: dict[str, type[T]]) -> T:
+def to_tagged_union[T](expr: SExpr, *, targets: Mapping[str, type[T]]) -> T:
     options = to_options(expr)
     if len(options) == 0:
         raise FromSExprError("Expected tag, but got empty list ")
 
     tag = options[0].unitem()
 
+    if not isinstance(tag, str):
+        raise FromSExprError(f"Expected tag to be a symbol, but got {tag!r}")
+
     if tag not in targets:
         raise FromSExprError(f"Could not find {tag!r} tag in {list(targets)}")
     return from_sexpr(expr, target=targets[tag])
 
 
-def to_dataclass[T: DataclassInstance](expr: SExpr, *, target: type[T]) -> T:
+def to_dataclass[T](expr: SExpr, *, target: type[T]) -> T:
     kname, args, kwargs = to_data(expr)
 
     if kname != sexprtag(target):
         raise FromSExprError(f"Expected {sexprtag(target)}, but got {kname}")
 
-    annotations = list(dataclasses.fields(target))
+    annotations = list(dataclasses.fields(cast(type[DataclassInstance], target)))
 
     if len(args) > len(annotations):
         raise FromSExprError(
             f"Expected {len(annotations)} arguments, but got {len(args)}: {args}"
-        )
-
-    def is_resolvable_type(t):
-        return isinstance(
-            t,
-            type
-            | GenericAlias
-            | types.UnionType
-            | typing._GenericAlias
-            | typing.TypeAliasType,
         )
 
     keyed = []
@@ -461,7 +500,8 @@ def to_dict[K, V](
     result: dict[K, V] = {}
     for opt in sexpr:
         key = keyfn(opt.key)
-        assert key not in result
+        if key in result:
+            raise FromSExprError(f"Duplicate key: {key} in dictionary")
         result[key] = valuefn(opt.value)
 
     return result
@@ -685,3 +725,215 @@ class Parser:
         self.next()
 
         return output
+
+
+@dataclass(frozen=True, slots=True)
+class Index:
+    key: str
+    offset: int
+
+    def encode(self):
+        return f"{self.offset}/{self.key}"
+
+    @classmethod
+    def decode(cls, code):
+        offset, key = code.split("/", 1)
+        return Index(key, int(offset))
+
+    def __str__(self):
+        return self.encode()
+
+    def __sexpr__(self) -> SExpr:
+        return self.encode()
+
+    @classmethod
+    def from_sexpr(cls, expr: SExpr) -> Self:
+        return cls.decode(to_str(expr))
+
+
+@dataclass(frozen=True, slots=True)
+class TreeEdit:
+    path: tuple[Index, ...]
+
+    @abstractmethod
+    def iapply(self, cursor: Option) -> None: ...
+
+    @abstractmethod
+    def __sexpr__(self) -> SExpr: ...
+
+    @classmethod
+    def from_sexpr(cls, expr: SExpr) -> Self:
+        if cls is TreeEdit:
+            return cast(Self, to_tagged_union(expr, targets=EDITS))
+        return to_dataclass(expr, target=cls)
+
+
+@dataclass(frozen=True, slots=True)
+class Insert(AsSExpr, TreeEdit):
+    value: SExpr
+
+    def iapply(self, cursor: Option):
+        cursor = index(cursor, self.path[:-1])
+
+        if isinstance(cursor.value, str):
+            raise TypeError(
+                f"Cannot insert into a string {cursor.value} at {self.path}"
+            )
+
+        key = self.path[-1].key
+        offset = self.path[-1].offset
+
+        option = Option(key, self.value)
+
+        cursor.value.insert(offset, copy.deepcopy(option))
+
+
+@dataclass(frozen=True, slots=True)
+class Delete(AsSExpr, TreeEdit):
+    value: SExpr
+
+    def iapply(self, cursor: Option):
+        cursor = index(cursor, self.path[:-1])
+
+        if isinstance(cursor.value, str):
+            raise TypeError(
+                f"Cannot delete from a string {cursor.value} at {' '.join(str(p) for p in self.path)}"
+            )
+
+        key = self.path[-1].key
+        offset = self.path[-1].offset
+
+        option = Option(key, self.value)
+
+        if option != cursor.value[offset]:
+            raise ValueError(
+                f"Cannot delete {option!r} from {cursor.value}[{offset}] was {cursor.value[offset]!r} at {' '.join(str(p) for p in self.path)}"
+            )
+
+        del cursor.value[offset]
+
+
+@dataclass(frozen=True, slots=True)
+class Update(AsSExpr, TreeEdit):
+    a: SExpr
+    b: SExpr
+
+    def iapply(self, cursor: Option):
+        cursor = index(cursor, self.path)
+
+        if self.a != cursor.value:
+            raise ValueError(
+                f"Cannot update {self.a!r} from {cursor.value!r} at {' '.join(str(p) for p in self.path)}"
+            )
+
+        cursor.value = copy.deepcopy(self.b)
+
+
+@dataclass(frozen=True, slots=True)
+class Rename(AsSExpr, TreeEdit):
+    a: str
+    b: str
+
+    def iapply(self, cursor: Option):
+        cursor = index(cursor, self.path)
+
+        if cursor.key != self.a:
+            raise ValueError(
+                f"Cannot rename {self.a!r} from {cursor.key!r} at {' '.join(str(p) for p in self.path)}"
+            )
+
+        cursor.key = self.b
+
+
+EDITS = {
+    "insert": Insert,
+    "update": Update,
+    "delete": Delete,
+    "rename": Rename,
+}
+
+
+def index(cursor, path) -> Option:
+    for d, i in enumerate(path):
+        if i.offset < len(cursor.value):
+            cursor = cursor.value[i.offset]
+        else:
+            break
+
+    else:
+        return cursor
+
+    raise ValueError(f"No {i} in {cursor.value}, at {path[:d]}")
+
+
+def apply(edits: list[TreeEdit], expr: SExpr) -> SExpr:
+    expr = copy.deepcopy(expr)
+    cursor = Option("", expr)
+    iapply(cursor, edits)
+    return cursor.value
+
+
+def cursor(expr: SExpr) -> Option:
+    expr = copy.deepcopy(expr)
+    return Option("", expr)
+
+
+def iapply(cursor: Option, edits: Iterable[TreeEdit]) -> None:
+    for edit in edits:
+        try:
+            edit.iapply(cursor)
+        except ValueError as e:
+            raise ValueError(
+                f"Could not apply {pretty(sexpr(edit), indent=2)} to {pretty(cursor.value, indent=2)}\nBecause:\n{e}"
+            ) from e
+
+
+def diff(a: SExpr, b: SExpr, path=(), depth=-1) -> list[TreeEdit]:
+    # Node was deleted
+    assert a is not None and b is not None
+
+    result = []
+
+    # Node itself changed
+    if isinstance(a, str) or isinstance(b, str) or depth >= 0 and len(path) >= depth:
+        if a != b:
+            return [Update(path, a=a, b=b)]
+        else:
+            return []
+
+    # Compare children
+    n = min(len(a), len(b))
+
+    for i in range(n):
+        if a[i].key != b[i].key:
+            result.append(
+                Rename(path + (Index(a[i].key, i),), a[i].key, b[i].key),
+            )
+        result.extend(
+            diff(
+                a[i].value,
+                b[i].value,
+                path + (Index(a[i].key, i),),
+                depth=depth,
+            ),
+        )
+
+    # Extra children in old tree were deleted
+    for i in reversed(range(n, len(a))):
+        result.append(
+            Delete(
+                path + (Index(a[i].key, i),),
+                value=a[i].value,
+            )
+        )
+
+    # Extra children in new tree were inserted
+    for i in range(n, len(b)):
+        result.append(
+            Insert(
+                path + (Index(b[i].key, i),),
+                value=b[i].value,
+            )
+        )
+
+    return result

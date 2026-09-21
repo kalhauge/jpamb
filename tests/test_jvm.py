@@ -49,10 +49,12 @@ def test_parameter_type_decode(it):
 
 
 @st.composite
-def st_methodid(draw):
+def st_methodid(draw, params: jvm.Parameters | None = None):
+    if params is None:
+        params = draw(st_parameter_types())
     return jvm.MethodID(
         name=draw(st.sampled_from(["main", "<init>", "equals", "tostring"])),
-        params=draw(st_parameter_types()),
+        params=params,
         return_type=draw(st.none() | st_types()),
     )
 
@@ -65,10 +67,10 @@ def test_methodid_decode(it):
 
 
 @st.composite
-def st_absmethodids(draw):
+def st_absmethodids(draw, params: jvm.Parameters | None = None):
     return jvm.AbsMethodID(
         classname=draw(st_classnames()),
-        extension=draw(st_methodid()),
+        extension=draw(st_methodid(params=params)),
     )
 
 
@@ -93,7 +95,11 @@ def st_primtypes():
 
 
 def st_types():
-    return st.recursive(st_primtypes(), extend=lambda r: r.map(jvm.Array))
+    return st.recursive(
+        st_primtypes(),
+        extend=lambda r: r.map(jvm.Array),
+        max_leaves=2,
+    )
 
 
 @given(st_types())

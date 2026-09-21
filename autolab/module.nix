@@ -8,6 +8,10 @@ in
       type = types.str;
     };
 
+    kind = mkOption {
+      type = types.str;
+    };
+
     general.display_name = mkOption {
       type = types.str;
     };
@@ -35,6 +39,14 @@ in
                 type = types.str;
                 default = "";
               };
+              ascending = mkOption {
+                type = types.int;
+                default = 1;
+              };
+              scoreboard = mkOption {
+                type = types.bool;
+                default = true;
+              };
               max_score = mkOption {
                 type = types.float;
               };
@@ -59,7 +71,7 @@ in
   config = {
     configuration = {
       autograder = {
-        autograde_image = "autograding_02242_e26_1";
+        autograde_image = "autograding_02242_e26_4";
         autograde_timeout = 180;
         release_score = true;
       };
