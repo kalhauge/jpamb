@@ -320,7 +320,7 @@ class ResultSummary:
 
         student_eval["scores"] = {}
         student_eval["scores"]["Total"] = (
-            len(self.results) if self.invalid is None else 0
+            self.total_score if self.invalid is None else 0
         )
 
         json.dump(student_eval, fp=file)
