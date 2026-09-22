@@ -26,7 +26,7 @@ from jpamb.case import Benchmark, Case, Control, Coverage, Experiment, Input
 from jpamb.report import AnalysisInfo as AnalysisInfo
 from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
 
-__version__ = "0.7.0"
+__version__ = "0.7.2"
 
 
 @dataclass(frozen=True)
