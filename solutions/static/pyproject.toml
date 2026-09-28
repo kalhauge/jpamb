@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "static"
+version = "0.1.0"
+description = "The start of an abstract interpreter"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "hypothesis>=6.168.2",
+  "jpamb",
+]
+
+
+[project.scripts]
+static-interpreter = "static:interpret"
+static-analysis = "static:analyse"
+
+[tool.uv.sources]
+jpamb = { path = "../../", editable = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
