@@ -139,7 +139,7 @@ class AbstractInterpreter:
     states: dict[PC, State]
 
     @staticmethod
-    def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodId, inputs):
+    def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, inputs):
         states = initialstate(bc, methodid, inputs)
         worklist = deque(states.keys())
 
@@ -164,7 +164,7 @@ class AbstractInterpreter:
                 else:
                     after = before | st
                 if before is None or after != before:
-                    self.states[pc_] = st
+                    self.states[pc_] = after
                     self.worklist.append(pc_)
 
         return pc, finals
