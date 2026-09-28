@@ -193,9 +193,9 @@ class SignSet(Abstraction, Lattice):
 
         return SignSet(self.signs & other.signs)
 
-    def arithmetic(self, other: "SignSet", opr: jvm.BinaryOpr) -> tuple(
-        "SignSet", set[str]
-    ):
+    def arithmetic(
+        self, other: "SignSet", opr: jvm.BinaryOpr
+    ) -> tuple["SignSet", set[str]]:
         match opr:
             case jvm.BinaryOpr.Add:
                 output = set()
