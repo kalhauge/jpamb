@@ -20,7 +20,10 @@ public class Runtime {
           jpamb.cases.Arrays.class,
           jpamb.cases.Strings.class,
           Dependent.class,
-          Calls.class);
+          Calls.class
+          // jpamb.cases.advanced.CWE470.class,
+          // jpamb.cases.advanced.CWE502.class
+          );
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
