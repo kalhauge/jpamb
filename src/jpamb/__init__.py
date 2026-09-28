@@ -567,7 +567,7 @@ def emit_init(state: jvm.state.State) -> sexpr.SExpr:
 
     expr = sexpr.sexpr(state)
     out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Init(expr)), indent=2)
-    sys.stderr.write(sexpr.pretty(expr, indent=2) + "\n")
+    sys.stderr.write(out + "\n")
     sys.stdout.write(out + "\n")
     return expr
 
@@ -583,6 +583,6 @@ def emit_step(
     expr = sexpr.sexpr(after)
     diff = sexpr.diff(before, expr, depth=depth)
     out = sexpr.pretty(sexpr.sexpr(jpamb.interpret.Step(pc, tuple(diff))), indent=2)
-    sys.stderr.write(sexpr.pretty(expr, indent=2) + "\n")
+    sys.stderr.write(out + "\n")
     sys.stdout.write(out + "\n")
     return expr
