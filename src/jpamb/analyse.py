@@ -554,7 +554,7 @@ class Summary:
             tracker_categories,
             invalid,
             total_score,
-            total_rel_time / hits,
+            total_rel_time / hits if hits > 0 else 0,
             total_abs_time,
         )
 
