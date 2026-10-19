@@ -39,14 +39,6 @@ in
                 type = types.str;
                 default = "";
               };
-              ascending = mkOption {
-                type = types.int;
-                default = 1;
-              };
-              scoreboard = mkOption {
-                type = types.bool;
-                default = true;
-              };
               max_score = mkOption {
                 type = types.float;
               };

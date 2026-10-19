@@ -16,7 +16,7 @@
   problems = [
     {
       name = "Total";
-      max_score = 71.0; # TDDO
+      max_score = 118.0; # TDDO
       description = "The total correct";
     }
   ];
