@@ -20,7 +20,9 @@ public class Runtime {
           jpamb.cases.Arrays.class,
           jpamb.cases.Strings.class,
           Dependent.class,
-          Calls.class);
+          Calls.class,
+          Vulnerable.class
+          );
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);

@@ -1,0 +1,257 @@
+{
+  "access": [
+    "public",
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [
+    {
+      "access": [
+        "private"
+      ],
+      "annotations": [],
+      "name": "legacy",
+      "type": {
+        "annotations": [],
+        "base": "int"
+      },
+      "value": null
+    }
+  ],
+  "innerclasses": [
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/Vulnerable$DownGradableLibrary",
+      "name": "DownGradableLibrary",
+      "outer": "jpamb/cases/Vulnerable"
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/Vulnerable$NotMaintainedDependency",
+      "name": "NotMaintainedDependency",
+      "outer": "jpamb/cases/Vulnerable"
+    }
+  ],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [
+        "public"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 5,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Vulnerable$DownGradableLibrary",
+              "name": "legacy",
+              "type": "int"
+            },
+            "offset": 6,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "index": 0,
+            "offset": 9,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 10,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Vulnerable$DownGradableLibrary",
+              "name": "legacy",
+              "type": "int"
+            },
+            "offset": 11,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "index": 1,
+            "offset": 14,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 15,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 16,
+            "opr": "if",
+            "target": 15
+          },
+          {
+            "class": "jpamb/cases/Vulnerable$NotMaintainedDependency",
+            "offset": 19,
+            "opr": "new"
+          },
+          {
+            "offset": 22,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/Vulnerable$NotMaintainedDependency"
+              },
+              "returns": null
+            },
+            "offset": 23,
+            "opr": "invoke"
+          },
+          {
+            "offset": 26,
+            "opr": "pop",
+            "words": 1
+          },
+          {
+            "offset": 27,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 116,
+            "offset": 0
+          },
+          {
+            "line": 115,
+            "offset": 2
+          },
+          {
+            "line": 117,
+            "offset": 5
+          },
+          {
+            "line": 118,
+            "offset": 8
+          },
+          {
+            "line": 119,
+            "offset": 11
+          },
+          {
+            "line": 121,
+            "offset": 15
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 15,
+            "locals": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "jpamb/cases/Vulnerable$DownGradableLibrary"
+                },
+                "type": "object"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "stack": [],
+            "type": "full_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/cases/Vulnerable$DownGradableLibrary",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    65,
+    0
+  ]
+}
