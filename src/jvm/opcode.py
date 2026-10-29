@@ -1289,6 +1289,7 @@ OPCODES = {
     "invoke_static": InvokeStatic,
     "invoke_interface": InvokeInterface,
     "invoke_special": InvokeSpecial,
+    "invoke_dynamic": InvokeDynamic,
     "store": Store,
     "binary": Binary,
     "load": Load,

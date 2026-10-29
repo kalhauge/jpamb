@@ -53,7 +53,7 @@ wheels = [
 
 [[package]]
 name = "jpamb"
-version = "0.7.1"
+version = "0.3.0"
 source = { editable = "../../" }
 dependencies = [
     { name = "click" },
@@ -72,7 +72,6 @@ requires-dist = [
 dev = [
     { name = "hypothesis", specifier = ">=6.165.5" },
     { name = "pytest", specifier = ">=8.3.4" },
-    { name = "ruff", specifier = ">=0.16.5" },
 ]
 
 [[package]]
