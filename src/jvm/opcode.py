@@ -706,6 +706,7 @@ class CmpOpr(enum.Enum):
     Le = enum.auto()
     Ge = enum.auto()
     Gt = enum.auto()
+    Is = enum.auto()
 
     @staticmethod
     def from_str(name: str) -> "CmpOpr":
@@ -733,6 +734,7 @@ CMP_OPRS = {
     "le": CmpOpr.Le,
     "ge": CmpOpr.Ge,
     "gt": CmpOpr.Gt,
+    "is": CmpOpr.Is,
 }
 
 
