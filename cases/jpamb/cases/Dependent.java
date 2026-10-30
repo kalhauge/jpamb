@@ -5,7 +5,6 @@ import jpamb.utils.Case;
 public class Dependent {
 
   @Case("(0) -> ok")
-  @Case("(1) -> ok")
   public static int safeDivByN(int n) {
     if (n != 0) {
       return 1 / n;
@@ -42,7 +41,7 @@ public class Dependent {
   }
 
   @Case("(0) -> ok")
-  @Case("(1) -> ok")
+  @Case("(1024) -> assertion error")
   public static void divisionLoop(int n) {
     for (int i = 0; i < 5; i++) { // 1024 / 2^5 = 32
       n /= 2;

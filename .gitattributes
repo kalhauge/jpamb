@@ -1,7 +1,7 @@
-target/**/* -format
+target/**/* -format -diff
 **/expected/* -format
 .python-version -format
 *.toml -format
 *.lock -format
 LICENSE -format
-OPCODES.md -format
+OPCODES.md -format -diff
