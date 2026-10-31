@@ -455,7 +455,7 @@ def build(ctx, compile, document, test, benchmark):
         ctx.suite.test(docker=docker, eff=ctx.eff)
 
     if benchmark:
-        tools = ["solution-dynamic-interpreter"]
+        tools = ["dynamic-interpreter"]
         tool_configs = []
         for tool in tools:
             tool_bin = shutil.which(tool)
@@ -474,8 +474,7 @@ def build(ctx, compile, document, test, benchmark):
             tool_configs.append(config)
 
         if tools:
-            ctx.suite.run_benchmark(*tool_configs, eff=ctx.eff)
-
+            ctx.suite.run_benchmark(tool_configs[0], eff=ctx.eff)
 
 @cli.command()
 @click.option(

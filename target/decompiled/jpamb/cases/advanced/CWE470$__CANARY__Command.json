@@ -1,0 +1,115 @@
+{
+  "access": [
+    "public",
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [],
+  "innerclasses": [
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/advanced/CWE470$__CANARY__Command",
+      "name": "__CANARY__Command",
+      "outer": "jpamb/cases/advanced/CWE470"
+    }
+  ],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [
+        "public"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "access": "static",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "canary",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE470"
+              },
+              "returns": null
+            },
+            "offset": 4,
+            "opr": "invoke"
+          },
+          {
+            "offset": 7,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 24,
+            "offset": 0
+          },
+          {
+            "line": 25,
+            "offset": 2
+          },
+          {
+            "line": 26,
+            "offset": 3
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 1,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/cases/advanced/CWE470$__CANARY__Command",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    65,
+    0
+  ]
+}

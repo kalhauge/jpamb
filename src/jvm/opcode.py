@@ -49,6 +49,8 @@ class Opcode(ABC):
                             opr = InvokeInterface
                         case "special":
                             opr = InvokeSpecial
+                        case "dynamic":
+                            opr = InvokeDynamic
                         case access:
                             raise NotImplementedError(
                                 f"Unhandled invoke access {access!r} (implement yourself)"
@@ -355,7 +357,30 @@ class Cast(Opcode):
     def __str__(self):
         return f"cast {self.from_} {self.to_}"
 
+@dataclass(frozen=True, order=True)
+class CheckCast(Opcode):
+    """Check that a reference can be cast to a type (throws ClassCastException)"""
 
+    type: jvm_type.Type
+
+    @classmethod
+    def from_json(cls, json: dict) -> Opcode:
+        return cls(
+            offset=json["offset"],
+            type=jvm_type.Type.from_json(json["type"]),
+        )
+
+    def real(self) -> str:
+        return "checkcast"
+
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
+    def __str__(self):
+        return f"checkcast {self.type}"
 @dataclass(frozen=True, order=True)
 class ArrayLoad(Opcode):
     """The Array Load command that load a value from the array."""
@@ -583,6 +608,57 @@ class InvokeSpecial(Opcode):
 
 
 @dataclass(frozen=True, order=True)
+class InvokeDynamic(Opcode):
+    index: int                     # bootstrap method index
+    method: classfile.AbsMethodID  
+
+    DYNAMIC_OWNER = "jvm/Dynamic"  # pseudo-class for coherence, to consider in the interpreter
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        assert json["opr"] == "invoke" and json["access"] == "dynamic"
+
+        m = json["method"]
+        returns = m.get("returns")
+        return cls(
+            offset=json["offset"],
+            index=json["index"],
+            method=classfile.AbsMethodID(
+                classname=ClassName.from_slashed(cls.DYNAMIC_OWNER),
+                extension=classfile.MethodID(
+                    name=m["name"],
+                    params=classfile.Parameters.from_json(m["args"]),
+                    return_type=(
+                        jvm_type.Type.from_json(returns)
+                        if returns is not None
+                        else None
+                    ),
+                ),
+            ),
+        )
+
+    def real(self) -> str:
+        return f"invokedynamic #{self.index} {self.method.methodid}"
+
+    def mnemonic(self) -> str:
+        return "invokedynamic"
+
+    def __str__(self):
+        return f"invoke dynamic #{self.index} {self.method.methodid}"
+
+    def semantics(self) -> str | None:
+        return """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'dynamic'
+        bc[i].method = m
+        m.args = [t1, ..., tn]
+        ----------------------------------------[invokedynamic]
+        bc |- (i, s + [a1, ..., an]) -> (i+1, s + [result])
+        where the call site is linked by its bootstrap method;
+        no objectref is consumed, and [result] is pushed only
+        if m.returns is not void
+        """
+
+@dataclass(frozen=True, order=True)
 class Store(Opcode):
     """The store opcode that stores values to local variables"""
 
@@ -630,6 +706,7 @@ class CmpOpr(enum.Enum):
     Le = enum.auto()
     Ge = enum.auto()
     Gt = enum.auto()
+    Is = enum.auto()
 
     @staticmethod
     def from_str(name: str) -> "CmpOpr":
@@ -657,6 +734,7 @@ CMP_OPRS = {
     "le": CmpOpr.Le,
     "ge": CmpOpr.Ge,
     "gt": CmpOpr.Gt,
+    "is": CmpOpr.Is,
 }
 
 
@@ -1202,6 +1280,7 @@ OPCODES = {
     "array_store": ArrayStore,
     "array-store": ArrayStore,
     "cast": Cast,
+    "checkcast": CheckCast,
     "array_load": ArrayLoad,
     "array-load": ArrayLoad,
     "arraylength": ArrayLength,
@@ -1210,6 +1289,7 @@ OPCODES = {
     "invoke_static": InvokeStatic,
     "invoke_interface": InvokeInterface,
     "invoke_special": InvokeSpecial,
+    "invoke_dynamic": InvokeDynamic,
     "store": Store,
     "binary": Binary,
     "load": Load,
