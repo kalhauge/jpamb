@@ -59,7 +59,6 @@ public class CWE470 {
     public static void weak_dispatcher(String ctl) {
 
         if (!ctl.startsWith("Safe")) {
-            System.out.println("Suspicious input detected.");
             return;
         }
 
