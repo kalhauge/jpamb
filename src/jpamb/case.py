@@ -439,6 +439,9 @@ class Case(sexpr.AsSExpr):
             m.group(3),
         )
 
+    def __str__(self) -> str:
+        return self.encode()
+
     def encode(self) -> str:
         return f"{self.methodid.classname}.{self.methodid.extension.encode()} {self.input.encode()} -> {self.result}"
 
