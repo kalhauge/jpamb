@@ -1,0 +1,1253 @@
+{
+  "access": [
+    "public",
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [
+    {
+      "index": 0,
+      "method": {
+        "args": [
+          {
+            "type": "string",
+            "value": "jpamb.cases.advanced.CWE470$\u0001Command"
+          }
+        ],
+        "handle": {
+          "handletype": "method",
+          "kind": "static",
+          "method": {
+            "args": [
+              {
+                "kind": "class",
+                "name": "java/lang/invoke/MethodHandles$Lookup"
+              },
+              {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              {
+                "kind": "class",
+                "name": "java/lang/invoke/MethodType"
+              },
+              {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              {
+                "kind": "array",
+                "type": {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                }
+              }
+            ],
+            "is_interface": false,
+            "name": "makeConcatWithConstants",
+            "ref": {
+              "kind": "class",
+              "name": "java/lang/invoke/StringConcatFactory"
+            },
+            "returns": {
+              "kind": "class",
+              "name": "java/lang/invoke/CallSite"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "enclosingmethod": null,
+  "fields": [],
+  "innerclasses": [
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/advanced/CWE470$SafeCommand",
+      "name": "SafeCommand",
+      "outer": "jpamb/cases/advanced/CWE470"
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/advanced/CWE470$SafeWrapperCommand",
+      "name": "SafeWrapperCommand",
+      "outer": "jpamb/cases/advanced/CWE470"
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "class": "jpamb/cases/advanced/CWE470$__CANARY__Command",
+      "name": "__CANARY__Command",
+      "outer": "jpamb/cases/advanced/CWE470"
+    },
+    {
+      "access": [
+        "public",
+        "static",
+        "final"
+      ],
+      "class": "java/lang/invoke/MethodHandles$Lookup",
+      "name": "Lookup",
+      "outer": "java/lang/invoke/MethodHandles"
+    }
+  ],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [
+        "public"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "offset": 4,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 9,
+            "offset": 0
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 1,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "class": "java/lang/AssertionError",
+            "offset": 0,
+            "opr": "new"
+          },
+          {
+            "offset": 3,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 4,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "Vulnerability Reached: Canary Loaded!"
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                }
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/AssertionError"
+              },
+              "returns": null
+            },
+            "offset": 6,
+            "opr": "invoke"
+          },
+          {
+            "offset": 9,
+            "opr": "throw"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 16,
+            "offset": 0
+          }
+        ],
+        "max_locals": 0,
+        "max_stack": 3,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "canary",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(s'Safe') -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(s'__CANARY__') -> assertion error"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "dynamic",
+            "index": 0,
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "name": "makeConcatWithConstants",
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "index": 1,
+            "offset": 6,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 7,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "static",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "is_interface": false,
+              "name": "forName",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              }
+            },
+            "offset": 8,
+            "opr": "invoke"
+          },
+          {
+            "index": 2,
+            "offset": 11,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 2,
+            "offset": 12,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "newInstance",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              }
+            },
+            "offset": 13,
+            "opr": "invoke"
+          },
+          {
+            "offset": 16,
+            "opr": "checkcast",
+            "type": {
+              "kind": "class",
+              "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+            }
+          },
+          {
+            "index": 3,
+            "offset": 19,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 3,
+            "offset": 20,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "doAction",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+              },
+              "returns": null
+            },
+            "offset": 21,
+            "opr": "invoke"
+          },
+          {
+            "offset": 24,
+            "opr": "goto",
+            "target": 15
+          },
+          {
+            "index": 2,
+            "offset": 27,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "offset": 28,
+            "opr": "return",
+            "type": null
+          },
+          {
+            "offset": 29,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [
+          {
+            "catchType": "java/lang/Exception",
+            "end": 12,
+            "handler": 13,
+            "start": 3
+          }
+        ],
+        "lines": [
+          {
+            "line": 44,
+            "offset": 0
+          },
+          {
+            "line": 47,
+            "offset": 3
+          },
+          {
+            "line": 48,
+            "offset": 6
+          },
+          {
+            "line": 50,
+            "offset": 10
+          },
+          {
+            "line": 54,
+            "offset": 12
+          },
+          {
+            "line": 52,
+            "offset": 13
+          },
+          {
+            "line": 53,
+            "offset": 14
+          },
+          {
+            "line": 55,
+            "offset": 15
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 1,
+        "stack_map": [
+          {
+            "index": 13,
+            "locals": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              },
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              }
+            ],
+            "stack": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/Exception"
+                },
+                "type": "object"
+              }
+            ],
+            "type": "full_frame"
+          },
+          {
+            "index": 15,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "unsafe_dispatcher",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "java/lang/String"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(s'Safe') -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(s'SafeWrapper') -> assertion error"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 1,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "Safe"
+            }
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "name": "startsWith",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              "returns": "boolean"
+            },
+            "offset": 3,
+            "opr": "invoke"
+          },
+          {
+            "condition": "ne",
+            "offset": 6,
+            "opr": "ifz",
+            "target": 8
+          },
+          {
+            "field": {
+              "class": "java/lang/System",
+              "name": "out",
+              "type": {
+                "kind": "class",
+                "name": "java/io/PrintStream"
+              }
+            },
+            "offset": 9,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "offset": 12,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "Suspicious input detected."
+            }
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "name": "println",
+              "ref": {
+                "kind": "class",
+                "name": "java/io/PrintStream"
+              },
+              "returns": null
+            },
+            "offset": 14,
+            "opr": "invoke"
+          },
+          {
+            "offset": 17,
+            "opr": "return",
+            "type": null
+          },
+          {
+            "index": 0,
+            "offset": 18,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "dynamic",
+            "index": 0,
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "name": "makeConcatWithConstants",
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 19,
+            "opr": "invoke"
+          },
+          {
+            "index": 1,
+            "offset": 24,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 25,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "static",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "is_interface": false,
+              "name": "forName",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              }
+            },
+            "offset": 26,
+            "opr": "invoke"
+          },
+          {
+            "index": 2,
+            "offset": 29,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 2,
+            "offset": 30,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "newInstance",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              }
+            },
+            "offset": 31,
+            "opr": "invoke"
+          },
+          {
+            "offset": 34,
+            "opr": "checkcast",
+            "type": {
+              "kind": "class",
+              "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+            }
+          },
+          {
+            "index": 3,
+            "offset": 37,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 3,
+            "offset": 38,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "doAction",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+              },
+              "returns": null
+            },
+            "offset": 39,
+            "opr": "invoke"
+          },
+          {
+            "offset": 42,
+            "opr": "goto",
+            "target": 23
+          },
+          {
+            "index": 2,
+            "offset": 45,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "offset": 46,
+            "opr": "return",
+            "type": null
+          },
+          {
+            "offset": 47,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [
+          {
+            "catchType": "java/lang/Exception",
+            "end": 20,
+            "handler": 21,
+            "start": 11
+          }
+        ],
+        "lines": [
+          {
+            "line": 61,
+            "offset": 0
+          },
+          {
+            "line": 62,
+            "offset": 4
+          },
+          {
+            "line": 63,
+            "offset": 7
+          },
+          {
+            "line": 66,
+            "offset": 8
+          },
+          {
+            "line": 69,
+            "offset": 11
+          },
+          {
+            "line": 70,
+            "offset": 14
+          },
+          {
+            "line": 71,
+            "offset": 18
+          },
+          {
+            "line": 74,
+            "offset": 20
+          },
+          {
+            "line": 72,
+            "offset": 21
+          },
+          {
+            "line": 73,
+            "offset": 22
+          },
+          {
+            "line": 75,
+            "offset": 23
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 8,
+            "type": "same"
+          },
+          {
+            "index": 21,
+            "locals": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              },
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              }
+            ],
+            "stack": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/Exception"
+                },
+                "type": "object"
+              }
+            ],
+            "type": "full_frame"
+          },
+          {
+            "index": 23,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "weak_dispatcher",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "java/lang/String"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Case",
+          "values": {
+            "value": {
+              "type": "string",
+              "value": "(s'Any') -> ok"
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "Safe"
+            }
+          },
+          {
+            "index": 0,
+            "offset": 2,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                }
+              ],
+              "name": "equals",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              "returns": "boolean"
+            },
+            "offset": 3,
+            "opr": "invoke"
+          },
+          {
+            "condition": "ne",
+            "offset": 6,
+            "opr": "ifz",
+            "target": 5
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": null
+          },
+          {
+            "index": 0,
+            "offset": 10,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "dynamic",
+            "index": 0,
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "name": "makeConcatWithConstants",
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 11,
+            "opr": "invoke"
+          },
+          {
+            "index": 1,
+            "offset": 16,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 17,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "static",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "is_interface": false,
+              "name": "forName",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              }
+            },
+            "offset": 18,
+            "opr": "invoke"
+          },
+          {
+            "index": 2,
+            "offset": 21,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 2,
+            "offset": 22,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "newInstance",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Class"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              }
+            },
+            "offset": 23,
+            "opr": "invoke"
+          },
+          {
+            "offset": 26,
+            "opr": "checkcast",
+            "type": {
+              "kind": "class",
+              "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+            }
+          },
+          {
+            "index": 3,
+            "offset": 29,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 3,
+            "offset": 30,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "doAction",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE470$SafeCommand"
+              },
+              "returns": null
+            },
+            "offset": 31,
+            "opr": "invoke"
+          },
+          {
+            "offset": 34,
+            "opr": "goto",
+            "target": 20
+          },
+          {
+            "index": 2,
+            "offset": 37,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "offset": 38,
+            "opr": "return",
+            "type": null
+          },
+          {
+            "offset": 39,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [
+          {
+            "catchType": "java/lang/Exception",
+            "end": 17,
+            "handler": 18,
+            "start": 8
+          }
+        ],
+        "lines": [
+          {
+            "line": 80,
+            "offset": 0
+          },
+          {
+            "line": 81,
+            "offset": 4
+          },
+          {
+            "line": 84,
+            "offset": 5
+          },
+          {
+            "line": 87,
+            "offset": 8
+          },
+          {
+            "line": 88,
+            "offset": 11
+          },
+          {
+            "line": 89,
+            "offset": 15
+          },
+          {
+            "line": 92,
+            "offset": 17
+          },
+          {
+            "line": 90,
+            "offset": 18
+          },
+          {
+            "line": 91,
+            "offset": 19
+          },
+          {
+            "line": 93,
+            "offset": 20
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 5,
+            "type": "same"
+          },
+          {
+            "index": 18,
+            "locals": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              },
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                },
+                "type": "object"
+              }
+            ],
+            "stack": [
+              {
+                "ref": {
+                  "kind": "class",
+                  "name": "java/lang/Exception"
+                },
+                "type": "object"
+              }
+            ],
+            "type": "full_frame"
+          },
+          {
+            "index": 20,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "strict_safe_dispatcher",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "java/lang/String"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/cases/advanced/CWE470",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    65,
+    0
+  ]
+}

@@ -21,7 +21,8 @@ public class Runtime {
           jpamb.cases.Strings.class,
           Dependent.class,
           Calls.class,
-          Vulnerable.class
+          jpamb.cases.advanced.CWE470.class,
+          jpamb.cases.advanced.CWE502.class
           );
 
   public static Case[] cases(Method m) {
