@@ -69,17 +69,17 @@ jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V           (s'hello') -> ok
 jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V           (s'not hello') -> assertion error
 jpamb.cases.Tricky.collatz:(I)V                              (0) -> assertion error
 jpamb.cases.Tricky.collatz:(I)V                              (24) -> ok
-jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
-jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|UpdatedLibrary|') -> assertion error
-jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok
-jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
-jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V (s'SER|SafeCommand|') -> ok
-jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> assertion error
-jpamb.cases.Vulnerable.strict_safe_dispatcher:(Ljava/lang/String;)V (s'Any') -> ok
-jpamb.cases.Vulnerable.unsafe_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
-jpamb.cases.Vulnerable.unsafe_dispatcher:(Ljava/lang/String;)V (s'__CANARY__') -> assertion error
-jpamb.cases.Vulnerable.weak_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
-jpamb.cases.Vulnerable.weak_dispatcher:(Ljava/lang/String;)V (s'SafeWrapper') -> assertion error
-jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|0') -> ok
-jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|1') -> assertion error
-jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok
+jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V (s'Any') -> ok
+jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
+jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V (s'__CANARY__') -> assertion error
+jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
+jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V (s'SafeWrapper') -> assertion error
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|UpdatedLibrary|') -> assertion error
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|SafeCommand|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> assertion error
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|0') -> ok
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|1') -> assertion error
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok
