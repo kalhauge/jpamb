@@ -53,7 +53,10 @@ public class Runtime {
       b.append("[C");
     } else if (c.equals(String.class)) {
       b.append("Ljava/lang/String;");
-    } else {
+    } else if (c.equals(Smith.class)) {
+      b.append("cases.jpamb.utils.Smith;");
+    }
+    else {
       throw new RuntimeException("Unknown type:" + c.toString());
     }
   }

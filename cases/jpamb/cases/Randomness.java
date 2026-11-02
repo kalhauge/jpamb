@@ -2,27 +2,26 @@ package jpamb.cases;
 //import static jpamb.utils.Tag.TagType.*;
 
 import jpamb.utils.Case;
-//import jpamb.utils.Tag;
+import jpamb.utils.Smith;
+
 public class Randomness {
+
     
-    @Case( "(1) -> assertion error") 
-    @Case( "(2) -> ok") 
-    public static void randomBranch(int dummy) {
-        if (coinflip()) {
+    @Case( "(b'102313312') -> assertion error") 
+    @Case( "(b'12312') -> ok") 
+    public static void randomBranch(Smith smith) {
+        if (smith.draw()) {
             assert true;
         } else {
             assert false;
         }
     }
-    @Case("() -> ok")
-    public static void assertTrue() {
-        assert true;
-    }
+
+    
 
     public static boolean coinflip() {
-        return true; //preliminary value 
+        return Math.random()>0.5; //preliminary value 
     }
-
 
 }
 

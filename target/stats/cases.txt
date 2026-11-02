@@ -36,9 +36,8 @@ jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
 jpamb.cases.Loops.terminates:()V                             () -> assertion error
-jpamb.cases.Randomness.assertTrue:()V                        () -> ok
-jpamb.cases.Randomness.randomBranch:(I)V                     (1) -> assertion error
-jpamb.cases.Randomness.randomBranch:(I)V                     (2) -> ok
+jpamb.cases.Randomness.randomBranch:(cases.jpamb.utils.Smith;)V (s'02313312') -> assertion error
+jpamb.cases.Randomness.randomBranch:(cases.jpamb.utils.Smith;)V (s'2312') -> ok
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error

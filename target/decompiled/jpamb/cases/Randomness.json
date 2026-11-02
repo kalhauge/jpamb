@@ -63,7 +63,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 6,
+            "line": 7,
             "offset": 0
           }
         ],
@@ -101,7 +101,7 @@
                     "values": {
                       "value": {
                         "type": "string",
-                        "value": "(1) -> assertion error"
+                        "value": "(b'102313312') -> assertion error"
                       }
                     }
                   }
@@ -113,7 +113,7 @@
                     "values": {
                       "value": {
                         "type": "string",
-                        "value": "(2) -> ok"
+                        "value": "(b'12312') -> ok"
                       }
                     }
                   }
@@ -127,30 +127,36 @@
         "annotations": [],
         "bytecode": [
           {
-            "access": "static",
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "interface",
             "method": {
               "args": [],
-              "is_interface": false,
-              "name": "coinflip",
+              "name": "draw",
               "ref": {
                 "kind": "class",
-                "name": "jpamb/cases/Randomness"
+                "name": "jpamb/utils/Smith"
               },
               "returns": "boolean"
             },
-            "offset": 0,
-            "opr": "invoke"
+            "offset": 1,
+            "opr": "invoke",
+            "stack_size": 1
           },
           {
             "condition": "eq",
-            "offset": 3,
+            "offset": 6,
             "opr": "ifz",
-            "target": 3
+            "target": 4
           },
           {
-            "offset": 6,
+            "offset": 9,
             "opr": "goto",
-            "target": 9
+            "target": 10
           },
           {
             "field": {
@@ -158,23 +164,23 @@
               "name": "$assertionsDisabled",
               "type": "boolean"
             },
-            "offset": 9,
+            "offset": 12,
             "opr": "get",
             "static": true
           },
           {
             "condition": "ne",
-            "offset": 12,
+            "offset": 15,
             "opr": "ifz",
-            "target": 9
+            "target": 10
           },
           {
             "class": "java/lang/AssertionError",
-            "offset": 15,
+            "offset": 18,
             "opr": "new"
           },
           {
-            "offset": 18,
+            "offset": 21,
             "opr": "dup",
             "words": 1
           },
@@ -190,15 +196,15 @@
               },
               "returns": null
             },
-            "offset": 19,
+            "offset": 22,
             "opr": "invoke"
           },
           {
-            "offset": 22,
+            "offset": 25,
             "opr": "throw"
           },
           {
-            "offset": 23,
+            "offset": 26,
             "opr": "return",
             "type": null
           }
@@ -206,27 +212,27 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 11,
+            "line": 13,
             "offset": 0
           },
           {
-            "line": 14,
-            "offset": 3
+            "line": 16,
+            "offset": 4
           },
           {
-            "line": 16,
-            "offset": 9
+            "line": 18,
+            "offset": 10
           }
         ],
         "max_locals": 1,
         "max_stack": 2,
         "stack_map": [
           {
-            "index": 3,
+            "index": 4,
             "type": "same"
           },
           {
-            "index": 9,
+            "index": 10,
             "type": "same"
           }
         ]
@@ -239,58 +245,14 @@
           "annotations": [],
           "type": {
             "annotations": [],
-            "base": "int"
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "jpamb/utils/Smith"
           },
           "visible": true
         }
       ],
-      "returns": {
-        "annotations": [],
-        "type": null
-      },
-      "typeparams": []
-    },
-    {
-      "access": [
-        "public",
-        "static"
-      ],
-      "annotations": [
-        {
-          "is_runtime_visible": true,
-          "type": "jpamb/utils/Case",
-          "values": {
-            "value": {
-              "type": "string",
-              "value": "() -> ok"
-            }
-          }
-        }
-      ],
-      "code": {
-        "annotations": [],
-        "bytecode": [
-          {
-            "offset": 0,
-            "opr": "return",
-            "type": null
-          }
-        ],
-        "exceptions": [],
-        "lines": [
-          {
-            "line": 20,
-            "offset": 0
-          }
-        ],
-        "max_locals": 0,
-        "max_stack": 0,
-        "stack_map": null
-      },
-      "default": null,
-      "exceptions": [],
-      "name": "assertTrue",
-      "params": [],
       "returns": {
         "annotations": [],
         "type": null
@@ -307,7 +269,42 @@
         "annotations": [],
         "bytecode": [
           {
+            "access": "static",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "random",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Math"
+              },
+              "returns": "double"
+            },
             "offset": 0,
+            "opr": "invoke"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "double",
+              "value": 0.5
+            }
+          },
+          {
+            "offset": 6,
+            "onnan": 1,
+            "opr": "comparefloating",
+            "type": "double"
+          },
+          {
+            "condition": "le",
+            "offset": 7,
+            "opr": "ifz",
+            "target": 6
+          },
+          {
+            "offset": 10,
             "opr": "push",
             "value": {
               "type": "integer",
@@ -315,7 +312,20 @@
             }
           },
           {
-            "offset": 1,
+            "offset": 11,
+            "opr": "goto",
+            "target": 7
+          },
+          {
+            "offset": 14,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 15,
             "opr": "return",
             "type": "int"
           }
@@ -328,8 +338,20 @@
           }
         ],
         "max_locals": 0,
-        "max_stack": 1,
-        "stack_map": null
+        "max_stack": 4,
+        "stack_map": [
+          {
+            "index": 6,
+            "type": "same"
+          },
+          {
+            "index": 7,
+            "info": {
+              "type": "integer"
+            },
+            "type": "same_locals_1_stack_item_frame"
+          }
+        ]
       },
       "default": null,
       "exceptions": [],
@@ -422,7 +444,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 6,
+            "line": 7,
             "offset": 0
           }
         ],

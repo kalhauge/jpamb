@@ -214,25 +214,25 @@
       :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
         :reachable (0 1)
       )
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 4)
-      )
       :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
+      )
+      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
+        :reachable (0 1 4)
       )
     )
     :results ("assertion error")
   )
   :"jpamb.cases.Calls.callsAssertIf!(true)V" (control
     :coverage (
+      :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
+        :reachable (0 1 2)
+      )
       :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
         :reachable (0 1 2 3 5)
       )
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
         :reachable (0)
-      )
-      :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
-        :reachable (0 1 2)
       )
     )
     :results (ok)
@@ -350,32 +350,18 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Randomness.assertTrue!()V" (control
-    :coverage (
-      :"jpamb.cases.Randomness.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Randomness.randomBranch!(1)V" (control
     :coverage (
-      :"jpamb.cases.Randomness.coinflip:()Z" (coverage
-        :reachable (0 1)
-      )
       :"jpamb.cases.Randomness.randomBranch:(I)V" (coverage
-        :reachable (0 9 2 1)
+        :reachable (0 1 2 4 5 6)
       )
     )
     :results ("assertion error")
   )
   :"jpamb.cases.Randomness.randomBranch!(2)V" (control
     :coverage (
-      :"jpamb.cases.Randomness.coinflip:()Z" (coverage
-        :reachable (0 1)
-      )
       :"jpamb.cases.Randomness.randomBranch:(I)V" (coverage
-        :reachable (0 9 2 1)
+        :reachable (0 1 2 3 10)
       )
     )
     :results (ok)
@@ -706,7 +692,7 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
       )
     )
-    :results ("out of bounds" "null pointer")
+    :results ("null pointer" "out of bounds")
   )
   :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (control
     :coverage (
@@ -714,7 +700,7 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 31)
       )
     )
-    :results (ok "out of bounds" "assertion error")
+    :results (ok "assertion error" "out of bounds")
   )
   :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (control
     :coverage (
@@ -741,7 +727,7 @@
         :reachable (0 1)
       )
     )
-    :results ("out of bounds" ok "assertion error")
+    :results (ok "assertion error" "out of bounds")
   )
   :"jpamb.cases.Calls.callsAssertFalse:()V" (control
     :coverage (
@@ -770,11 +756,11 @@
       :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
         :reachable (0 1 2)
       )
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 2 3 4 5)
-      )
       :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
+      )
+      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
+        :reachable (0 1 2 3 4 5)
       )
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
         :reachable (0)
@@ -813,7 +799,7 @@
         :reachable (0 1 2 3 4 5 9 10 14 15 16 17 18 19 20)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Dependent.divisionLoop:(I)V" (control
     :coverage (
@@ -871,21 +857,10 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Randomness.assertTrue:()V" (control
-    :coverage (
-      :"jpamb.cases.Randomness.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Randomness.randomBranch:(I)V" (control
     :coverage (
-      :"jpamb.cases.Randomness.coinflip:()Z" (coverage
-        :reachable (0 1)
-      )
       :"jpamb.cases.Randomness.randomBranch:(I)V" (coverage
-        :reachable (0 1 2 9)
+        :reachable (0 1 2 3 4 5 6 10)
       )
     )
     :results (ok "assertion error")
@@ -960,7 +935,7 @@
         :reachable (0 1 2 3)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.divideByNMinus10054203:(I)I" (control
     :coverage (
@@ -968,7 +943,7 @@
         :reachable (0 1 2 3 4 5)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.divideByZero:()I" (control
     :coverage (
@@ -984,7 +959,7 @@
         :reachable (0 1 2 3)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.doNothing:()V" (control
     :coverage (

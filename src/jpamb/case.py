@@ -142,6 +142,21 @@ class String(Value):
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.sexpr([sexpr.sexpr(self.type), self.value])
 
+@dataclass(frozen=True)
+class Smith(Value):
+    value: str
+
+    @property
+    def type(self) -> jvm.Type:
+        return jvm.Object(jvm.ClassName("cases.jpamb.utils.Smith"))
+
+    def encode(self) -> str:
+        return f"r'{self.value}'"
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.sexpr([sexpr.sexpr(self.type), self.value])
+
+    #TODO: add draw??
 
 @dataclass(frozen=True)
 class Array(Value):
