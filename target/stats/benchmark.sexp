@@ -7,23 +7,7 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Arrays.arrayContent:()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayContent:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 39 40)
-      )
-    )
-    :results ("assertion error")
-  )
   :"jpamb.cases.Arrays.arrayContentAboveMinus13!()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 40 41 42)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (control
     :coverage (
       :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (coverage
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 40 41 42)
@@ -39,23 +23,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Arrays.arrayInBounds:()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayInBounds:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Arrays.arrayIsNull!()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayIsNull:()V" (coverage
-        :reachable (0 1 2 3 4 5)
-      )
-    )
-    :results ("null pointer")
-  )
-  :"jpamb.cases.Arrays.arrayIsNull:()V" (control
     :coverage (
       :"jpamb.cases.Arrays.arrayIsNull:()V" (coverage
         :reachable (0 1 2 3 4 5)
@@ -71,23 +39,7 @@
     )
     :results ("null pointer")
   )
-  :"jpamb.cases.Arrays.arrayIsNullLength:()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayIsNullLength:()V" (coverage
-        :reachable (0 1 2 3 4 5)
-      )
-    )
-    :results ("null pointer")
-  )
   :"jpamb.cases.Arrays.arrayLength!()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayLength:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 21)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Arrays.arrayLength:()V" (control
     :coverage (
       :"jpamb.cases.Arrays.arrayLength:()V" (coverage
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 21)
@@ -111,23 +63,7 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (coverage
-        :reachable (0 1 2 3 4 5 9)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Arrays.arrayOutOfBounds!()V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
-      )
-    )
-    :results ("out of bounds")
-  )
-  :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (control
     :coverage (
       :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (coverage
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
@@ -150,14 +86,6 @@
       )
     )
     :results ("null pointer")
-  )
-  :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
-      )
-    )
-    :results ("null pointer" "out of bounds")
   )
   :"jpamb.cases.Arrays.arraySpellsHello!([C:'h', 'e', 'l', 'l', 'o'])V" (control
     :coverage (
@@ -183,14 +111,6 @@
     )
     :results ("out of bounds")
   )
-  :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 31)
-      )
-    )
-    :results ("assertion error" ok "out of bounds")
-  )
   :"jpamb.cases.Arrays.arraySumIsLarge!([I:50, 100, 200])V" (control
     :coverage (
       :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (coverage
@@ -206,14 +126,6 @@
       )
     )
     :results ("assertion error")
-  )
-  :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 25)
-      )
-    )
-    :results ("assertion error" ok)
   )
   :"jpamb.cases.Arrays.binarySearch!(3)V" (control
     :coverage (
@@ -231,70 +143,40 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Arrays.binarySearch:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Arrays.binarySearch:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Calls.allPrimesArePositive!(-1)V" (control
     :coverage (
-      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
-        :reachable (0 1 2 3 4)
-      )
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
         :reachable (0 1)
+      )
+      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
+        :reachable (0 1 2 3 4)
       )
     )
     :results ("assertion error")
   )
   :"jpamb.cases.Calls.allPrimesArePositive!(0)V" (control
     :coverage (
-      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14)
-      )
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
         :reachable (0 1)
+      )
+      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
+        :reachable (0 1 2 3 8 9 10 11 12 13 14)
       )
     )
     :results ("out of bounds")
   )
   :"jpamb.cases.Calls.allPrimesArePositive!(100)V" (control
     :coverage (
-      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 56 57 58 59 60 61 62 63 64)
-      )
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
         :reachable (0 1)
+      )
+      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
+        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 56 57 58 59 60 61 62 63 64)
       )
     )
     :results (ok)
   )
-  :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
-        :reachable (0 1)
-      )
-      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
-        :reachable (0 1 2 3 4 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 56 57 58 59 60 61 62 63 64)
-      )
-    )
-    :results ("assertion error" ok "out of bounds")
-  )
   :"jpamb.cases.Calls.callsAssertFalse!()V" (control
-    :coverage (
-      :"jpamb.cases.Calls.callsAssertFalse:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.Calls.assertFalse:()V" (coverage
-        :reachable (0 1 2)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.Calls.callsAssertFalse:()V" (control
     :coverage (
       :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
@@ -307,52 +189,33 @@
   )
   :"jpamb.cases.Calls.callsAssertFib!(0)V" (control
     :coverage (
-      :"jpamb.cases.Calls.fib:(I)I" (coverage
-        :reachable (0 1 2 3 8 9 13 14)
-      )
       :"jpamb.cases.Calls.callsAssertFib:(I)V" (coverage
         :reachable (0 1 2 3 4 5 6)
+      )
+      :"jpamb.cases.Calls.fib:(I)I" (coverage
+        :reachable (0 1 2 3 8 9 13 14)
       )
     )
     :results ("assertion error")
   )
   :"jpamb.cases.Calls.callsAssertFib!(8)V" (control
     :coverage (
-      :"jpamb.cases.Calls.fib:(I)I" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 15 16 17 18)
-      )
       :"jpamb.cases.Calls.callsAssertFib:(I)V" (coverage
         :reachable (0 1 2 3)
+      )
+      :"jpamb.cases.Calls.fib:(I)I" (coverage
+        :reachable (0 1 2 3 8 9 10 11 12 15 16 17 18)
       )
     )
     :results (ok)
   )
-  :"jpamb.cases.Calls.callsAssertFib:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Calls.callsAssertFib:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6)
-      )
-      :"jpamb.cases.Calls.fib:(I)I" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Calls.callsAssertIf!(false)V" (control
     :coverage (
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 4)
-      )
-<<<<<<< HEAD
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 4)
-=======
-      :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
-        :reachable (0 1)
-      )
       :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
->>>>>>> 1856876 (dynamic interpreter)
+      )
+      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
+        :reachable (0 1 4)
       )
       :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
         :reachable (0 1)
@@ -362,81 +225,23 @@
   )
   :"jpamb.cases.Calls.callsAssertIf!(true)V" (control
     :coverage (
-<<<<<<< HEAD
       :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
         :reachable (0 1 2 3 5)
       )
-<<<<<<< HEAD
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
         :reachable (0)
-=======
-      :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
-        :reachable (0 1 2)
->>>>>>> 9fb1638 (updated benchmark expansion)
       )
       :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
         :reachable (0 1 2)
-=======
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 2 3 5)
->>>>>>> 1856876 (dynamic interpreter)
-      )
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
       )
     )
     :results (ok)
-  )
-  :"jpamb.cases.Calls.callsAssertIf:(Z)V" (control
-    :coverage (
-      :"jpamb.cases.Calls.assertFalse:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 2 3 4 5)
-      )
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results ("assertion error" ok)
   )
   :"jpamb.cases.Calls.callsAssertIfWithTrue!()V" (control
     :coverage (
-<<<<<<< HEAD
       :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
         :reachable (0 1 2 3 5)
       )
-<<<<<<< HEAD
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-=======
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 2 3 5)
-      )
-      :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (coverage
-        :reachable (0 1 2)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-      :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (coverage
-        :reachable (0 1 2)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (control
-    :coverage (
-      :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
-        :reachable (0 1 2 3 5)
-      )
-=======
->>>>>>> 1856876 (dynamic interpreter)
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
         :reachable (0)
       )
@@ -448,20 +253,6 @@
   )
   :"jpamb.cases.Calls.callsAssertTrue!()V" (control
     :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.Calls.callsAssertTrue:()V" (coverage
-        :reachable (0 1)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Calls.callsAssertTrue:()V" (control
-    :coverage (
-=======
->>>>>>> 9fb1638 (updated benchmark expansion)
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
         :reachable (0)
       )
@@ -487,14 +278,6 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Dependent.badNormalizedDistance:(II)I" (control
-    :coverage (
-      :"jpamb.cases.Dependent.badNormalizedDistance:(II)I" (coverage
-        :reachable (0 1 2 3 4 5 9 10 14 15 16 17 18 19 20)
-      )
-    )
-    :results ("divide by zero" ok)
-  )
   :"jpamb.cases.Dependent.divisionLoop!(0)V" (control
     :coverage (
       :"jpamb.cases.Dependent.divisionLoop:(I)V" (coverage
@@ -511,23 +294,7 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Dependent.divisionLoop:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Dependent.divisionLoop:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 20)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Dependent.normalizedDistance!(0, 0)I" (control
-    :coverage (
-      :"jpamb.cases.Dependent.normalizedDistance:(II)I" (coverage
-        :reachable (0 1 2 3 4 5 6 7)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Dependent.normalizedDistance:(II)I" (control
     :coverage (
       :"jpamb.cases.Dependent.normalizedDistance:(II)I" (coverage
         :reachable (0 1 2 3 4 5 6 7)
@@ -543,23 +310,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Dependent.safeDivByN:(I)I" (control
-    :coverage (
-      :"jpamb.cases.Dependent.safeDivByN:(I)I" (coverage
-        :reachable (0 1 6 7)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Loops.forever!()V" (control
-    :coverage (
-      :"jpamb.cases.Loops.forever:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (*)
-  )
-  :"jpamb.cases.Loops.forever:()V" (control
     :coverage (
       :"jpamb.cases.Loops.forever:()V" (coverage
         :reachable (0)
@@ -575,14 +326,6 @@
     )
     :results (*)
   )
-  :"jpamb.cases.Loops.neverAsserts:()V" (control
-    :coverage (
-      :"jpamb.cases.Loops.neverAsserts:()V" (coverage
-        :reachable (0 1 2 3 4)
-      )
-    )
-    :results (*)
-  )
   :"jpamb.cases.Loops.neverDivides!()I" (control
     :coverage (
       :"jpamb.cases.Loops.neverDivides:()I" (coverage
@@ -591,23 +334,7 @@
     )
     :results (*)
   )
-  :"jpamb.cases.Loops.neverDivides:()I" (control
-    :coverage (
-      :"jpamb.cases.Loops.neverDivides:()I" (coverage
-        :reachable (0 1 2 3 4)
-      )
-    )
-    :results (*)
-  )
   :"jpamb.cases.Loops.terminates!()V" (control
-    :coverage (
-      :"jpamb.cases.Loops.terminates:()V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 10 11 12)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.Loops.terminates:()V" (control
     :coverage (
       :"jpamb.cases.Loops.terminates:()V" (coverage
         :reachable (0 1 2 3 4 5 6 7 8 10 11 12)
@@ -631,23 +358,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.assertBoolean:(Z)V" (control
-    :coverage (
-      :"jpamb.cases.Simple.assertBoolean:(Z)V" (coverage
-        :reachable (0 1 2 3 4 8)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Simple.assertFalse!()V" (control
-    :coverage (
-      :"jpamb.cases.Simple.assertFalse:()V" (coverage
-        :reachable (0 1 2)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.Simple.assertFalse:()V" (control
     :coverage (
       :"jpamb.cases.Simple.assertFalse:()V" (coverage
         :reachable (0 1 2)
@@ -671,14 +382,6 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.assertInteger:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Simple.assertInteger:(I)V" (coverage
-        :reachable (0 1 2 3 4 8)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Simple.assertPositive!(-1)V" (control
     :coverage (
       :"jpamb.cases.Simple.assertPositive:(I)V" (coverage
@@ -695,23 +398,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.assertPositive:(I)V" (control
-    :coverage (
-      :"jpamb.cases.Simple.assertPositive:(I)V" (coverage
-        :reachable (0 1 2 3 4 8)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Simple.assertTrue!()V" (control
-    :coverage (
-      :"jpamb.cases.Simple.assertTrue:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.assertTrue:()V" (control
     :coverage (
       :"jpamb.cases.Simple.assertTrue:()V" (coverage
         :reachable (0)
@@ -735,13 +422,13 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.checkBeforeAssert:(I)V" (control
+  :"jpamb.cases.Simple.checkBeforeDivideByN2!(0)I" (control
     :coverage (
-      :"jpamb.cases.Simple.checkBeforeAssert:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9)
+      :"jpamb.cases.Simple.checkBeforeDivideByN2:(I)I" (coverage
+        :reachable (0 1 6 7 8 9 10 15 16)
       )
     )
-    :results ("assertion error" ok)
+    :results (ok)
   )
   :"jpamb.cases.Simple.checkBeforeDivideByN!(0)I" (control
     :coverage (
@@ -759,30 +446,6 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.checkBeforeDivideByN2!(0)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.checkBeforeDivideByN2:(I)I" (coverage
-        :reachable (0 1 6 7 8 9 10 15 16)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.checkBeforeDivideByN2:(I)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.checkBeforeDivideByN2:(I)I" (coverage
-        :reachable (0 1 6 7 8 9 10 15 16)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.checkBeforeDivideByN:(I)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.checkBeforeDivideByN:(I)I" (coverage
-        :reachable (0 1 2 3 4 8 9 10 11)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Simple.divideByN!(0)I" (control
     :coverage (
       :"jpamb.cases.Simple.divideByN:(I)I" (coverage
@@ -798,14 +461,6 @@
       )
     )
     :results (ok)
-  )
-  :"jpamb.cases.Simple.divideByN:(I)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.divideByN:(I)I" (coverage
-        :reachable (0 1 2 3)
-      )
-    )
-    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.divideByNMinus10054203!(0)I" (control
     :coverage (
@@ -823,23 +478,7 @@
     )
     :results ("divide by zero")
   )
-  :"jpamb.cases.Simple.divideByNMinus10054203:(I)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.divideByNMinus10054203:(I)I" (coverage
-        :reachable (0 1 2 3 4 5)
-      )
-    )
-    :results ("divide by zero" ok)
-  )
   :"jpamb.cases.Simple.divideByZero!()I" (control
-    :coverage (
-      :"jpamb.cases.Simple.divideByZero:()I" (coverage
-        :reachable (0 1 2)
-      )
-    )
-    :results ("divide by zero")
-  )
-  :"jpamb.cases.Simple.divideByZero:()I" (control
     :coverage (
       :"jpamb.cases.Simple.divideByZero:()I" (coverage
         :reachable (0 1 2)
@@ -863,23 +502,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.divideZeroByZero:(II)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.divideZeroByZero:(II)I" (coverage
-        :reachable (0 1 2 3)
-      )
-    )
-    :results ("divide by zero" ok)
-  )
   :"jpamb.cases.Simple.doNothing!()V" (control
-    :coverage (
-      :"jpamb.cases.Simple.doNothing:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.doNothing:()V" (control
     :coverage (
       :"jpamb.cases.Simple.doNothing:()V" (coverage
         :reachable (0)
@@ -895,23 +518,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.earlyReturn:()I" (control
-    :coverage (
-      :"jpamb.cases.Simple.earlyReturn:()I" (coverage
-        :reachable (0 1)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Simple.justAdd!(1, 2)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.justAdd:(II)I" (coverage
-        :reachable (0 1 2 3)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.justAdd:(II)I" (control
     :coverage (
       :"jpamb.cases.Simple.justAdd:(II)I" (coverage
         :reachable (0 1 2 3)
@@ -927,14 +534,6 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.justMulitply:(II)I" (control
-    :coverage (
-      :"jpamb.cases.Simple.justMulitply:(II)I" (coverage
-        :reachable (0 1 2 3)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Simple.justReturn!()I" (control
     :coverage (
       :"jpamb.cases.Simple.justReturn:()I" (coverage
@@ -943,23 +542,7 @@
     )
     :results (ok)
   )
-  :"jpamb.cases.Simple.justReturn:()I" (control
-    :coverage (
-      :"jpamb.cases.Simple.justReturn:()I" (coverage
-        :reachable (0 1)
-      )
-    )
-    :results (ok)
-  )
   :"jpamb.cases.Simple.justReturnNothing!()V" (control
-    :coverage (
-      :"jpamb.cases.Simple.justReturnNothing:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Simple.justReturnNothing:()V" (control
     :coverage (
       :"jpamb.cases.Simple.justReturnNothing:()V" (coverage
         :reachable (0)
@@ -983,13 +566,93 @@
     )
     :results ("divide by zero")
   )
-  :"jpamb.cases.Simple.multiError:(Z)I" (control
+  :"jpamb.cases.Strings.checkComplexSequence!(s'A------Z')V" (control
     :coverage (
-      :"jpamb.cases.Simple.multiError:(Z)I" (coverage
-        :reachable (0 1 2 3 4 8 9 10)
+      :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 20 21 22 23 24 25 26)
       )
     )
-    :results ("assertion error" "divide by zero")
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.checkComplexSequence!(s'A---B---X')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 16)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.checkComplexSequence!(s'A---B---Z')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 20 21 22 23 24 25 30)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Strings.checkComplexSequence!(s'B------Z')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.checkExtension!(s'.pdf')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 16)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.checkExtension!(s'document.doc')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.checkExtension!(s'document.pdf')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 20)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Strings.sayHello2!(s'good morning')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 20)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Strings.sayHello2!(s'morning')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Strings.sayHello3!(s'bad night')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 10 11 12 13 14 15 20)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Strings.sayHello3!(s'good morning')V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+    )
+    :results ("assertion error")
   )
   :"jpamb.cases.Strings.sayHello!(s'hello')V" (control
     :coverage (
@@ -1007,14 +670,6 @@
     )
     :results ("assertion error")
   )
-  :"jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V" (control
-    :coverage (
-      :"jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 10)
-      )
-    )
-    :results ("assertion error" ok)
-  )
   :"jpamb.cases.Tricky.collatz!(0)V" (control
     :coverage (
       :"jpamb.cases.Tricky.collatz:(I)V" (coverage
@@ -1027,297 +682,6 @@
     :coverage (
       :"jpamb.cases.Tricky.collatz:(I)V" (coverage
         :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26)
-      )
-    )
-    :results (ok)
-  )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  :"jpamb.cases.Vulnerable.blacklist_deserialization!(s'SER|DummyButton|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Vulnerable.blacklist_deserialization!(s'SER|UpdatedLibrary|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.Vulnerable.blacklist_deserialization!(s'SER|__CANARY__Command|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Vulnerable.insecure_deserialization!(s'SER|DummyButton|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Vulnerable.insecure_deserialization!(s'SER|SafeCommand|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Vulnerable.insecure_deserialization!(s'SER|__CANARY__Command|')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.Vulnerable.strict_safe_dispatcher!(s'Any')V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-  :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher!(s'Any')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher!(s'Safe')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 9 10 11 12 15)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher!(s'__CANARY__')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7)
-      )
-      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
-        :reachable (0)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.advanced.CWE470.weak_dispatcher!(s'Safe')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 17 18 19 20 23)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE470.weak_dispatcher!(s'SafeWrapper')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeWrapperCommand.<init>:()V" (coverage
-        :reachable (0 1)
-      )
-      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|DummyButton|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1)
-      )
-      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 33 34 35 36)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|UpdatedLibrary|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1)
-      )
-      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 33 34 35 36)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|__CANARY__Command|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|DummyButton|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 24 25 26 27)
-      )
-      :"jpamb.cases.advanced.CWE502$DummyButton.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 9)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|SafeCommand|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 28 29 30 31 32 33 34 40 41 42 43)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 9)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|__CANARY__Command|')V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 28 29 30 31 44 45 46 47 48 49 50 56 57 58)
-      )
-      :"jpamb.cases.advanced.CWE502$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-      :"jpamb.cases.advanced.CWE502.canary:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|DownGradableLibrary|0')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 37 38)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|DownGradableLibrary|1')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 37 38)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results ("assertion error")
-  )
-  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|__CANARY__Command|')V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 32 33 34 35 36)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
       )
     )
     :results (ok)
@@ -1376,7 +740,7 @@
         :reachable (0 1 2 3 4 5 9)
       )
     )
-    :results (ok "assertion error")
+    :results ("assertion error" ok)
   )
   :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (control
     :coverage (
@@ -1392,7 +756,7 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
       )
     )
-    :results ("out of bounds" "null pointer")
+    :results ("null pointer" "out of bounds")
   )
   :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (control
     :coverage (
@@ -1400,7 +764,7 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 31)
       )
     )
-    :results (ok "assertion error" "out of bounds")
+    :results ("assertion error" ok "out of bounds")
   )
   :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (control
     :coverage (
@@ -1408,7 +772,7 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 25)
       )
     )
-    :results (ok "assertion error")
+    :results ("assertion error" ok)
   )
   :"jpamb.cases.Arrays.binarySearch:(I)V" (control
     :coverage (
@@ -1416,50 +780,50 @@
         :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)
       )
     )
-    :results (ok "assertion error")
+    :results ("assertion error" ok)
   )
   :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (control
     :coverage (
-      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
-        :reachable (0 1 2 3 4 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 56 57 58 59 60 61 62 63 64)
-      )
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
         :reachable (0 1)
       )
+      :"jpamb.cases.Calls.generatePrimeArray:(I)[I" (coverage
+        :reachable (0 1 2 3 4 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 56 57 58 59 60 61 62 63 64)
+      )
     )
-    :results ("assertion error" "out of bounds" ok)
+    :results ("assertion error" ok "out of bounds")
   )
   :"jpamb.cases.Calls.callsAssertFalse:()V" (control
     :coverage (
-      :"jpamb.cases.Calls.callsAssertFalse:()V" (coverage
-        :reachable (0)
-      )
       :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
+      )
+      :"jpamb.cases.Calls.callsAssertFalse:()V" (coverage
+        :reachable (0)
       )
     )
     :results ("assertion error")
   )
   :"jpamb.cases.Calls.callsAssertFib:(I)V" (control
     :coverage (
-      :"jpamb.cases.Calls.fib:(I)I" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18)
-      )
       :"jpamb.cases.Calls.callsAssertFib:(I)V" (coverage
         :reachable (0 1 2 3 4 5 6)
+      )
+      :"jpamb.cases.Calls.fib:(I)I" (coverage
+        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 16 17 18)
       )
     )
     :results ("assertion error" ok)
   )
   :"jpamb.cases.Calls.callsAssertIf:(Z)V" (control
     :coverage (
+      :"jpamb.cases.Calls.assertFalse:()V" (coverage
+        :reachable (0 1 2)
+      )
       :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
         :reachable (0 1 2 3 4 5)
       )
       :"jpamb.cases.Calls.callsAssertIf:(Z)V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.Calls.assertFalse:()V" (coverage
         :reachable (0 1 2)
       )
       :"jpamb.cases.Calls.assertTrue:()V" (coverage
@@ -1470,17 +834,11 @@
   )
   :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (control
     :coverage (
-<<<<<<< HEAD
-=======
-      :"jpamb.cases.Calls.assertTrue:()V" (coverage
-        :reachable (0)
-      )
->>>>>>> 9fb1638 (updated benchmark expansion)
       :"jpamb.cases.Calls.assertIf:(Z)V" (coverage
         :reachable (0 1 2 3 5)
       )
-      :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (coverage
-        :reachable (0 1 2)
+      :"jpamb.cases.Calls.assertTrue:()V" (coverage
+        :reachable (0)
       )
       :"jpamb.cases.Calls.callsAssertIfWithTrue:()V" (coverage
         :reachable (0 1 2)
@@ -1505,15 +863,15 @@
         :reachable (0 1 2 3 4 5 9 10 14 15 16 17 18 19 20)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Dependent.divisionLoop:(I)V" (control
     :coverage (
       :"jpamb.cases.Dependent.divisionLoop:(I)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 20)
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 20)
       )
     )
-    :results (ok)
+    :results ("assertion error" ok)
   )
   :"jpamb.cases.Dependent.normalizedDistance:(II)I" (control
     :coverage (
@@ -1526,7 +884,7 @@
   :"jpamb.cases.Dependent.safeDivByN:(I)I" (control
     :coverage (
       :"jpamb.cases.Dependent.safeDivByN:(I)I" (coverage
-        :reachable (0 1 2 3 4 5 6 7)
+        :reachable (0 1 6 7)
       )
     )
     :results (ok)
@@ -1633,7 +991,7 @@
         :reachable (0 1 2 3)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.divideByNMinus10054203:(I)I" (control
     :coverage (
@@ -1641,7 +999,7 @@
         :reachable (0 1 2 3 4 5)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.divideByZero:()I" (control
     :coverage (
@@ -1657,7 +1015,7 @@
         :reachable (0 1 2 3)
       )
     )
-    :results (ok "divide by zero")
+    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Simple.doNothing:()V" (control
     :coverage (
@@ -1715,15 +1073,46 @@
     )
     :results ("assertion error" "divide by zero")
   )
+  :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 10 11 12 13 14 15 16 20 21 22 23 24 25 26 30)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 10 11 12 13 14 15 16 20)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 10 11 12 13 14 15 20)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 10 11 12 13 14 15 20)
+      )
+    )
+    :results ("assertion error" ok)
+  )
   :"jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V" (control
     :coverage (
       :"jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V" (coverage
         :reachable (0 1 2 3 4 5 6 10)
       )
     )
-    :results (ok "assertion error")
+    :results ("assertion error" ok)
   )
->>>>>>> 1856876 (dynamic interpreter)
   :"jpamb.cases.Tricky.collatz:(I)V" (control
     :coverage (
       :"jpamb.cases.Tricky.collatz:(I)V" (coverage
@@ -1731,149 +1120,5 @@
       )
     )
     :results ("assertion error" ok)
-<<<<<<< HEAD
-=======
-  )
-  :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok "assertion error")
-  )
-  :"jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-      )
-    )
-    :results (ok "assertion error")
-  )
-  :"jpamb.cases.Vulnerable.strict_safe_dispatcher:(Ljava/lang/String;)V" (control
-    :coverage (
-      :"jpamb.cases.Vulnerable.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-    )
-    :results (ok)
->>>>>>> 1856876 (dynamic interpreter)
-  )
-  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 9 10 11 12 15)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok "assertion error")
-  )
-  :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
-        :reachable (0)
-      )
-      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 8 9 10 11 12 13 14 15 17 18 19 20 23)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE470$SafeWrapperCommand.<init>:()V" (coverage
-        :reachable (0 1)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results (ok "assertion error")
-  )
-  :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (control
-    :coverage (
-<<<<<<< HEAD
-      :"jpamb.cases.Vulnerable.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable ()
-=======
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1)
-      )
-      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-    )
-    :results ("assertion error" ok)
-  )
-  :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 24 25 26 27 28 29 30 31 32 33 34 40 41 42 43 44 45 46 47 48 49 50 56 57 58)
-      )
-      :"jpamb.cases.advanced.CWE502$DummyButton.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 9)
-      )
-      :"jpamb.cases.advanced.CWE502$SafeCommand.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502$__CANARY__Command.<init>:()V" (coverage
-        :reachable (0 1 2)
-      )
-      :"jpamb.cases.advanced.CWE502.canary:()V" (coverage
-        :reachable (0)
-      )
-    )
-    :results ("assertion error" ok)
-  )
-  :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (control
-    :coverage (
-      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38)
->>>>>>> 9fb1638 (updated benchmark expansion)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
-        :reachable (0 1 2 3 4 5 6)
-      )
-      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
-      )
-    )
-    :results (ok "assertion error")
   )
 )
