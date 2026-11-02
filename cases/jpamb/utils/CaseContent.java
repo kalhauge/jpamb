@@ -23,6 +23,8 @@ public record CaseContent(Object[] params, ResultType result) {
         chars.add("'" + x + "'");
       }
       return "[C:" + String.join(", ", chars) + "]";
+    } else if (obj instanceof BitSmith smith) {
+      return "b'" + smith.bits() + "'";
     } else if (obj instanceof String) {
       return "s'" + obj + "'";
     } else {

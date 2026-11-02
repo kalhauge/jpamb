@@ -148,7 +148,7 @@ class Smith(Value):
 
     @property
     def type(self) -> jvm.Type:
-        return jvm.Object(jvm.ClassName("cases.jpamb.utils.Smith"))
+        return jvm.Object(jvm.ClassName("jpamb.utils.Smith"))
 
     def encode(self) -> str:
         return f"r'{self.value}'"
@@ -203,6 +203,7 @@ class InputParser:
             ("INT", r"-?\d+"),
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
+            ("SMITH", r"[br]'[^']*'"),
             ("STRING", r"s'[^']*'"),
             ("COMMA", r","),
             ("SKIP", r"[ \t]+"),
@@ -249,6 +250,8 @@ class InputParser:
                 return Char(self.parse_char())
             case "BOOL":
                 return Boolean(self.parse_bool())
+            case "SMITH":
+                return self.parse_smith()
             case "STRING":
                 return String(self.parse_string())
             case "OPEN_ARRAY":
@@ -270,6 +273,10 @@ class InputParser:
     def parse_string(self):
         tok = self.expect("STRING")
         return tok.value[2:-1]
+
+    def parse_smith(self):
+        tok = self.expect("SMITH")
+        return Smith(tok.value[2:-1])
 
     def parse_array(self):
         key = self.expect("OPEN_ARRAY")

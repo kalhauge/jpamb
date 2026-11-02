@@ -1,0 +1,496 @@
+{
+  "access": [
+    "final",
+    "super"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [
+    {
+      "access": [
+        "private",
+        "final"
+      ],
+      "annotations": [],
+      "name": "bits",
+      "type": {
+        "annotations": [],
+        "args": [],
+        "inner": null,
+        "kind": "class",
+        "name": "java/lang/String"
+      },
+      "value": null
+    },
+    {
+      "access": [
+        "private"
+      ],
+      "annotations": [],
+      "name": "index",
+      "type": {
+        "annotations": [],
+        "base": "int"
+      },
+      "value": null
+    }
+  ],
+  "innerclasses": [],
+  "interfaces": [
+    {
+      "annotations": [],
+      "args": [],
+      "inner": null,
+      "name": "jpamb/utils/Smith"
+    }
+  ],
+  "methods": [
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/Object"
+              },
+              "returns": null
+            },
+            "offset": 1,
+            "opr": "invoke"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 5,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "bits",
+              "type": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 6,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 11,
+            "offset": 0
+          },
+          {
+            "line": 12,
+            "offset": 2
+          },
+          {
+            "line": 13,
+            "offset": 5
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "<init>",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "args": [],
+            "inner": null,
+            "kind": "class",
+            "name": "java/lang/String"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "bits",
+              "type": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 1,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "offset": 4,
+            "opr": "return",
+            "type": "ref"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 16,
+            "offset": 0
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 1,
+        "stack_map": null
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "bits",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "args": [],
+          "inner": null,
+          "kind": "class",
+          "name": "java/lang/String"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public"
+      ],
+      "annotations": [],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "index",
+              "type": "int"
+            },
+            "offset": 1,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "bits",
+              "type": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 5,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "length",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              "returns": "int"
+            },
+            "offset": 8,
+            "opr": "invoke"
+          },
+          {
+            "condition": "lt",
+            "offset": 11,
+            "opr": "if",
+            "target": 11
+          },
+          {
+            "class": "java/lang/IllegalStateException",
+            "offset": 14,
+            "opr": "new"
+          },
+          {
+            "offset": 17,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 18,
+            "opr": "push",
+            "value": {
+              "type": "string",
+              "value": "Smith input exhausted"
+            }
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/String"
+                }
+              ],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/IllegalStateException"
+              },
+              "returns": null
+            },
+            "offset": 20,
+            "opr": "invoke"
+          },
+          {
+            "offset": 23,
+            "opr": "throw"
+          },
+          {
+            "index": 0,
+            "offset": 24,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "bits",
+              "type": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
+            "offset": 25,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "index": 0,
+            "offset": 28,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 29,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "index",
+              "type": "int"
+            },
+            "offset": 30,
+            "opr": "get",
+            "static": false
+          },
+          {
+            "offset": 33,
+            "opr": "dup_x1",
+            "words": 1
+          },
+          {
+            "offset": 34,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "offset": 35,
+            "operant": "add",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "field": {
+              "class": "jpamb/utils/BitSmith",
+              "name": "index",
+              "type": "int"
+            },
+            "offset": 36,
+            "opr": "put",
+            "static": false
+          },
+          {
+            "access": "virtual",
+            "method": {
+              "args": [
+                "int"
+              ],
+              "name": "charAt",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/String"
+              },
+              "returns": "char"
+            },
+            "offset": 39,
+            "opr": "invoke"
+          },
+          {
+            "offset": 42,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 48
+            }
+          },
+          {
+            "condition": "eq",
+            "offset": 44,
+            "opr": "if",
+            "target": 25
+          },
+          {
+            "offset": 47,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "offset": 48,
+            "opr": "goto",
+            "target": 26
+          },
+          {
+            "offset": 51,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 52,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 21,
+            "offset": 0
+          },
+          {
+            "line": 22,
+            "offset": 6
+          },
+          {
+            "line": 24,
+            "offset": 11
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 5,
+        "stack_map": [
+          {
+            "index": 11,
+            "type": "same"
+          },
+          {
+            "index": 25,
+            "type": "same"
+          },
+          {
+            "index": 26,
+            "info": {
+              "type": "integer"
+            },
+            "type": "same_locals_1_stack_item_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "draw",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "boolean"
+        }
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/utils/BitSmith",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    65,
+    0
+  ]
+}

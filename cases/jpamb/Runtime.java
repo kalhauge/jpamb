@@ -54,7 +54,7 @@ public class Runtime {
     } else if (c.equals(String.class)) {
       b.append("Ljava/lang/String;");
     } else if (c.equals(Smith.class)) {
-      b.append("cases.jpamb.utils.Smith;");
+      b.append("Ljpamb/utils/Smith;");
     }
     else {
       throw new RuntimeException("Unknown type:" + c.toString());
@@ -96,6 +96,9 @@ public class Runtime {
               var str = s.substring(start, i);
               if (str.equals("java/lang/String")) {
                 params.add(String.class);
+                break;
+              } else if (str.equals("jpamb/utils/Smith")) {
+                params.add(Smith.class);
                 break;
               }
               throw new InputParser.ParseError("Invalid type", str);

@@ -24,7 +24,7 @@ public class InputParser {
   private void nextToken() {
     if (sc.hasNext()) {
       currentToken =
-          sc.findWithinHorizon("[-]?[0-9\\.]+|\\[[ICZ]:|\\(|\\)|\\]|,|s?'[^']*'|r?'[^']*'|true|false", 0);
+          sc.findWithinHorizon("[-]?[0-9\\.]+|\\[[ICZ]:|\\(|\\)|\\]|,|'[^']'|[bsr]'[^']*'|true|false", 0);
     } else {
       currentToken = null;
     }
@@ -54,6 +54,10 @@ public class InputParser {
       var string = currentToken.substring(2, currentToken.length() - 1);
       nextToken();
       return string;
+    } else if (currentToken.matches("[br]'[^']*'")) {
+      var bits = currentToken.substring(2, currentToken.length() - 1);
+      nextToken();
+      return new BitSmith(bits);
     } else if (currentToken.equals("true")) {
       nextToken();
       return true;
