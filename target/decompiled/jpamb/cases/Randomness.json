@@ -101,7 +101,7 @@
                     "values": {
                       "value": {
                         "type": "string",
-                        "value": "(r'102313312') -> assertion error"
+                        "value": "(r'01010101') -> assertion error"
                       }
                     }
                   }
@@ -113,7 +113,7 @@
                     "values": {
                       "value": {
                         "type": "string",
-                        "value": "(r'12312') -> ok"
+                        "value": "(r'100000') -> ok"
                       }
                     }
                   }

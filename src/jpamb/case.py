@@ -43,12 +43,15 @@ class Value(ABC):
             #     return Reference(None if value == 0 else value - 1)
             case jvm.Object(cn) if cn.slashed() == "java/lang/String":
                 return String(sexpr.to_str(expr))
+            case jvm.Object(cn) if cn.slashed() == "jpamb/lang/Smith":
+                return Smith(sexpr.to_str(expr))
             case jvm.Array(contains=jvm.Int()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_int)
                 return Array(jvm.Int(), tuple(values))
             case jvm.Array(contains=jvm.Char()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_str)
                 return Array(jvm.Char(), tuple(values))
+            
             case _:
                 raise sexpr.FromSExprError(f"{expr} is not a known value")
 

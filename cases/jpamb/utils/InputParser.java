@@ -57,7 +57,7 @@ public class InputParser {
     } else if (currentToken.matches("r'[^']*'")) {
       var bits = currentToken.substring(2, currentToken.length() - 1);
       nextToken();
-      return new BitSmith(bits);
+      return new BitSmith(bits); 
     } else if (currentToken.equals("true")) {
       nextToken();
       return true;

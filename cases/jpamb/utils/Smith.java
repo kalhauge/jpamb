@@ -24,3 +24,4 @@ final class BitSmith implements Smith {
         return bits.charAt(index++) != '0';
     }
 }
+ 
