@@ -24,7 +24,7 @@ public record CaseContent(Object[] params, ResultType result) {
       }
       return "[C:" + String.join(", ", chars) + "]";
     } else if (obj instanceof BitSmith smith) {
-      return "b'" + smith.bits() + "'";
+      return "r'" + smith.bits() + "'";
     } else if (obj instanceof String) {
       return "s'" + obj + "'";
     } else {

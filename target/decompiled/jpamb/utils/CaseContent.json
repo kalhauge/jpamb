@@ -324,7 +324,7 @@
         "args": [
           {
             "type": "string",
-            "value": "b'\u0001'"
+            "value": "r'\u0001'"
           }
         ],
         "handle": {

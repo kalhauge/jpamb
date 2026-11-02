@@ -203,7 +203,7 @@ class InputParser:
             ("INT", r"-?\d+"),
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
-            ("SMITH", r"[br]'[^']*'"),
+            ("SMITH", r"r'[^']*'"),
             ("STRING", r"s'[^']*'"),
             ("COMMA", r","),
             ("SKIP", r"[ \t]+"),

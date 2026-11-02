@@ -7,8 +7,8 @@ import jpamb.utils.Smith;
 public class Randomness {
 
     
-    @Case( "(b'102313312') -> assertion error") 
-    @Case( "(b'12312') -> ok") 
+    @Case( "(r'102313312') -> assertion error") 
+    @Case( "(r'12312') -> ok") 
     public static void randomBranch(Smith smith) {
         if (smith.draw()) {
             assert true;
@@ -24,4 +24,3 @@ public class Randomness {
     }
 
 }
-
