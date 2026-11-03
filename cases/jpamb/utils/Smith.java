@@ -5,15 +5,15 @@ public interface Smith {
 }
 
 final class BitSmith implements Smith {
-    private final String bits;
+    private final Bitstring bits;
     private int index;
 
-    BitSmith(String bits) {
+    BitSmith(Bitstring bits) {
         this.bits = bits;
     }
 
     String bits() {
-        return bits;
+        return bits.toString();
     }
 
     @Override
@@ -21,7 +21,7 @@ final class BitSmith implements Smith {
         if (index >= bits.length()) {
             throw new IllegalStateException("Smith input exhausted");
         }
-        return bits.charAt(index++) != '0';
+        return bits.bitAt(index++) != '0';
     }
 }
  
