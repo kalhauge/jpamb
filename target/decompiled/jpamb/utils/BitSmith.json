@@ -19,7 +19,7 @@
         "args": [],
         "inner": null,
         "kind": "class",
-        "name": "java/lang/String"
+        "name": "jpamb/utils/Bitstring"
       },
       "value": null
     },
@@ -91,7 +91,7 @@
               "name": "bits",
               "type": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               }
             },
             "offset": 6,
@@ -134,7 +134,7 @@
             "args": [],
             "inner": null,
             "kind": "class",
-            "name": "java/lang/String"
+            "name": "jpamb/utils/Bitstring"
           },
           "visible": true
         }
@@ -163,7 +163,7 @@
               "name": "bits",
               "type": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               }
             },
             "offset": 1,
@@ -171,7 +171,24 @@
             "static": false
           },
           {
+            "access": "virtual",
+            "method": {
+              "args": [],
+              "name": "toString",
+              "ref": {
+                "kind": "class",
+                "name": "jpamb/utils/Bitstring"
+              },
+              "returns": {
+                "kind": "class",
+                "name": "java/lang/String"
+              }
+            },
             "offset": 4,
+            "opr": "invoke"
+          },
+          {
+            "offset": 7,
             "opr": "return",
             "type": "ref"
           }
@@ -238,7 +255,7 @@
               "name": "bits",
               "type": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               }
             },
             "offset": 5,
@@ -252,7 +269,7 @@
               "name": "length",
               "ref": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               },
               "returns": "int"
             },
@@ -319,7 +336,7 @@
               "name": "bits",
               "type": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               }
             },
             "offset": 25,
@@ -382,10 +399,10 @@
               "args": [
                 "int"
               ],
-              "name": "charAt",
+              "name": "bitAt",
               "ref": {
                 "kind": "class",
-                "name": "java/lang/String"
+                "name": "jpamb/utils/Bitstring"
               },
               "returns": "char"
             },
