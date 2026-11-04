@@ -466,7 +466,7 @@ class Coverage(sexpr.AsSExpr):
 
 @dataclass(frozen=True, slots=True)
 class Control(sexpr.AsSExpr):
-    coverage: dict[jvm.AbsMethodID, Coverage]
+    coverage: collections.OrderedDict[jvm.AbsMethodID, Coverage]
     results: set[str]
 
     def is_reachable(self, pc: jvm.state.PC) -> bool:

@@ -43,3 +43,17 @@ consistent builds across systems.
 
 **Warning:** If you create new folders and use docker, it might create them as root. To fix
 this either use podman or change the permissions after.
+
+## Updating the `benchmark.sexp` file
+
+Finally, when everything looks good you should update the benchmark file, which contains
+information about which instructions are covered by what.
+
+To update this you need to run the following command with an interpreter:
+
+```
+$ uv run jpamb build --benchmark <your_interpreter>
+```
+
+Please inspect the `target/stats/benchmark.sexp` file and ensure that only the
+newly added cases has changed.

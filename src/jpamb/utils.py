@@ -36,32 +36,49 @@ class Effect:
     report: IO | None
     prefix: str = ""
     level: int = 30
+    pending: list[tuple[str, int, str]] = field(default_factory=list)
     levels: dict[int, tuple[str, str]] = field(
         default_factory=lambda: {
-            10: ("DEBUG", "\033[36m"),
-            20: ("INFO", "\033[34m"),
-            25: ("SUCCESS", "\033[32m"),
-            30: ("WARNING", "\033[33m"),
-            40: ("ERROR", "\033[31m"),
+            10: ("[.]", "\033[36m"),  # ]
+            20: ("[-]", "\033[34m"),  # ]
+            25: ("[+]", "\033[32m"),  # ]
+            30: ("[*]", "\033[33m"),  # ]
+            40: ("[!]", "\033[31m"),  # ]
         }
     )
 
+    def flush_pending(self):
+        assert self.report
+        for prefix, level, title in reversed(self.pending):
+            self.report.write(f"{prefix}┌ {title}\n")
+        self.pending = []
+
     @contextmanager
-    def context(self, title):
+    def context(self, title, level=25):
+        report = self.report
+
+        if report is None:
+            yield
+            return
+
         old = self.prefix
-        if self.report:
-            self.report.write(f"{self.prefix[:-1]}┌ {title}\n")
+        self.pending.append((self.prefix[:-1], level, title))
         self.prefix = f"{self.prefix[:-1]}│ "
         try:
             yield
         finally:
             self.prefix = old
-            if self.report:
+            if self.pending:
+                self.pending.pop()
+                self.log(level, title)
+            else:
                 self.report.write(f"{self.prefix[:-1]}└ {title}\n")
 
     def output(self, msgs):
         if self.report is None:
             return
+
+        self.flush_pending()
 
         if not isinstance(msgs, str):
             msgs = str(msgs)
@@ -92,7 +109,7 @@ class Effect:
     def run(self, *args, **kwargs):
         if self.level <= 10:
             runner = runit.Runner(err_callback=self.output)
-            with self.context(f"Run {shlex.join(args[0])}"):
+            with self.context(f"Run {shlex.join(args[0])}", level=logging.DEBUG):
                 with self.context("Stderr"):
                     out, _time = runner.run(*args, **kwargs)
                 with self.context("Stdout"):
@@ -105,7 +122,7 @@ class Effect:
         return out
 
     def experiment(self, *args, **kwargs):
-        with self.context(f"Run experiment {shlex.join(args[0])}"):
+        with self.context(f"Run experiment {shlex.join(args[0])}", level=logging.DEBUG):
             if self.level <= 10:
                 runner = runit.Runner(err_callback=self.output)
                 with self.context("Stderr"):
