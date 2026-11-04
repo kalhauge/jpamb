@@ -171,12 +171,7 @@ def interpret(
             **kwargs,
         )
     except Exception as e:  # ruff: ignore[BLE001]
-        eff.debug(f"Error: {e}")
-        eff.error("Failed to instantiate config")
-        sys.exit(1)
-
-    if config is None:
-        eff.debug("No config created")
+        eff.error(f"Error: {e}")
         eff.error("Failed to instantiate config")
         sys.exit(1)
 

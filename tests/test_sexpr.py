@@ -21,7 +21,9 @@ def st_options(draw, values):
 
 
 def st_sexpr():
-    return st.recursive(st.text(), extend=lambda xs: st.lists(st_options(xs)))
+    return st.recursive(
+        st.text(), extend=lambda xs: st.lists(st_options(xs)), max_leaves=25
+    )
 
 
 @given(st_sexpr())

@@ -137,14 +137,12 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     if obj is None:
         return "-"
     if isinstance(obj, dict):
-        return list(sorted([Option(encode(k), sexpr(v)) for k, v in obj.items()]))
+        return [Option(encode(k), sexpr(v)) for k, v in obj.items()]
     if isinstance(obj, Iterable):
         sortafter = False
         if isinstance(obj, set):
-            try:
-                obj = list(sorted(obj))
-            except:
-                sortafter = True
+            obj = sorted(obj)
+            # TODO: sortafter = True
         items = []
         for e in obj:
             if isinstance(e, Option):
@@ -152,7 +150,7 @@ def sexpr(obj: LikeSExpr) -> SExpr:
             else:
                 items.append(Option.unkeyed(sexpr(e)))
         if sortafter:
-            return list(sorted(items))
+            return sorted(items)
         return items
 
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
