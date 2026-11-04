@@ -80,7 +80,10 @@
             devShells = {
               default = pkgs.mkShell {
                 name = "jpamb";
-                nativeBuildInputs = [ pkgs.ruff ];
+                nativeBuildInputs = [
+                  pkgs.ruff
+                  pkgs.uv
+                ];
               };
             };
 
@@ -93,8 +96,9 @@
                     nativeBuildInputs = [ pkgs.ruff ];
                   }
                   ''
-                    ruff check --no-cache ${self}
-                    ruff format --no-cache --check ${self}
+                    cd ${self}
+                    ruff check --no-cache 
+                    ruff format --no-cache --check 
                     touch $out
                   '';
             };

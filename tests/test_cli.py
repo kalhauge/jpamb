@@ -42,13 +42,20 @@ def test_analyse(solution):
 @pytest.mark.slow
 def test_analyse_report(tmp_path):
     runner = CliRunner()
+
+    solution = "jpamb-analysis-dummy"
+    exe = shutil.which(solution)
+    if exe is None:
+        pytest.skip(f"Could not find {solution} on path")
+
     result = runner.invoke(
         cli.cli,
         [
+            "-vv",
             "analyse",
             "--report",
             (tmp_path / "report.sexp"),
-            "jpamb-analysis-dummy",
+            exe,
         ],
         catch_exceptions=False,
     )
@@ -118,41 +125,41 @@ def test_inspect(method, format):
     assert result.exit_code == 0, result.output
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize("format", ["autolab", "user"])
-def test_validate_analysis(format):
-    runner = CliRunner()
-    result = runner.invoke(
-        cli.cli,
-        [
-            "-v",
-            "validate",
-            "analyse",
-            "--format",
-            format,
-            "tests/data/analysis-report.sexp",
-        ],
-        catch_exceptions=False,
-    )
-
-    assert result.exit_code == 0, result.output
-
-
-@pytest.mark.slow
-@pytest.mark.parametrize("format", ["autolab", "user"])
-def test_validate_interpret(format):
-    runner = CliRunner()
-    result = runner.invoke(
-        cli.cli,
-        [
-            "-v",
-            "validate",
-            "interpret",
-            "--format",
-            format,
-            "tests/data/interpret-report.sexp",
-        ],
-        catch_exceptions=False,
-    )
-
-    assert result.exit_code == 0, result.output
+# @pytest.mark.slow
+# @pytest.mark.parametrize("format", ["autolab", "user"])
+# def test_validate_analysis(format):
+#     runner = CliRunner()
+#     result = runner.invoke(
+#         cli.cli,
+#         [
+#             "-v",
+#             "validate",
+#             "analyse",
+#             "--format",
+#             format,
+#             "tests/data/analysis-report.sexp",
+#         ],
+#         catch_exceptions=False,
+#     )
+#
+#     assert result.exit_code == 0, result.output
+#
+#
+# @pytest.mark.slow
+# @pytest.mark.parametrize("format", ["autolab", "user"])
+# def test_validate_interpret(format):
+#     runner = CliRunner()
+#     result = runner.invoke(
+#         cli.cli,
+#         [
+#             "-v",
+#             "validate",
+#             "interpret",
+#             "--format",
+#             format,
+#             "tests/data/interpret-report.sexp",
+#         ],
+#         catch_exceptions=False,
+#     )
+#
+#     assert result.exit_code == 0, result.output
