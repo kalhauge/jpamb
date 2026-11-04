@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict, defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Self
 
 import jvm
@@ -293,12 +294,18 @@ class Config:
         )
 
     def run_experiment(
-        self, methodid, *, pedantic: bool = True, eff: Effect
+        self,
+        methodid,
+        *,
+        workdir: Path,
+        pedantic: bool = True,
+        eff: Effect,
     ) -> Result | None:
         try:
             experiment = eff.experiment(
                 self.cmd + (methodid.encode(),),
                 timeout=self.timeout,
+                cwd=workdir,
             )
         except subprocess.CalledProcessError as e:
             eff.warning(f"Ran {shlex.join(self.cmd)} info, and got error:\n{e.stderr}")
@@ -581,7 +588,12 @@ class State:
         return sexpr.to_dataclass(expr, target=cls)
 
     def run_next(
-        self, *, benchmark: Benchmark, score_limit: float | None = None, eff: Effect
+        self,
+        *,
+        benchmark: Benchmark,
+        score_limit: float | None = None,
+        workdir: Path,
+        eff: Effect,
     ) -> bool | None:
         no_experiments = len(self.config.experiments)
         iteration = self.progress // no_experiments
@@ -599,7 +611,7 @@ class State:
         ):
             self.progress += 1
 
-            result = self.config.run_experiment(entry, eff=eff)
+            result = self.config.run_experiment(entry, workdir=workdir, eff=eff)
 
             if result is None:
                 return False

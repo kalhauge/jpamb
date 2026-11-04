@@ -80,7 +80,7 @@ wheels = [
 
 [[package]]
 name = "jpamb"
-version = "0.8.0"
+version = "0.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -97,7 +97,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = "==8.1.*" },
+    { name = "click", specifier = "==8.*" },
     { name = "pyyaml", specifier = "==6.0.*" },
     { name = "runit", git = "https://github.com/kalhauge/runit.git" },
 ]

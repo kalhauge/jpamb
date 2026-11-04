@@ -3,6 +3,7 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Self
 
 import jvm
@@ -221,6 +222,7 @@ class Config:
         self,
         experiment: Experiment,
         *,
+        workdir: Path,
         pedantic: bool = True,
         eff: Effect,
     ) -> Result:
@@ -231,6 +233,7 @@ class Config:
             result = eff.experiment(
                 cmd,
                 timeout=self.timeout,
+                cwd=workdir,
             )
         except subprocess.CalledProcessError as e:
             eff.warning(f"Ran {shlex.join(cmd)}, and got error:\n{e.stderr}")
@@ -432,7 +435,12 @@ class State(sexpr.AsSExpr):
         self.results.pop(-1)
 
     def run_next(
-        self, *, benchmark: Benchmark, score_limit: float | None = None, eff: Effect
+        self,
+        *,
+        benchmark: Benchmark,
+        workdir: Path,
+        score_limit: float | None = None,
+        eff: Effect,
     ) -> bool | None:
         no_experiments = len(self.config.experiments)
 
@@ -444,7 +452,7 @@ class State(sexpr.AsSExpr):
         with eff.context(
             f"Experiment {self.progress % no_experiments + 1}/{no_experiments} {experiment}"
         ):
-            result = self.config.run_experiment(experiment, eff=eff)
+            result = self.config.run_experiment(experiment, workdir=workdir, eff=eff)
 
             self.progress += 1
             self.results.append(result)
