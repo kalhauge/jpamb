@@ -192,7 +192,83 @@ class Push(Opcode):
     def __str__(self):
         return f"push:{self.type} {self.value}"
 
+@dataclass(frozen=True, order=True)
+class Put(Opcode):
+    """The put opcode (handles both putfield and putstatic)"""
 
+    static: bool
+    field: classfile.AbsFieldID
+
+    @classmethod
+    def from_json(cls, json: dict) -> 'Opcode':
+        is_static = json.get("static", False)
+        
+        field_data = json.get("field")
+        if not isinstance(field_data, dict):
+            raise NotImplementedError(f"Cannot handle field data {field_data!r}")
+            
+        try:
+            field = classfile.AbsFieldID.from_json(field_data)
+        except Exception as e:
+            raise NotImplementedError(f"Cannot parse field data {field_data!r}") from e
+
+        return cls(
+            offset=json["offset"],
+            static=is_static,
+            field=field,
+        )
+
+    def real(self) -> str:
+        return "putstatic" if self.static else "putfield"
+
+    def semantics(self) -> str | None:
+        if self.static:
+            return """
+            bc[i].opr = 'putstatic'
+            bc[i].field = f
+            -------------------------[putstatic]
+            bc |- (i, s + [v], globals) -> (i+1, s, globals[f := v])
+            """
+        else:
+            return """
+            bc[i].opr = 'putfield'
+            bc[i].field = f
+            -------------------------[putfield]
+            bc |- (i, s + [obj_ref, v], heap) -> (i+1, s, heap[obj_ref.f := v])
+            """
+
+    def mnemonic(self) -> str:
+        return "putstatic" if self.static else "putfield"
+
+    def __str__(self):
+        op_name = "putstatic" if self.static else "putfield"
+        return f"{op_name} {self.field}"
+
+@dataclass(frozen=True, order=True)
+class Pop(Opcode):
+    """The pop opcode that removes the top value from the stack."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        return cls(offset=json["offset"])
+
+    def real(self) -> str:
+        return "pop"
+
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'pop'
+        -------------------------[pop]
+        bc |- (i, s + [value]) -> (i+1, s)
+        """
+        return None
+
+    def mnemonic(self) -> str:
+        return "pop"
+
+    def __str__(self):
+        return "pop"
+    
 @dataclass(frozen=True, order=True)
 class Negate(Opcode):
     """The new array opcode"""
@@ -1300,4 +1376,6 @@ OPCODES = {
     "throw": Throw,
     "incr": Incr,
     "goto": Goto,
+    "put": Put,
+    "pop": Pop,
 }
