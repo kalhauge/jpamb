@@ -686,6 +686,205 @@
     )
     :results (ok)
   )
+  :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher!(s'Any')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher!(s'Safe')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 9 10 11 12 15)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
+        :reachable (0)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher!(s'__CANARY__')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7)
+      )
+      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.advanced.CWE470.weak_dispatcher!(s'Safe')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 5 6 7 8 9 10 11 12 14 15 16 17 20)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
+        :reachable (0)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE470.weak_dispatcher!(s'SafeWrapper')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 5 6 7 8 9 10 11 12)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeWrapperCommand.<init>:()V" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|DummyButton|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 33 34 35 36)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|UpdatedLibrary|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 33 34 35 36)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.advanced.CWE502.blacklist_deserialization!(s'SER|__CANARY__Command|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|DummyButton|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 9)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 24 25 26 27)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502$DummyButton.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|SafeCommand|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 9)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 28 29 30 31 32 33 34 40 41 42 43)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE502.insecure_deserialization!(s'SER|__CANARY__Command|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 28 29 30 31 44 45 46 47 48 49 50 56 57 58)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|DownGradableLibrary|0')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 37 38)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|DownGradableLibrary|1')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 37 38)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.advanced.CWE502.whitelist_deserialization!(s'SER|__CANARY__Command|')V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 32 33 34 35 36)
+      )
+    )
+    :results (ok)
+  )
   :"jpamb.cases.Arrays.arrayContent:()V" (control
     :coverage (
       :"jpamb.cases.Arrays.arrayContent:()V" (coverage
@@ -1117,6 +1316,111 @@
     :coverage (
       :"jpamb.cases.Tricky.collatz:(I)V" (coverage
         :reachable (0 1 2 3 4 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 9 10 11 12 15)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 5 6 7 8 9 10 11 12 14 15 16 17 20)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeCommand.doAction:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE470$SafeWrapperCommand.<init>:()V" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE470$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 9)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 24 25 26 27 28 29 30 31 32 33 34 40 41 42 43 44 45 46 47 48 49 50 56 57 58)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502$DummyButton.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE502$SafeCommand.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+      :"jpamb.cases.advanced.CWE502.canary:()V" (coverage
+        :reachable (0)
+      )
+      :"jpamb.cases.advanced.CWE502$__CANARY__Command.<init>:()V" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (control
+    :coverage (
+      :"jpamb.cases.advanced.CWE502.simulateReadObject:(Ljava/lang/String;)Ljava/lang/Object;" (coverage
+        :reachable (0 1 2 3 4 5 6)
+      )
+      :"jpamb.cases.advanced.CWE502.simulateResolveClassName:(Ljava/lang/String;)Ljava/lang/String;" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 14 15 16 17 18 19 25 26 27 28 29 30 31 32 33 39 40)
+      )
+      :"jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38)
       )
     )
     :results ("assertion error" ok)

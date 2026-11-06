@@ -5968,9 +5968,39 @@
             }
           },
           {
+            "offset": 21,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE470"
+              }
+            }
+          },
+          {
+            "offset": 24,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/cases/advanced/CWE502"
+              }
+            }
+          },
+          {
             "access": "static",
             "method": {
               "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                },
+                {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                },
                 {
                   "kind": "class",
                   "name": "java/lang/Object"
@@ -6011,7 +6041,7 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 21,
+            "offset": 27,
             "opr": "invoke"
           },
           {
@@ -6023,12 +6053,12 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 24,
+            "offset": 30,
             "opr": "put",
             "static": true
           },
           {
-            "offset": 27,
+            "offset": 33,
             "opr": "return",
             "type": null
           }
@@ -6041,15 +6071,15 @@
           },
           {
             "line": 16,
-            "offset": 7
+            "offset": 9
           },
           {
             "line": 15,
-            "offset": 9
+            "offset": 11
           }
         ],
         "max_locals": 0,
-        "max_stack": 7,
+        "max_stack": 9,
         "stack_map": null
       },
       "default": null,
