@@ -2,7 +2,7 @@
   description = "JPAMB: Java Program Analysis Micro Benchmarks";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/ca77296380960cd497a765102eeb1356eb80fed0";
+    nixpkgs.url = "github:nixos/nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     jvm2json.url = "github:kalhauge/jvm2json";
@@ -21,15 +21,25 @@
   outputs =
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } (
-      top@{ self, config, ... }:
+      top@{
+        self,
+        lib,
+        config,
+        ...
+      }:
       {
         imports = [
           inputs.ash.flakeModules.default
-          ./autolab
         ];
 
         flake = {
           # Your flake goes here
+          pythonOverlays.default = lib.composeManyExtensions [
+            (pyfinal: pyprev: {
+              jpamb = pyfinal.callPackage ./. { doCheck = false; };
+            })
+            inputs.runit.pythonOverlays.default
+          ];
         };
 
         perSystem =
@@ -60,78 +70,39 @@
               let
                 python = pkgs.python3.override {
                   self = python;
-                  packageOverrides = inputs.runit.pythonOverlay.default;
-                };
-                jpamb = python.pkgs.callPackage ./. { };
-
-                autodriver = pkgs.stdenv.mkDerivation {
-                  name = "autodriver";
-                  src = pkgs.fetchFromGitHub {
-                    owner = "autolab";
-                    repo = "Tango";
-                    rev = "24558e3db2be78831d00cc2b56579be205dc6e4b";
-                    sha256 = "sha256-gabBfNnNnDGcwxEJi5MW+uz5I2gcvOmOloeYo74wmVE=";
-                  };
-
-                  preConfigure = ''
-                    ls -l
-                    cd autodriver
-                  '';
-
-                  buildPhase = ''
-                    gcc -W -Wall -Wextra   -c -o autodriver.o autodriver.c
-                    gcc  -o autodriver autodriver.o
-                  '';
-
-                  installPhase = ''
-                    mkdir -p $out/bin
-                    cp autodriver $out/bin/
-                  '';
+                  packageOverrides = self.pythonOverlays.default;
                 };
               in
-              rec {
-                inherit jpamb autodriver;
-
-                docker_image = pkgs.dockerTools.buildLayeredImage {
-                  name = "autograder_02242_e26_v2";
-                  tag = "latest";
-
-                  contents = [
-                    pkgs.coreutils
-                    pkgs.gnumake
-                    pkgs.bashInteractive
-                    autodriver
-                    (python.withPackages (py: [
-                      py.pip
-                      py.click
-                      py.runit
-                      py.setuptools
-                    ]))
-                  ];
-
-                  enableFakechroot = true;
-
-                  fakeRootCommands = ''
-                    mkdir -p /home/autolab /home/autograde /home/output /etc
-
-                    echo "autolab:x:1000:" >> /etc/group
-                    echo "auotlab:x:1000:1000:Autolab:/autolab:/bin/bash" >> /etc/passwd
-
-                    echo "autograde:x:1001:" >> /etc/group
-                    echo "auotgrade:x:1001:1001:Autograde:/autograde:/bin/bash" >> /etc/passwd
-
-                    # Set ownership
-                    chown -R 1000:1000 /home/autolab
-                    chown -R 1000:1000 /home/output
-                    chown -R 1001:1001 /home/autograde
-                  '';
-
-                  config = {
-                    # WorkingDir = "/home";
-                    Env = [ ];
-                  };
-                };
+              {
+                jpamb = python.pkgs.jpamb;
               };
+
+            devShells = {
+              default = pkgs.mkShell {
+                name = "jpamb";
+                nativeBuildInputs = [
+                  pkgs.ruff
+                  pkgs.uv
+                ];
+              };
+            };
+
+            checks = {
+              jpamb = self'.packages.jpamb.override { doCheck = true; };
+
+              ruff =
+                pkgs.runCommandLocal "ruff-check"
+                  {
+                    nativeBuildInputs = [ pkgs.ruff ];
+                  }
+                  ''
+                    cd ${self}
+                    ruff check --no-cache 
+                    ruff format --no-cache --check 
+                    touch $out
+                  '';
+            };
+
           };
         systems = [
           "x86_64-linux"

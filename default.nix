@@ -8,6 +8,7 @@
   pytestCheckHook,
   hypothesis,
   runit,
+  doCheck ? true,
 }:
 buildPythonPackage rec {
   name = "jpamb";
@@ -20,6 +21,8 @@ buildPythonPackage rec {
     pytest
   ]
   ++ propagatedBuildInputs;
+
+  inherit doCheck;
 
   propagatedBuildInputs = [
     click

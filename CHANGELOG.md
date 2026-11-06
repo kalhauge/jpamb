@@ -1,5 +1,12 @@
 # The Change Log
 
+## Version 0.9.0
+
+- Remove autolab files
+- Clean up logging output
+- Enable users to bring their own interpreter to jpamb build --benchmark <tool>,
+  see docs/extending-jpamb.md for more.
+
 ## Version 0.8.0
 
 - Add Static analysis skeleton

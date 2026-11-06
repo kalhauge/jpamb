@@ -61,6 +61,13 @@ class Option[T]:
         else:
             return f"item({self.value!r})"
 
+    def __lt__(self, other):
+        if not isinstance(other, Option):
+            return NotImplemented
+        if self.key < other.key:
+            return True
+        return self.key == other.key and self.value < other.value
+
 
 type SExpr = list[Option[SExpr]] | str
 
@@ -132,12 +139,18 @@ def sexpr(obj: LikeSExpr) -> SExpr:
     if isinstance(obj, dict):
         return [Option(encode(k), sexpr(v)) for k, v in obj.items()]
     if isinstance(obj, Iterable):
+        sortafter = False
+        if isinstance(obj, set):
+            obj = sorted(obj)
+            # TODO: sortafter = True
         items = []
         for e in obj:
             if isinstance(e, Option):
                 items.append(e)
             else:
                 items.append(Option.unkeyed(sexpr(e)))
+        if sortafter:
+            return sorted(items)
         return items
 
     raise TypeError(f"Do not know how to convert {obj!r} to an s-expression")
@@ -393,7 +406,7 @@ def to_dataclass[T](expr: SExpr, *, target: type[T]) -> T:
 
     _kwargs = {}
     for field in positionals[len(args) :] + keyed:
-        if not field.name in kwargs:
+        if field.name not in kwargs:
             raise FromSExprError(
                 f"Expected {field.name!r} option, but only got {kwargs.keys()}"
             )
@@ -526,7 +539,7 @@ def to_data(
     for option in sexpr[1:]:
         if k := option.key:
             assert k != ""
-            assert not k in kwargs
+            assert k not in kwargs
             kwargs[k] = option.value
         else:
             args.append(option.value)

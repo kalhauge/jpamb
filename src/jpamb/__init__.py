@@ -351,35 +351,38 @@ class Suite:
 
             entries = {}
             for case in self.cases(eff=eff):
-                eff.info(f"Running {case.experiment}")
-
-                reachable = set()
-                result = dynamic.run_experiment(case.experiment, eff=eff)
-                if result.response is None:
-                    eff.error(f"No response for {case.experiment}")
-                    continue
-                for step in result.response.steps:
-                    reachable.add(step.pc)
-
-                methods = {pc.method for pc in reachable}
-
-                coverage = {}
-                for m in methods:
-                    offsets = {pc.offset for pc in reachable if pc.method == m}
-                    coverage[m] = Coverage(
-                        reachable=offsets,
+                with eff.context(case):
+                    reachable = set()
+                    result = dynamic.run_experiment(
+                        case.experiment,
+                        workdir=self.workdir,
+                        eff=eff,
                     )
+                    if result.response is None:
+                        eff.error(f"No response for {case.experiment}")
+                        continue
+                    for step in result.response.steps:
+                        reachable.add(step.pc)
 
-                control = Control(coverage=coverage, results={case.result})
-                entries.setdefault(case.experiment.entry, []).append(control)
-                experiments[case.experiment] = control
+                    methods = sorted({pc.method for pc in reachable})
 
-                eff.info(f"Found {sexpr.pretty(sexpr.sexpr(control), indent=2)}")
+                    coverage = OrderedDict()
+                    for m in methods:
+                        offsets = {pc.offset for pc in reachable if pc.method == m}
+                        coverage[m] = Coverage(
+                            reachable=offsets,
+                        )
+
+                    control = Control(coverage=coverage, results={case.result})
+                    entries.setdefault(case.experiment.entry, []).append(control)
+                    experiments[case.experiment] = control
+
+                    eff.info(f"Found {sexpr.pretty(sexpr.sexpr(control), indent=2)}")
 
         for entry, controls in entries.items():
             experiment = Experiment(entry, None)
 
-            coverage = {}
+            coverage = OrderedDict()
             results = set()
             for control in controls:
                 results |= control.results
