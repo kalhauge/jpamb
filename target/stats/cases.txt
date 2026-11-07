@@ -36,8 +36,26 @@ jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
 jpamb.cases.Loops.terminates:()V                             () -> assertion error
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'0') -> ok
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'1') -> divide by zero
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (2, r'1') -> ok
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'0') -> assertion error
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'1') -> ok
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'00001') -> assertion error
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0001') -> ok
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'1') -> ok
 jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'01010101') -> assertion error
 jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'100000') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'0') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'1') -> out of bounds
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'0') -> null pointer
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'1') -> ok
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'0') -> *
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'1') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'00') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'01') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'10') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'11') -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
