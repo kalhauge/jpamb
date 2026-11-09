@@ -41,6 +41,8 @@ jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'1') -> div
 jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (2, r'1') -> ok
 jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'0') -> assertion error
 jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'1') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'00001') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'1') -> assertion error
 jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'00001') -> assertion error
 jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0001') -> ok
 jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'1') -> ok

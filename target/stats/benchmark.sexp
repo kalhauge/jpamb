@@ -388,6 +388,22 @@
     )
     :results (ok)
   )
+  :"jpamb.cases.Randomness.drawInt!(r'00001')V" (control
+    :coverage (
+      :"jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V" (coverage
+        :reachable (0 1 2 3 4 12)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Randomness.drawInt!(r'1')V" (control
+    :coverage (
+      :"jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V" (coverage
+        :reachable (0 1 2 5 6 7 8)
+      )
+    )
+    :results ("assertion error")
+  )
   :"jpamb.cases.Randomness.loopUntilHeads!(r'00001')V" (control
     :coverage (
       :"jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V" (coverage
@@ -1014,6 +1030,14 @@
       )
       :"jpamb.cases.Randomness.heads:(Ljpamb/utils/Smith;)Z" (coverage
         :reachable (0 1 2)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V" (control
+    :coverage (
+      :"jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 12)
       )
     )
     :results ("assertion error" ok)
