@@ -444,7 +444,7 @@ class Suite:
                     file = getsourcefile(opcode.__class__)
                     assert file is not None
                     source = Path(file)
-                    rel = Path("utils") / source.relative_to(source.parent.parent)
+                    rel = Path("src") / source.relative_to(source.parent.parent)
                     giturl = f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
 
                     document.write(
