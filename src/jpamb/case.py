@@ -507,8 +507,8 @@ class Benchmark:
         )
 
     def entries(self) -> Iterable[Entry]:
-        entries = set()
+        entries: set[Entry] = set()
         for e in self.experiments:
             if e.entry not in entries:
                 yield e.entry
-                entries.add(e)
+                entries.add(e.entry)
