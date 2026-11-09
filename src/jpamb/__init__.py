@@ -405,7 +405,8 @@ class Suite:
             opcode_urls = {}
             class_opcodes = {}
             for experiment in self.experiments(eff=eff):
-                class_opcodes[str(experiment.entry.classname).split(".")[-1]] = set()
+                name = str(experiment.entry.classname).split(".")[-1]
+                class_opcodes.setdefault(name, set())
                 list_ops = []
                 for opcode in self.method_opcodes(experiment.entry, eff=eff):
                     index = opcode.mnemonic()  # opcode.real().split()[0]
@@ -420,7 +421,7 @@ class Suite:
                     opcode_counts[index] += 1
 
                 for o in list_ops:
-                    class_opcodes[str(experiment.entry.classname).split(".")[-1]].add(o)
+                    class_opcodes[name].add(o)
 
             with (
                 eff.context("Writing OPCODES.md"),
