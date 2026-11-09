@@ -309,6 +309,7 @@ class Suite:
                         "-s",
                         self.classfile(cl).relative_to(self.workdir).as_posix(),
                     ],
+                    timeout=30,
                     eff=eff,
                 )
                 file = self.decompiledfile(cl)
