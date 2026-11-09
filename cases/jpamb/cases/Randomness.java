@@ -77,5 +77,15 @@ public class Randomness {
     public static void drawInCallee(Smith smith) {
         assert heads(smith);
     }
+
+    @Case("(r'1') -> assertion error")
+    @Case("(r'00001') -> ok")
+    public static void drawInt(Smith smith) {
+        try {
+            int value = smith.draw(4);
+        } catch (IllegalStateException e) {
+            assert false;
+        }
+    }
     
 }
