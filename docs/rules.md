@@ -32,6 +32,7 @@ of these possible behaviors can happen:
 | `assertion error` | Method fails an assertion (like `assert x > 0`) |
 | `out of bounds`   | Method accesses array outside its bounds        |
 | `null pointer`    | Method tries to use a null reference            |
+| `sql error`       | Method throws a `java.sql.SQLException`         |
 | `*`               | Method runs forever (infinite loop)             |
 
 ## Making Predictions

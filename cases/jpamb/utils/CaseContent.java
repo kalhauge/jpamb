@@ -49,7 +49,8 @@ public record CaseContent(Object[] params, ResultType result) {
     SUCCESS,
     NON_TERMINATION,
     NULL_POINTER,
-    OUT_OF_BOUNDS;
+    OUT_OF_BOUNDS,
+    SQL_ERROR;
 
     public static ResultType parse(String string) {
       if (string.equals("*")) {
@@ -62,6 +63,8 @@ public record CaseContent(Object[] params, ResultType result) {
         return NULL_POINTER;
       } else if (string.equals("divide by zero")) {
         return DIVIDE_BY_ZERO;
+      } else if (string.equals("sql error")) {
+        return SQL_ERROR;
       } else if (string.equals("ok")) {
         return SUCCESS;
       } else {
@@ -81,6 +84,8 @@ public record CaseContent(Object[] params, ResultType result) {
           return "null pointer";
         case NON_TERMINATION:
           return "*";
+        case SQL_ERROR:
+          return "sql error";
         case SUCCESS:
           return "ok";
         default:
@@ -99,8 +104,10 @@ public record CaseContent(Object[] params, ResultType result) {
         return OUT_OF_BOUNDS;
       } else if (cause instanceof NullPointerException) {
         return NULL_POINTER;
+      } else if (cause instanceof java.sql.SQLException) {
+        return SQL_ERROR;
       } else {
-        throw new RuntimeException("Unexpected");
+        throw new RuntimeException("Unexpected", cause);
       }
     }
   }

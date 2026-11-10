@@ -1,5 +1,18 @@
 # The Change Log
 
+## Unreleased
+
+- Add the `sql error` outcome, for methods that throw `java.sql.SQLException`.
+  Analyses that do not predict it are not penalised.
+- Run cases with the H2 database (2.5.252) on the classpath. `jpamb build`
+  downloads the jar from Maven Central into the git-ignored `lib/` folder,
+  checks its SHA-256, and adds it to the classpath when it runs the cases.
+- Add `jpamb.utils.Db`, fixtures that open a fresh in-memory H2 database.
+- Add `Jdbc` with 21 cases of JDBC misuse: missing and retained parameter
+  bindings, batches, closed statements, query alternatives, schema and type
+  errors, query building and SQL injection.
+- Support the `pop` opcode in the Python bindings.
+
 ## Version 0.9.0
 
 - Remove autolab files

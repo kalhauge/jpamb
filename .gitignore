@@ -32,3 +32,6 @@ report.sexp
 tags
 
 .DS_Store
+
+# Downloaded by jpamb (H2 for the Jdbc cases)
+lib/

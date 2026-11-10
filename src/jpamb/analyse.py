@@ -24,6 +24,7 @@ QUERIES = (
     "null pointer",
     "ok",
     "out of bounds",
+    "sql error",
 )
 
 
@@ -626,6 +627,9 @@ class State:
 
             total_score = 0
             for key in QUERIES:
+                if key not in result.response.predictions:
+                    # Analyses written before a query was added may not predict it.
+                    continue
                 pred = result.response.predictions[key]
                 real = pred.as_wager(categories)
                 score = real.score(key in expected)

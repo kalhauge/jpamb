@@ -6,9 +6,11 @@ This module provides the basic data model for working with the JPAMB.
 """
 
 import copy
+import hashlib
 import json
 import subprocess
 import sys
+import urllib.request
 from collections import Counter, OrderedDict
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
@@ -28,6 +30,11 @@ from jpamb.utils import DockerRunner, Effect, HealthChecker, HealthIssue
 
 __version__ = "0.8.0"
 
+# The Jdbc cases run on H2; the jar is downloaded on first use and never committed.
+H2_JAR = "lib/h2-2.5.252.jar"
+H2_URL = "https://repo1.maven.org/maven2/com/h2database/h2/2.5.252/h2-2.5.252.jar"
+H2_SHA256 = "90b11dc413da82070ef15fc943282c1408e6ffd34fa68998335fea8603b5ff20"
+
 
 @dataclass(frozen=True)
 class Suite:
@@ -41,6 +48,25 @@ class Suite:
 
     def __post_init__(self):
         assert self.workdir.is_absolute(), f"Assuming that {self.workdir} is absolute."
+
+    def h2_jar(self, *, eff: Effect) -> str:
+        """The H2 jar, downloaded if missing, as a path relative to the workdir."""
+        jar = self.workdir / H2_JAR
+        if jar.exists():
+            data = jar.read_bytes()
+        else:
+            eff.info(f"Downloading {H2_URL}")
+            with urllib.request.urlopen(H2_URL, timeout=60) as response:
+                data = response.read()
+        if hashlib.sha256(data).hexdigest() != H2_SHA256:
+            raise RuntimeError(
+                f"SHA-256 mismatch for H2 from {jar if jar.exists() else H2_URL}; "
+                "refusing to use it (delete the file to download it again)"
+            )
+        if not jar.exists():
+            jar.parent.mkdir(parents=True, exist_ok=True)
+            jar.write_bytes(data)
+        return H2_JAR
 
     @property
     def stats_folder(self) -> Path:
@@ -319,16 +345,17 @@ class Suite:
 
     def test(self, *, docker: DockerRunner, eff: Effect):
         with eff.context("Testing"):
+            folder = self.classfiles_folder.relative_to(self.workdir).as_posix()
+            # ":" because java runs in the Linux container, whatever the host is.
+            classpath = f"{folder}:{self.h2_jar(eff=eff)}"
             for case in self.cases(eff=eff):
                 with eff.context(f"{case}"):
-                    folder = self.classfiles_folder
-
                     try:
                         res = docker.run(
                             [
                                 "java",
                                 "-cp",
-                                folder.relative_to(self.workdir).as_posix(),
+                                classpath,
                                 "-ea",
                                 "jpamb.Runtime",
                                 case.methodid.encode(),

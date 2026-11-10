@@ -44,6 +44,24 @@ consistent builds across systems.
 **Warning:** If you create new folders and use docker, it might create them as root. To fix
 this either use podman or change the permissions after.
 
+## Cases that use a database
+
+Cases can use JDBC through the fixtures in `jpamb.utils.Db`, which open a fresh
+in-memory [H2](https://h2database.com) database per call. They should only use
+the `java.sql` interfaces, so `javac` needs no extra classpath.
+
+The cases run with H2 on the classpath. `uv run jpamb build` downloads
+`h2-2.5.252.jar` from Maven Central into `lib/` (git-ignored) the first time,
+checks its SHA-256, and refuses a jar that does not match. To run a case by
+hand:
+
+```
+$ java -cp target/classes:lib/h2-2.5.252.jar -ea jpamb.Runtime '<case>' '<input>'
+```
+
+Without the jar, the fixtures throw an `IllegalStateException`, so a missing
+driver never passes for a `sql error`.
+
 ## Updating the `benchmark.sexp` file
 
 Finally, when everything looks good you should update the benchmark file, which contains

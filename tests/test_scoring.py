@@ -279,6 +279,7 @@ class TestKnownQueries:
             "null pointer",
             "ok",
             "out of bounds",
+            "sql error",
         }
 
         assert set(jpamb.QUERIES) == expected_queries

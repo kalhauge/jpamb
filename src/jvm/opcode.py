@@ -291,6 +291,43 @@ class Dup(Opcode):
 
 
 @dataclass(frozen=True, order=True)
+class Pop(Opcode):
+    """The pop opcode, which discards values from the stack (e.g. an unused return value)."""
+
+    words: int
+
+    @classmethod
+    def from_json(cls, json: dict) -> Opcode:
+        return cls(
+            offset=json["offset"],
+            words=json["words"],
+        )
+
+    def real(self) -> str:
+        if self.words == 1:
+            return "pop"
+        if self.words == 2:
+            return "pop2"
+        return super().real()
+
+    def semantics(self) -> str | None:
+        semantic = """
+        bc[i].opr = 'pop'
+        bc[i].words = 1
+        -------------------------[pop1]
+        (i, s + [v]) -> (i+1, s)
+        """
+
+        return semantic
+
+    def mnemonic(self) -> str:
+        return self.real()
+
+    def __str__(self):
+        return f"pop {self.words}"
+
+
+@dataclass(frozen=True, order=True)
 class ArrayStore(Opcode):
     """The Array Store command that stores a value in the array."""
 
@@ -1199,6 +1236,7 @@ OPCODES = {
     "newarray": NewArray,
     "new-array": NewArray,
     "dup": Dup,
+    "pop": Pop,
     "array_store": ArrayStore,
     "array-store": ArrayStore,
     "cast": Cast,
