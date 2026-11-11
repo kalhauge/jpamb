@@ -47,4 +47,13 @@ public class Group25 {
     }
     return size;
   }
+
+  @Case("(95, 10) -> ok")
+  @Case("(100, 10) -> ok")
+  @Case("(0, 10) -> assertion error")
+  @Tag({CALL})
+  public static int lastPageItemsRev0(int items, int requested) {
+    int pages = pageCountRev0(items, requested);
+    return itemsOnPageRev0(pages - 1, items, requested);
+  }
 }
