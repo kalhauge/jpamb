@@ -32,4 +32,19 @@ public class Group25 {
     }
     return pages;
   }
+
+  @Case("(0, 95, 10) -> ok")
+  @Case("(9, 95, 10) -> ok")
+  @Case("(10, 95, 10) -> assertion error")
+  @Case("(0, -1, 10) -> assertion error")
+  @Tag({CALL, CONDITIONAL})
+  public static int itemsOnPageRev0(int page, int items, int requested) {
+    int pages = pageCountRev0(items, requested);
+    assert page >= 0 && page < pages;
+    int size = pageSizeRev0(requested);
+    if (page == pages - 1 && items % size != 0) {
+      return items % size;
+    }
+    return size;
+  }
 }
