@@ -10,6 +10,7 @@ public class Group25 {
   @Case("(0) -> ok")
   @Case("(20) -> ok")
   @Case("(500) -> ok")
+  @Tag({CONDITIONAL})
   public static int pageSize(int requested) {
     if (requested <= 0) {
       return 10;
