@@ -32,21 +32,21 @@ jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
-jpamb.cases.Group25.itemsOnPageRev0:(III)I                   (0, -1, 10) -> assertion error
-jpamb.cases.Group25.itemsOnPageRev0:(III)I                   (0, 95, 10) -> ok
-jpamb.cases.Group25.itemsOnPageRev0:(III)I                   (10, 95, 10) -> assertion error
-jpamb.cases.Group25.itemsOnPageRev0:(III)I                   (9, 95, 10) -> ok
-jpamb.cases.Group25.lastPageItemsRev0:(II)I                  (0, 10) -> assertion error
-jpamb.cases.Group25.lastPageItemsRev0:(II)I                  (100, 10) -> ok
-jpamb.cases.Group25.lastPageItemsRev0:(II)I                  (95, 10) -> ok
-jpamb.cases.Group25.pageCountRev0:(II)I                      (-1, 10) -> assertion error
-jpamb.cases.Group25.pageCountRev0:(II)I                      (0, 10) -> ok
-jpamb.cases.Group25.pageCountRev0:(II)I                      (95, 10) -> ok
-jpamb.cases.Group25.pageSizeRev0:(I)I                        (0) -> ok
-jpamb.cases.Group25.pageSizeRev0:(I)I                        (20) -> ok
-jpamb.cases.Group25.pageSizeRev0:(I)I                        (500) -> ok
-jpamb.cases.Group25.prefixSumsRev0:([I)[I                    ([I:1, 2, 3]) -> ok
-jpamb.cases.Group25.prefixSumsRev0:([I)[I                    ([I:]) -> ok
+jpamb.cases.Group25.itemsOnPage:(III)I                       (0, -1, 10) -> assertion error
+jpamb.cases.Group25.itemsOnPage:(III)I                       (0, 95, 10) -> ok
+jpamb.cases.Group25.itemsOnPage:(III)I                       (10, 95, 10) -> assertion error
+jpamb.cases.Group25.itemsOnPage:(III)I                       (9, 95, 10) -> ok
+jpamb.cases.Group25.lastPageItems:(II)I                      (0, 10) -> assertion error
+jpamb.cases.Group25.lastPageItems:(II)I                      (100, 10) -> ok
+jpamb.cases.Group25.lastPageItems:(II)I                      (95, 10) -> ok
+jpamb.cases.Group25.pageCount:(II)I                          (-1, 10) -> assertion error
+jpamb.cases.Group25.pageCount:(II)I                          (0, 10) -> ok
+jpamb.cases.Group25.pageCount:(II)I                          (95, 10) -> ok
+jpamb.cases.Group25.pageSize:(I)I                            (0) -> ok
+jpamb.cases.Group25.pageSize:(I)I                            (20) -> ok
+jpamb.cases.Group25.pageSize:(I)I                            (500) -> ok
+jpamb.cases.Group25.prefixSums:([I)[I                        ([I:1, 2, 3]) -> ok
+jpamb.cases.Group25.prefixSums:([I)[I                        ([I:]) -> ok
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
