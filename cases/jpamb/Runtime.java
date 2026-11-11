@@ -23,7 +23,8 @@ public class Runtime {
           Calls.class,
           jpamb.cases.advanced.CWE470.class,
           jpamb.cases.advanced.CWE502.class,
-          MagicConstants.class);
+          MagicConstants.class,
+          DivisionByZero.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
