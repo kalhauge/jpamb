@@ -1,4 +1,5 @@
 package jpamb.cases;
+
 import static jpamb.utils.Tag.TagType.*;
 
 import jpamb.utils.Case;
