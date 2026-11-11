@@ -24,7 +24,7 @@ public class Group25 {
   @Case("(95, 10) -> ok")
   @Case("(-1, 10) -> assertion error")
   @Tag({CALL, CONDITIONAL})
-  public static int pageCountRev0(int items, int requested) {
+  public static int pageCount(int items, int requested) {
     assert items >= 0;
     int size = pageSize(requested);
     int pages = items / size;
@@ -40,7 +40,7 @@ public class Group25 {
   @Case("(0, -1, 10) -> assertion error")
   @Tag({CALL, CONDITIONAL})
   public static int itemsOnPageRev0(int page, int items, int requested) {
-    int pages = pageCountRev0(items, requested);
+    int pages = pageCount(items, requested);
     assert page >= 0 && page < pages;
     int size = pageSize(requested);
     if (page == pages - 1 && items % size != 0) {
@@ -54,7 +54,7 @@ public class Group25 {
   @Case("(0, 10) -> assertion error")
   @Tag({CALL})
   public static int lastPageItemsRev0(int items, int requested) {
-    int pages = pageCountRev0(items, requested);
+    int pages = pageCount(items, requested);
     return itemsOnPageRev0(pages - 1, items, requested);
   }
 
