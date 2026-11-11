@@ -152,6 +152,11 @@ class Push(Opcode):
                     case 5:
                         return "iconst_5"
                 return f"ldc [{self.value}]"
+            case jvm_type.Long():
+                assert isinstance(self.value, int)
+                if self.value in (0, 1):
+                    return f"lconst_{self.value}"
+                return f"ldc2_w [{self.value}]"
             case jvm_type.Object(cn) if cn == ClassName("java.lang.String"):
                 return f"ldc [{self.value}]"
             case jvm_type.Reference():
@@ -179,6 +184,9 @@ class Push(Opcode):
                     return "iconst_i"
                 else:
                     return "ldc"
+            case jvm_type.Long():
+                assert isinstance(self.value, int)
+                return "lconst" if self.value in (0, 1) else "ldc2_w"
             case jvm_type.Object(cn) if cn.dotted() == "java.lang.String":
                 return "ldc"
             case jvm_type.Reference():
@@ -343,6 +351,11 @@ class Cast(Opcode):
                 match self.to_:
                     case jvm_type.Short():
                         return "i2s"
+                    case jvm_type.Long():
+                        return "i2l"
+            case jvm_type.Long():
+                if isinstance(self.to_, jvm_type.Int):
+                    return "l2i"
 
         return super().real()
 
@@ -604,6 +617,8 @@ class Store(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return f"istore_{self.index}" if self.index < 4 else f"istore {self.index}"
+        elif isinstance(self.type, jvm_type.Long):
+            return f"lstore_{self.index}" if self.index < 4 else f"lstore {self.index}"
         return super().real()
 
     def semantics(self) -> str | None:
@@ -615,6 +630,8 @@ class Store(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return "istore_n" if self.index < 4 else "istore"
+        elif isinstance(self.type, jvm_type.Long):
+            return "lstore_n" if self.index < 4 else "lstore"
         return ""
 
         return self.real()
@@ -723,6 +740,16 @@ class Binary(Opcode):
                 return "imul"
             case (jvm_type.Int(), BinaryOpr.Sub):
                 return "isub"
+            case (jvm_type.Long(), BinaryOpr.Add):
+                return "ladd"
+            case (jvm_type.Long(), BinaryOpr.Rem):
+                return "lrem"
+            case (jvm_type.Long(), BinaryOpr.Div):
+                return "ldiv"
+            case (jvm_type.Long(), BinaryOpr.Mul):
+                return "lmul"
+            case (jvm_type.Long(), BinaryOpr.Sub):
+                return "lsub"
         raise NotImplementedError(f"Unhandled real {self!r}")
 
     def semantics(self) -> str | None:
@@ -754,6 +781,8 @@ class Load(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return f"iload_{self.index}" if self.index < 4 else f"iload {self.index}"
+        elif isinstance(self.type, jvm_type.Long):
+            return f"lload_{self.index}" if self.index < 4 else f"lload {self.index}"
         return super().real()
 
     def semantics(self) -> str | None:
@@ -765,6 +794,8 @@ class Load(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return "iload_n" if self.index < 4 else "iload"
+        elif isinstance(self.type, jvm_type.Long):
+            return "lload_n" if self.index < 4 else "lload"
         return ""
 
     def __str__(self):

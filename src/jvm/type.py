@@ -97,6 +97,8 @@ class Type(ABC):
                     return Char()
                 case "short":
                     return Short()
+                case "long":
+                    return Long()
                 case "ref":
                     return Reference()
                 case "boolean":
