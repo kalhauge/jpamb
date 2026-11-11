@@ -10,7 +10,7 @@ public class Group25 {
   @Case("(0) -> ok")
   @Case("(20) -> ok")
   @Case("(500) -> ok")
-  public static int pageSizeRev0(int requested) {
+  public static int pageSize(int requested) {
     if (requested <= 0) {
       return 10;
     }
@@ -26,7 +26,7 @@ public class Group25 {
   @Tag({CALL, CONDITIONAL})
   public static int pageCountRev0(int items, int requested) {
     assert items >= 0;
-    int size = pageSizeRev0(requested);
+    int size = pageSize(requested);
     int pages = items / size;
     if (items % size != 0) {
       pages++;
@@ -42,7 +42,7 @@ public class Group25 {
   public static int itemsOnPageRev0(int page, int items, int requested) {
     int pages = pageCountRev0(items, requested);
     assert page >= 0 && page < pages;
-    int size = pageSizeRev0(requested);
+    int size = pageSize(requested);
     if (page == pages - 1 && items % size != 0) {
       return items % size;
     }
