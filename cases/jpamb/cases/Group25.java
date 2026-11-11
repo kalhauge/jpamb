@@ -61,7 +61,7 @@ public class Group25 {
   @Case("([I:]) -> ok")
   @Case("([I:1, 2, 3]) -> ok")
   @Tag({ARRAY, LOOP})
-  public static int[] prefixSumsRev0(int[] xs) {
+  public static int[] prefixSums(int[] xs) {
     int[] sums = new int[xs.length + 1];
     for (int i = 0; i < xs.length; i++) {
       sums[i + 1] = sums[i] + xs[i];
