@@ -53,7 +53,7 @@ public class Group25 {
   @Case("(100, 10) -> ok")
   @Case("(0, 10) -> assertion error")
   @Tag({CALL})
-  public static int lastPageItemsRev0(int items, int requested) {
+  public static int lastPageItems(int items, int requested) {
     int pages = pageCount(items, requested);
     return itemsOnPage(pages - 1, items, requested);
   }
