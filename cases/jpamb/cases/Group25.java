@@ -59,4 +59,17 @@ public class Group25 {
     return itemsOnPage(pages - 1, items, requested);
   }
 
+  @Case("(1234, 10) -> ok")
+  @Case("(0, 10) -> ok")
+  @Case("(5, 0) -> divide by zero")
+  @Case("(5, 1) -> *")
+  @Tag({LOOP})
+  public static int digitCount(int n, int base) {
+    int count = 0;
+    while (n != 0) {
+      n = n / base;
+      count++;
+    }
+    return count;
+  }
 }
