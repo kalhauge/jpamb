@@ -5990,9 +5990,24 @@
             }
           },
           {
+            "offset": 27,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/cases/MagicConstants"
+              }
+            }
+          },
+          {
             "access": "static",
             "method": {
               "args": [
+                {
+                  "kind": "class",
+                  "name": "java/lang/Object"
+                },
                 {
                   "kind": "class",
                   "name": "java/lang/Object"
@@ -6041,7 +6056,7 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 27,
+            "offset": 30,
             "opr": "invoke"
           },
           {
@@ -6053,12 +6068,12 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 30,
+            "offset": 33,
             "opr": "put",
             "static": true
           },
           {
-            "offset": 33,
+            "offset": 36,
             "opr": "return",
             "type": null
           }
@@ -6071,15 +6086,15 @@
           },
           {
             "line": 16,
-            "offset": 9
+            "offset": 10
           },
           {
             "line": 15,
-            "offset": 11
+            "offset": 12
           }
         ],
         "max_locals": 0,
-        "max_stack": 9,
+        "max_stack": 10,
         "stack_map": null
       },
       "default": null,

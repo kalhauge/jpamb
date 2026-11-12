@@ -36,6 +36,16 @@ jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
 jpamb.cases.Loops.terminates:()V                             () -> assertion error
+jpamb.cases.MagicConstants.computedIndex:(I)I                (0) -> ok
+jpamb.cases.MagicConstants.computedIndex:(I)I                (5) -> out of bounds
+jpamb.cases.MagicConstants.derivedNull:(I)I                  (0) -> ok
+jpamb.cases.MagicConstants.derivedNull:(I)I                  (50) -> null pointer
+jpamb.cases.MagicConstants.squareThreshold:(I)V              (25) -> assertion error
+jpamb.cases.MagicConstants.squareThreshold:(I)V              (4) -> ok
+jpamb.cases.MagicConstants.squaredDivisor:(I)I               (10) -> divide by zero
+jpamb.cases.MagicConstants.squaredDivisor:(I)I               (3) -> ok
+jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (1) -> ok
+jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (42) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error

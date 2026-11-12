@@ -22,8 +22,8 @@ public class Runtime {
           Dependent.class,
           Calls.class,
           jpamb.cases.advanced.CWE470.class,
-          jpamb.cases.advanced.CWE502.class
-          );
+          jpamb.cases.advanced.CWE502.class,
+          MagicConstants.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
