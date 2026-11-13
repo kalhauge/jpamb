@@ -32,6 +32,60 @@ jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
+jpamb.cases.Jdbc.aliasedStatement:(I)V                       (0) -> ok
+jpamb.cases.Jdbc.aliasedStatement:(I)V                       (3) -> ok
+jpamb.cases.Jdbc.bindCouponInHelper:(I)V                     (0) -> sql error
+jpamb.cases.Jdbc.bindCouponInHelper:(I)V                     (5) -> ok
+jpamb.cases.Jdbc.bindsWrongStatementOnOneBranch:(I)V         (0) -> sql error
+jpamb.cases.Jdbc.bindsWrongStatementOnOneBranch:(I)V         (4) -> ok
+jpamb.cases.Jdbc.closeInsideLoop:(I)V                        (0) -> ok
+jpamb.cases.Jdbc.closeInsideLoop:(I)V                        (1) -> ok
+jpamb.cases.Jdbc.closeInsideLoop:(I)V                        (2) -> sql error
+jpamb.cases.Jdbc.countUsersPrepared:(Ljava/lang/String;)V    (s'1 OR 1=1') -> sql error
+jpamb.cases.Jdbc.countUsersPrepared:(Ljava/lang/String;)V    (s'1') -> ok
+jpamb.cases.Jdbc.countUsersPrepared:(Ljava/lang/String;)V    (s'4') -> ok
+jpamb.cases.Jdbc.countUsersUnsafe:(Ljava/lang/String;)V      (s'1 OR 1=1') -> assertion error
+jpamb.cases.Jdbc.countUsersUnsafe:(Ljava/lang/String;)V      (s'1') -> ok
+jpamb.cases.Jdbc.countUsersUnsafe:(Ljava/lang/String;)V      (s'x') -> sql error
+jpamb.cases.Jdbc.couponFromText:(Ljava/lang/String;)V        (s'7') -> ok
+jpamb.cases.Jdbc.couponFromText:(Ljava/lang/String;)V        (s'seven') -> sql error
+jpamb.cases.Jdbc.executeAfterClose:(Z)V                      (false) -> ok
+jpamb.cases.Jdbc.executeAfterClose:(Z)V                      (true) -> sql error
+jpamb.cases.Jdbc.insertDefaultOnOneBranch:(ZI)V              (false, 0) -> ok
+jpamb.cases.Jdbc.insertDefaultOnOneBranch:(ZI)V              (false, 1) -> sql error
+jpamb.cases.Jdbc.insertDefaultOnOneBranch:(ZI)V              (true, 2) -> ok
+jpamb.cases.Jdbc.insertOrders:([I)V                          ([I:0]) -> sql error
+jpamb.cases.Jdbc.insertOrders:([I)V                          ([I:7, 0]) -> assertion error
+jpamb.cases.Jdbc.insertOrders:([I)V                          ([I:7, 7]) -> ok
+jpamb.cases.Jdbc.insertOrders:([I)V                          ([I:]) -> ok
+jpamb.cases.Jdbc.insertOrdersBindEveryIteration:([I)V        ([I:0, 7]) -> ok
+jpamb.cases.Jdbc.insertOrdersBindEveryIteration:([I)V        ([I:0]) -> ok
+jpamb.cases.Jdbc.insertOrdersBindEveryIteration:([I)V        ([I:7, 0]) -> ok
+jpamb.cases.Jdbc.insertOrdersClearAfterAdd:([I)V             ([I:7, 0]) -> sql error
+jpamb.cases.Jdbc.insertOrdersClearAfterAdd:([I)V             ([I:7, 7]) -> ok
+jpamb.cases.Jdbc.insertOrdersClearAfterAdd:([I)V             ([I:]) -> ok
+jpamb.cases.Jdbc.insertOrdersSharedCoupon:([II)V             ([I:1, 1], 5) -> sql error
+jpamb.cases.Jdbc.insertOrdersSharedCoupon:([II)V             ([I:1, 2], 5) -> ok
+jpamb.cases.Jdbc.insertOrdersSharedCoupon:([II)V             ([I:], 5) -> ok
+jpamb.cases.Jdbc.orQuery:([I)V                               ([I:1, 1, 9]) -> ok
+jpamb.cases.Jdbc.orQuery:([I)V                               ([I:1, 2]) -> ok
+jpamb.cases.Jdbc.orQuery:([I)V                               ([I:]) -> assertion error
+jpamb.cases.Jdbc.orQueryOffByOne:([I)V                       ([I:1, 2]) -> sql error
+jpamb.cases.Jdbc.orQueryOffByOne:([I)V                       ([I:1]) -> sql error
+jpamb.cases.Jdbc.orQueryOffByOne:([I)V                       ([I:]) -> ok
+jpamb.cases.Jdbc.queryAlternativesMatched:(ZI)V              (false, 5) -> ok
+jpamb.cases.Jdbc.queryAlternativesMatched:(ZI)V              (true, 5) -> ok
+jpamb.cases.Jdbc.queryAlternativesMismatch:(Z)V              (false) -> sql error
+jpamb.cases.Jdbc.queryAlternativesMismatch:(Z)V              (true) -> ok
+jpamb.cases.Jdbc.readAge:(I)I                                (1) -> ok
+jpamb.cases.Jdbc.readAge:(I)I                                (9) -> sql error
+jpamb.cases.Jdbc.resubmitAfterBatch:(Z)V                     (false) -> ok
+jpamb.cases.Jdbc.resubmitAfterBatch:(Z)V                     (true) -> sql error
+jpamb.cases.Jdbc.reuseAfterBatch:(I)V                        (0) -> ok
+jpamb.cases.Jdbc.reuseAfterBatch:(I)V                        (5) -> assertion error
+jpamb.cases.Jdbc.selectColumnByChoice:(I)V                   (0) -> ok
+jpamb.cases.Jdbc.selectColumnByChoice:(I)V                   (1) -> ok
+jpamb.cases.Jdbc.selectColumnByChoice:(I)V                   (2) -> sql error
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *

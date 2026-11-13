@@ -513,6 +513,306 @@
     )
     :results (ok)
   )
+  :"jpamb.cases.Jdbc.aliasedStatement!(0)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.aliasedStatement!(3)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.aliasedStatement:(I)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.bindCouponInHelper!(0)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.bindCouponInHelper!(5)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.bindCouponInHelper:(I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.bindsWrongStatementOnOneBranch!(0)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.bindsWrongStatementOnOneBranch!(4)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.bindsWrongStatementOnOneBranch:(I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.closeInsideLoop!(0)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.closeInsideLoop!(1)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.closeInsideLoop!(2)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.closeInsideLoop:(I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.countUsersPrepared!(s'1 OR 1=1')V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.countUsersPrepared!(s'1')V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.countUsersPrepared!(s'4')V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.countUsersPrepared:(Ljava/lang/String;)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.countUsersUnsafe!(s'1 OR 1=1')V" (control
+    :coverage ()
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Jdbc.countUsersUnsafe!(s'1')V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.countUsersUnsafe!(s'x')V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.countUsersUnsafe:(Ljava/lang/String;)V" (control
+    :coverage ()
+    :results ("assertion error" ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.couponFromText!(s'7')V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.couponFromText!(s'seven')V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.couponFromText:(Ljava/lang/String;)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.executeAfterClose!(false)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.executeAfterClose!(true)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.executeAfterClose:(Z)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.insertDefaultOnOneBranch!(false, 0)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertDefaultOnOneBranch!(false, 1)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.insertDefaultOnOneBranch!(true, 2)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertDefaultOnOneBranch:(ZI)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrders!([I:0])V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrders!([I:7, 0])V" (control
+    :coverage ()
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Jdbc.insertOrders!([I:7, 7])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrders!([I:])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrders:([I)V" (control
+    :coverage ()
+    :results ("assertion error" ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrdersBindEveryIteration!([I:0, 7])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersBindEveryIteration!([I:0])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersBindEveryIteration!([I:7, 0])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersBindEveryIteration:([I)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersClearAfterAdd!([I:7, 0])V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrdersClearAfterAdd!([I:7, 7])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersClearAfterAdd!([I:])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersClearAfterAdd:([I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrdersSharedCoupon!([I:1, 1], 5)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.insertOrdersSharedCoupon!([I:1, 2], 5)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersSharedCoupon!([I:], 5)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.insertOrdersSharedCoupon:([II)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.orQuery!([I:1, 1, 9])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.orQuery!([I:1, 2])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.orQuery!([I:])V" (control
+    :coverage ()
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Jdbc.orQuery:([I)V" (control
+    :coverage ()
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Jdbc.orQueryOffByOne!([I:1, 2])V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.orQueryOffByOne!([I:1])V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.orQueryOffByOne!([I:])V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.orQueryOffByOne:([I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMatched!(false, 5)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMatched!(true, 5)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMatched:(ZI)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMismatch!(false)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMismatch!(true)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.queryAlternativesMismatch:(Z)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.readAge!(1)I" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.readAge!(9)I" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.readAge:(I)I" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.resubmitAfterBatch!(false)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.resubmitAfterBatch!(true)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.resubmitAfterBatch:(Z)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
+  :"jpamb.cases.Jdbc.reuseAfterBatch!(0)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.reuseAfterBatch!(5)V" (control
+    :coverage ()
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Jdbc.reuseAfterBatch:(I)V" (control
+    :coverage ()
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Jdbc.selectColumnByChoice!(0)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.selectColumnByChoice!(1)V" (control
+    :coverage ()
+    :results (ok)
+  )
+  :"jpamb.cases.Jdbc.selectColumnByChoice!(2)V" (control
+    :coverage ()
+    :results ("sql error")
+  )
+  :"jpamb.cases.Jdbc.selectColumnByChoice:(I)V" (control
+    :coverage ()
+    :results (ok "sql error")
+  )
   :"jpamb.cases.Loops.forever!()V" (control
     :coverage (
       :"jpamb.cases.Loops.forever:()V" (coverage
