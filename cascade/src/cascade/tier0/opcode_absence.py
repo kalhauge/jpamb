@@ -1,6 +1,6 @@
 """Tier 0a: opcode-absence analysis.
 
-Check for code that could cause an outcome, if that instruction is not found, answer no
+An outcome is impossible if no instruction that can cause it is reachable.
 """
 
 import jpamb
@@ -16,6 +16,7 @@ NONTERM = "*"
 
 ALL_OUTCOMES = frozenset({ASSERTION, DIVZERO, NULL, OOB, NONTERM})
 
+# how JPAMB maps exceptions to outcomes
 THROWABLE_OUTCOME = {
     "java/lang/AssertionError": ASSERTION,
     "java/lang/ArithmeticException": DIVZERO,
@@ -23,15 +24,25 @@ THROWABLE_OUTCOME = {
     "java/lang/NullPointerException": NULL,
 }
 
-# assumptions by us, these intructions cannot cause an error by themselves
+# instructions that cannot cause an outcome
 HARMLESS = frozenset({
     "push", "load", "store", "dup", "pop", "incr", "return",
     "cast", "negate", "new", "newarray", "checkcast", "instanceof",
 })
 
+# library methods we trust to terminate and cause no outcome
+SAFE_LIBRARY_METHODS = frozenset({
+    "java.lang.Object.<init>:()V",
+    "java.lang.AssertionError.<init>:()V",
+    "java.lang.Class.desiredAssertionStatus:()Z",
+    "java.lang.String.equals:(Ljava/lang/Object;)Z",
+    "java.lang.String.length:()I",
+    "java.lang.String.charAt:(I)C",
+})
+
 
 def jump_targets(ins: dict) -> list[int]:
-    """The instruction indices a jump can go to."""
+    """Indices a jump can go to."""
     match ins["opr"]:
         case "goto" | "if" | "ifz":
             return [ins["target"]]
@@ -43,8 +54,7 @@ def jump_targets(ins: dict) -> list[int]:
 
 
 def thrown_class(code: list[dict], index: int) -> str | None:
-    """The class thrown at `index`, if it matches the javac idiom
-    `new C; dup; ...; invokespecial C.<init>; throw`. None if unknown."""
+    """Class thrown at `index` if preceded by its constructor call, else None."""
     if index == 0:
         return None
     prev = code[index - 1]
@@ -58,11 +68,7 @@ def thrown_class(code: list[dict], index: int) -> str | None:
 
 
 def local_outcomes(code: list[dict], index: int) -> set[str]:
-    """The rule table: outcomes the instruction at `index` can cause by itself.
-
-    Calls are only checked for a null receiver here; following them into the
-    callee comes later.
-    """
+    """The rule table: outcomes the instruction at `index` can cause by itself."""
     ins = code[index]
     opr = ins["opr"]
 
@@ -71,7 +77,7 @@ def local_outcomes(code: list[dict], index: int) -> set[str]:
 
     match opr:
         case "goto" | "if" | "ifz" | "tableswitch" | "lookupswitch":
-            # if instruction jumps it can be a loop
+            # backward jump = loop
             return {NONTERM} if any(t <= index for t in jump_targets(ins)) else set()
 
         case "binary":
@@ -86,10 +92,10 @@ def local_outcomes(code: list[dict], index: int) -> set[str]:
             return {NULL}
 
         case "get" | "put":
-            # static fields have no object to dereference.
             return set() if ins["static"] else {NULL}
 
         case "invoke":
+            # null receiver; the callee itself is handled in analyse
             access = ins["access"]
             if access in ("virtual", "interface"):
                 return {NULL}
@@ -100,20 +106,17 @@ def local_outcomes(code: list[dict], index: int) -> set[str]:
         case "throw":
             cls = thrown_class(code, index)
             if cls is None:
-                return set(ALL_OUTCOMES)  # unknown object so assume the worst
+                return set(ALL_OUTCOMES)
             if cls in THROWABLE_OUTCOME:
                 return {THROWABLE_OUTCOME[cls]}
             return set()  # TODO: subclasses of the four exception classes
 
-    # worst case
+    # unknown instruction: assume the worst
     return set(ALL_OUTCOMES)
 
 
 def method_sites(code: list[dict]) -> dict[str, list[int]]:
-    """For every outcome, the indices of the instructions in `code` that can cause it.
-
-    empty list has no fault site in this method.
-    """
+    """Per outcome, the indices in `code` that can cause it."""
     sites: dict[str, list[int]] = {outcome: [] for outcome in ALL_OUTCOMES}
     for index in range(len(code)):
         for outcome in local_outcomes(code, index):
@@ -122,7 +125,7 @@ def method_sites(code: list[dict]) -> dict[str, list[int]]:
 
 
 def method_id(classname: jvm.ClassName, mjson: dict) -> AbsMethodID:
-    """Build the id of a method from its decompiled JSON."""
+    """Method id from its decompiled JSON."""
     rtype = mjson["returns"]["type"]
     return AbsMethodID(
         classname,
@@ -135,12 +138,12 @@ def method_id(classname: jvm.ClassName, mjson: dict) -> AbsMethodID:
 
 
 class Program:
-    """All decompiled classes of the benchmark, loaded once."""
+    """All decompiled benchmark classes, loaded once."""
 
     def __init__(self, suite: jpamb.Suite, eff):
-        self.classes: dict[str, dict] = {}         # "jpamb/cases/Calls" -> class JSON
-        self.methods: dict[AbsMethodID, dict] = {}  # method id -> method JSON
-        # (name, params) -> every benchmark method with that signature (for virtual calls)
+        self.classes: dict[str, dict] = {}
+        self.methods: dict[AbsMethodID, dict] = {}
+        # (name, params) -> methods with that signature, for virtual calls
         self.by_signature: dict[tuple[str, Parameters], list[AbsMethodID]] = {}
 
         for cn in suite.classes(eff=eff):
@@ -153,40 +156,36 @@ class Program:
                 self.by_signature.setdefault(key, []).append(mid)
 
     def code(self, mid: AbsMethodID) -> list[dict] | None:
-        """The instructions of a method, or None if we don't have its bytecode
-        (a library method, or an abstract method)."""
+        """Instructions of a method, or None if it has no bytecode."""
         mjson = self.methods.get(mid)
         if mjson is None or mjson.get("code") is None:
             return None
         return mjson["code"]["bytecode"]
 
     def superclass(self, cls: str) -> str | None:
-        """The superclass of a benchmark class, e.g. "java/lang/Object"."""
+        """Superclass of a benchmark class."""
         sup = self.classes[cls].get("super")
         return sup["name"] if sup else None
 
 
 def call_targets(program: Program, ins: dict) -> list[AbsMethodID] | None:
-    """The methods an `invoke` instruction may run. None if we cannot tell."""
+    """Methods an `invoke` may run, or None if unknown."""
     if ins["access"] == "dynamic":
-        return None  # target is decided at runtime by a bootstrap method
+        return None
 
     named = AbsMethodID.from_json(ins["method"])
     if ins["access"] in ("virtual", "interface"):
-        # The runtime object picks the override: follow every benchmark
-        # method with the same name and parameters (design decision 3).
+        # any override may run: follow all methods with the same signature
         key = (named.extension.name, named.extension.params)
         others = [m for m in program.by_signature.get(key, []) if m != named]
         return [named, *others]
-    # static / special: exactly the named method.
     return [named]
 
 
 def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMethodID, int]]]:
-    """Fault sites of every outcome in all methods reachable from `entry`.
+    """Per outcome, the fault sites (method, index) reachable from `entry`.
 
-    A site is (method, instruction index); index -1 means "somewhere inside a
-    method we cannot see".
+    Index -1 means somewhere inside a method without bytecode.
     """
     sites: dict[str, list[tuple[AbsMethodID, int]]] = {o: [] for o in ALL_OUTCOMES}
     todo = [entry]
@@ -200,22 +199,20 @@ def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMet
 
         code = program.code(mid)
         if code is None:
-            # No bytecode (library / abstract method) - assume the worst.
+            if mid.encode() in SAFE_LIBRARY_METHODS:
+                continue
             for outcome in ALL_OUTCOMES:
                 sites[outcome].append((mid, -1))
             continue
 
-        # 1. the method's own fault sites (the rule table)
         for outcome, indices in method_sites(code).items():
             sites[outcome].extend((mid, i) for i in indices)
 
-        # 2. follow every call
         for index, ins in enumerate(code):
             if ins["opr"] != "invoke":
                 continue
             targets = call_targets(program, ins)
             if targets is None:
-                # Cannot tell what runs - assume the worst at the call.
                 for outcome in ALL_OUTCOMES:
                     sites[outcome].append((mid, index))
             else:
