@@ -247,3 +247,21 @@ def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMet
 
     sites[NONTERM].extend(recursive_calls(calls))
     return sites
+
+
+def main():
+    methodid = jpamb.getmethodid(
+        "tier0-absence", "0.1", "Group 21", ["syntactic", "python"], for_science=True
+    )
+    suite, eff = jpamb.setup()
+    sites = analyse(Program(suite, eff), methodid)
+
+    for query in jpamb.QUERIES:
+        if query in ALL_OUTCOMES and not sites[query]:
+            print(f"{query};0%")
+        else:
+            print(f"{query};maybe")
+
+
+if __name__ == "__main__":
+    main()
