@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cascade"
+version = "0.1.0"
+description = "Cheap Before Expensive: cascading analyses for JPAMB (Group 21)"
+requires-python = ">=3.13"
+dependencies = ["jpamb"]
+
+[project.scripts]
+tier0-absence = "cascade.tier0.opcode_absence:main"
+
+[tool.uv.sources]
+jpamb = { path = "../", editable = true }
+
+[dependency-groups]
+dev = ["jpamb", "pytest>=8.3.4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
