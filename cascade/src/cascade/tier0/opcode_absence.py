@@ -140,12 +140,17 @@ class Program:
     def __init__(self, suite: jpamb.Suite, eff):
         self.classes: dict[str, dict] = {}         # "jpamb/cases/Calls" -> class JSON
         self.methods: dict[AbsMethodID, dict] = {}  # method id -> method JSON
+        # (name, params) -> every benchmark method with that signature (for virtual calls)
+        self.by_signature: dict[tuple[str, Parameters], list[AbsMethodID]] = {}
 
         for cn in suite.classes(eff=eff):
             cjson = suite.findclass(cn, eff=eff)
             self.classes[cn.slashed()] = cjson
             for mjson in cjson["methods"]:
-                self.methods[method_id(cn, mjson)] = mjson
+                mid = method_id(cn, mjson)
+                self.methods[mid] = mjson
+                key = (mid.extension.name, mid.extension.params)
+                self.by_signature.setdefault(key, []).append(mid)
 
     def code(self, mid: AbsMethodID) -> list[dict] | None:
         """The instructions of a method, or None if we don't have its bytecode
@@ -159,3 +164,19 @@ class Program:
         """The superclass of a benchmark class, e.g. "java/lang/Object"."""
         sup = self.classes[cls].get("super")
         return sup["name"] if sup else None
+
+
+def call_targets(program: Program, ins: dict) -> list[AbsMethodID] | None:
+    """The methods an `invoke` instruction may run. None if we cannot tell."""
+    if ins["access"] == "dynamic":
+        return None  # target is decided at runtime by a bootstrap method
+
+    named = AbsMethodID.from_json(ins["method"])
+    if ins["access"] in ("virtual", "interface"):
+        # The runtime object picks the override: follow every benchmark
+        # method with the same name and parameters (design decision 3).
+        key = (named.extension.name, named.extension.params)
+        others = [m for m in program.by_signature.get(key, []) if m != named]
+        return [named, *others]
+    # static / special: exactly the named method.
+    return [named]
