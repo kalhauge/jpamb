@@ -102,3 +102,15 @@ def local_outcomes(code: list[dict], index: int) -> set[str]:
 
     # worst case
     return set(ALL_OUTCOMES)
+
+
+def method_sites(code: list[dict]) -> dict[str, list[int]]:
+    """For every outcome, the indices of the instructions in `code` that can cause it.
+
+    empty list has no fault site in this method.
+    """
+    sites: dict[str, list[int]] = {outcome: [] for outcome in ALL_OUTCOMES}
+    for index in range(len(code)):
+        for outcome in local_outcomes(code, index):
+            sites[outcome].append(index)
+    return sites
