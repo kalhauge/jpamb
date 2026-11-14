@@ -32,6 +32,30 @@ jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
+jpamb.cases.IntervalCoverage.arrayIndexValue:(I)V            (4) -> ok
+jpamb.cases.IntervalCoverage.arrayIndexValue:(I)V            (5) -> assertion error
+jpamb.cases.IntervalCoverage.arrayIndexValue:(I)V            (8) -> ok
+jpamb.cases.IntervalCoverage.arrayLoop:(I)V                  (5) -> ok
+jpamb.cases.IntervalCoverage.arrayLoop:(I)V                  (6) -> assertion error
+jpamb.cases.IntervalCoverage.arrayLoop:(I)V                  (8) -> ok
+jpamb.cases.IntervalCoverage.arraySumIsLarge:(I)V            (0) -> ok
+jpamb.cases.IntervalCoverage.arraySumIsLarge:(I)V            (1) -> assertion error
+jpamb.cases.IntervalCoverage.decrementLoop:(I)V              (7) -> ok
+jpamb.cases.IntervalCoverage.decrementLoop:(I)V              (8) -> assertion error
+jpamb.cases.IntervalCoverage.loopAndEquality:(I)V            (39) -> ok
+jpamb.cases.IntervalCoverage.loopAndEquality:(I)V            (40) -> assertion error
+jpamb.cases.IntervalCoverage.multiplicationLoop:(I)V         (10) -> assertion error
+jpamb.cases.IntervalCoverage.multiplicationLoop:(I)V         (9) -> ok
+jpamb.cases.IntervalCoverage.narrowEquality:(I)V             (123456788) -> ok
+jpamb.cases.IntervalCoverage.narrowEquality:(I)V             (123456789) -> assertion error
+jpamb.cases.IntervalCoverage.nestedLoop:(I)V                 (10) -> assertion error
+jpamb.cases.IntervalCoverage.nestedLoop:(I)V                 (9) -> ok
+jpamb.cases.IntervalCoverage.rangeCondition:(I)V             (1004) -> ok
+jpamb.cases.IntervalCoverage.rangeCondition:(I)V             (1005) -> assertion error
+jpamb.cases.IntervalCoverage.rangeCondition:(I)V             (999) -> ok
+jpamb.cases.IntervalCoverage.unreachableRange:(I)V           (0) -> ok
+jpamb.cases.IntervalCoverage.unreachableRange:(I)V           (1000) -> ok
+jpamb.cases.IntervalCoverage.unreachableRange:(I)V           (101) -> ok
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
