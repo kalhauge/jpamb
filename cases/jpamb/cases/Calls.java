@@ -288,4 +288,17 @@ public class Calls {
   public static int divisionThroughHelper(int numerator, int denominator) {
     return divideHelper(numerator, denominator);
   }
+
+  // The division only exists in the callee, so an analysis must
+  // follow calls.
+  public static int scale(int x, int d) {
+    return x / d;
+  }
+
+  @Case("(3) -> divide by zero")
+  @Case("(0) -> ok")
+  @Tag({CALL})
+  public static int divideViaHelper(int n) {
+    return scale(100, n - 3);
+  }
 }

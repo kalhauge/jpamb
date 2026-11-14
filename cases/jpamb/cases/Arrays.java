@@ -104,6 +104,23 @@ public class Arrays {
         && array[4] == 'o';
   }
 
+  // The division is only reached for the exact input "secret".
+  @Case("([C: 's', 'e', 'c', 'r', 'e', 't']) -> divide by zero")
+  @Case("([C: 's', 'e', 'c', 'r', 'e', 'x']) -> ok")
+  @Tag({ARRAY})
+  public static int secretThenDivide(char[] a) {
+    if (a.length == 6
+        && a[0] == 's'
+        && a[1] == 'e'
+        && a[2] == 'c'
+        && a[3] == 'r'
+        && a[4] == 'e'
+        && a[5] == 't') {
+      return 1 / (a.length - 6);
+    }
+    return 0;
+  }
+
   @Case("([I: 50, 100, 200]) -> ok")
   @Case("([I: ]) -> assertion error")
   @Tag({ARRAY})
@@ -149,6 +166,18 @@ public class Arrays {
 
     if (n >= 0 && n < a.length) {
       assert a[n] != 12;
+    }
+  }
+
+  // Safe, but the loop condition is '!=' instead of '<'. An interval
+  // cannot exclude a single value in the middle, so an analysis that widens i
+  // to "any non-negative int" can no longer recover the bound 8.
+  @Case("() -> ok")
+  @Tag({ARRAY, LOOP})
+  public static void arrayFillUntilEqual() {
+    int array[] = new int[8];
+    for (int i = 0; i != 8; i++) {
+      array[i] = i;
     }
   }
 }

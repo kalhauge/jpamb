@@ -87,4 +87,13 @@ public class Dependent {
       }
     }
   }
+
+  // The assertion is unreachable because n * 2 is always even.
+  @Case("(7) -> ok")
+  public static void doubleIsAlwaysEven(int n) {
+    int x = n * 2;
+    if (x % 2 != 0) {
+      assert false;
+    }
+  }
 }

@@ -1,4 +1,356 @@
 (benchmark
+  :"jpamb.cases.Arrays.arrayContent:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayContent:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 39 40)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arrayContent!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayContent:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 39 40)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 40 41 42)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayContentAboveMinus13!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayContentAboveMinus13:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 40 41 42)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayFillUntilEqual:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayFillUntilEqual:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayFillUntilEqual!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayFillUntilEqual:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayInBounds:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayInBounds:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayInBounds!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayInBounds:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayIndexValue:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIndexValue:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 52)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.arrayIndexValue!(4)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIndexValue:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 52)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayIndexValue!(5)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIndexValue:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arrayIsNull:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIsNull:()V" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+    )
+    :results ("null pointer")
+  )
+  :"jpamb.cases.Arrays.arrayIsNull!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIsNull:()V" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+    )
+    :results ("null pointer")
+  )
+  :"jpamb.cases.Arrays.arrayIsNullLength:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIsNullLength:()V" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+    )
+    :results ("null pointer")
+  )
+  :"jpamb.cases.Arrays.arrayIsNullLength!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayIsNullLength:()V" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+    )
+    :results ("null pointer")
+  )
+  :"jpamb.cases.Arrays.arrayLength:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayLength:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 21)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayLength!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayLength:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 21)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayLoop:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayLoop:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.arrayLoop!(5)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayLoop:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayLoop!(6)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayLoop:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (coverage
+        :reachable (0 1 2 3 4 5 9)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.arrayNotEmpty!([I:1])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (coverage
+        :reachable (0 1 2 3 4 9)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arrayNotEmpty!([I:])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayNotEmpty:([I)V" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+      )
+    )
+    :results ("out of bounds")
+  )
+  :"jpamb.cases.Arrays.arrayOutOfBounds!()V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arrayOutOfBounds:()V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+      )
+    )
+    :results ("out of bounds")
+  )
+  :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results ("null pointer" "out of bounds")
+  )
+  :"jpamb.cases.Arrays.arraySometimesNull!(0)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results ("out of bounds")
+  )
+  :"jpamb.cases.Arrays.arraySometimesNull!(11)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySometimesNull:(I)V" (coverage
+        :reachable (0 1 2 3 4 12 13 14 15)
+      )
+    )
+    :results ("null pointer")
+  )
+  :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 31)
+      )
+    )
+    :results ("assertion error" ok "out of bounds")
+  )
+  :"jpamb.cases.Arrays.arraySpellsHello!([C:'h', 'e', 'l', 'l', 'o'])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 31)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arraySpellsHello!([C:'x'])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (coverage
+        :reachable (0 1 2 3 4 5 6 27)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arraySpellsHello!([C:])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySpellsHello:([C)V" (coverage
+        :reachable (0 1 2 3 4)
+      )
+    )
+    :results ("out of bounds")
+  )
+  :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 25)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.arraySumIsLarge!([I:50, 100, 200])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 25)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arraySumIsLarge!([I:])V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLarge:([I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 16 17 18 19 20 21)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.arraySumIsLargeInt:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLargeInt:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 40)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.arraySumIsLargeInt!(0)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLargeInt:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 40)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.arraySumIsLargeInt!(1)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.arraySumIsLargeInt:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.binarySearch:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.binarySearch:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)
+      )
+    )
+    :results ("assertion error" ok)
+  )
+  :"jpamb.cases.Arrays.binarySearch!(3)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.binarySearch:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Arrays.binarySearch!(6)V" (control
+    :coverage (
+      :"jpamb.cases.Arrays.binarySearch:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64)
+      )
+    )
+    :results ("assertion error")
+  )
+  :"jpamb.cases.Arrays.secretThenDivide:([C)I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 41 42)
+      )
+    )
+    :results ("divide by zero" ok)
+  )
+  :"jpamb.cases.Arrays.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 't'])I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39)
+      )
+    )
+    :results ("divide by zero")
+  )
+  :"jpamb.cases.Arrays.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 'x'])I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 41 42)
+      )
+    )
+    :results (ok)
+  )
   :"jpamb.cases.BitOperations.bitshiftLeft:(I)V" (control
     :coverage (
       :"jpamb.cases.BitOperations.bitshiftLeft:(I)V" (coverage
@@ -827,6 +1179,39 @@
     )
     :results (ok)
   )
+  :"jpamb.cases.Calls.divideViaHelper:(I)I" (control
+    :coverage (
+      :"jpamb.cases.Calls.divideViaHelper:(I)I" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+      :"jpamb.cases.Calls.scale:(II)I" (coverage
+        :reachable (0 1 2 3)
+      )
+    )
+    :results ("divide by zero" ok)
+  )
+  :"jpamb.cases.Calls.divideViaHelper!(0)I" (control
+    :coverage (
+      :"jpamb.cases.Calls.divideViaHelper:(I)I" (coverage
+        :reachable (0 1 2 3 4 5)
+      )
+      :"jpamb.cases.Calls.scale:(II)I" (coverage
+        :reachable (0 1 2 3)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Calls.divideViaHelper!(3)I" (control
+    :coverage (
+      :"jpamb.cases.Calls.divideViaHelper:(I)I" (coverage
+        :reachable (0 1 2 3 4)
+      )
+      :"jpamb.cases.Calls.scale:(II)I" (coverage
+        :reachable (0 1 2)
+      )
+    )
+    :results ("divide by zero")
+  )
   :"jpamb.cases.Calls.divisionThroughHelper:(II)I" (control
     :coverage (
       :"jpamb.cases.Calls.divideHelper:(II)I" (coverage
@@ -955,6 +1340,22 @@
       )
     )
     :results ("assertion error")
+  )
+  :"jpamb.cases.Dependent.doubleIsAlwaysEven:(I)V" (control
+    :coverage (
+      :"jpamb.cases.Dependent.doubleIsAlwaysEven:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 14)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Dependent.doubleIsAlwaysEven!(7)V" (control
+    :coverage (
+      :"jpamb.cases.Dependent.doubleIsAlwaysEven:(I)V" (coverage
+        :reachable (0 1 2 3 4 5 6 7 14)
+      )
+    )
+    :results (ok)
   )
   :"jpamb.cases.Dependent.normalizedDistance:(II)I" (control
     :coverage (
@@ -1915,6 +2316,30 @@
       )
     )
     :results (ok)
+  )
+  :"jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I" (control
+    :coverage (
+      :"jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results (ok "out of bounds")
+  )
+  :"jpamb.cases.Overflow.arrayIndexAfterOverflow!(0)I" (control
+    :coverage (
+      :"jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)
+      )
+    )
+    :results (ok)
+  )
+  :"jpamb.cases.Overflow.arrayIndexAfterOverflow!(2147483647)I" (control
+    :coverage (
+      :"jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14)
+      )
+    )
+    :results ("out of bounds")
   )
   :"jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V" (control
     :coverage (
