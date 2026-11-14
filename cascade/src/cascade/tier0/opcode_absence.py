@@ -182,6 +182,31 @@ def call_targets(program: Program, ins: dict) -> list[AbsMethodID] | None:
     return [named]
 
 
+def reaches(calls: dict[AbsMethodID, list[tuple[int, AbsMethodID]]], src: AbsMethodID, dst: AbsMethodID) -> bool:
+    """True if `src` can reach `dst` through calls."""
+    todo = [src]
+    seen: set[AbsMethodID] = set()
+    while todo:
+        m = todo.pop()
+        if m == dst:
+            return True
+        if m in seen:
+            continue
+        seen.add(m)
+        todo.extend(callee for _, callee in calls.get(m, []))
+    return False
+
+
+def recursive_calls(calls: dict[AbsMethodID, list[tuple[int, AbsMethodID]]]) -> list[tuple[AbsMethodID, int]]:
+    """Call sites whose callee can call back into the caller."""
+    return [
+        (caller, index)
+        for caller, edges in calls.items()
+        for index, callee in edges
+        if reaches(calls, callee, caller)
+    ]
+
+
 def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMethodID, int]]]:
     """Per outcome, the fault sites (method, index) reachable from `entry`.
 
@@ -190,6 +215,7 @@ def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMet
     sites: dict[str, list[tuple[AbsMethodID, int]]] = {o: [] for o in ALL_OUTCOMES}
     todo = [entry]
     seen: set[AbsMethodID] = set()
+    calls: dict[AbsMethodID, list[tuple[int, AbsMethodID]]] = {}
 
     while todo:
         mid = todo.pop()
@@ -217,5 +243,7 @@ def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMet
                     sites[outcome].append((mid, index))
             else:
                 todo.extend(targets)
+                calls.setdefault(mid, []).extend((index, t) for t in targets)
 
+    sites[NONTERM].extend(recursive_calls(calls))
     return sites
