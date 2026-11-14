@@ -24,6 +24,17 @@ THROWABLE_OUTCOME = {
     "java/lang/NullPointerException": NULL,
 }
 
+# library throwables that are not subclasses of the classes above
+UNRELATED_THROWABLES = frozenset({
+    "java/lang/Object",
+    "java/lang/Throwable",
+    "java/lang/Exception",
+    "java/lang/Error",
+    "java/lang/RuntimeException",
+    "java/lang/IllegalArgumentException",
+    "java/lang/IllegalStateException",
+})
+
 # instructions that cannot cause an outcome
 HARMLESS = frozenset({
     "push", "load", "store", "dup", "pop", "incr", "return",
@@ -67,7 +78,7 @@ def thrown_class(code: list[dict], index: int) -> str | None:
     return None
 
 
-def local_outcomes(code: list[dict], index: int) -> set[str]:
+def local_outcomes(program: "Program", code: list[dict], index: int) -> set[str]:
     """The rule table: outcomes the instruction at `index` can cause by itself."""
     ins = code[index]
     opr = ins["opr"]
@@ -107,19 +118,17 @@ def local_outcomes(code: list[dict], index: int) -> set[str]:
             cls = thrown_class(code, index)
             if cls is None:
                 return set(ALL_OUTCOMES)
-            if cls in THROWABLE_OUTCOME:
-                return {THROWABLE_OUTCOME[cls]}
-            return set()  # TODO: subclasses of the four exception classes
+            return program.throwable_outcomes(cls)
 
     # unknown instruction: assume the worst
     return set(ALL_OUTCOMES)
 
 
-def method_sites(code: list[dict]) -> dict[str, list[int]]:
+def method_sites(program: "Program", code: list[dict]) -> dict[str, list[int]]:
     """Per outcome, the indices in `code` that can cause it."""
     sites: dict[str, list[int]] = {outcome: [] for outcome in ALL_OUTCOMES}
     for index in range(len(code)):
-        for outcome in local_outcomes(code, index):
+        for outcome in local_outcomes(program, code, index):
             sites[outcome].append(index)
     return sites
 
@@ -166,6 +175,19 @@ class Program:
         """Superclass of a benchmark class."""
         sup = self.classes[cls].get("super")
         return sup["name"] if sup else None
+
+    def throwable_outcomes(self, cls: str) -> set[str]:
+        """Outcomes a thrown `cls` counts as, walking up its superclasses."""
+        while cls in self.classes:
+            if cls in THROWABLE_OUTCOME:
+                return {THROWABLE_OUTCOME[cls]}
+            cls = self.superclass(cls)
+        if cls in THROWABLE_OUTCOME:
+            return {THROWABLE_OUTCOME[cls]}
+        if cls in UNRELATED_THROWABLES:
+            return set()
+        # unknown library class: assume the worst
+        return set(ALL_OUTCOMES)
 
 
 def call_targets(program: Program, ins: dict) -> list[AbsMethodID] | None:
@@ -231,7 +253,7 @@ def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMet
                 sites[outcome].append((mid, -1))
             continue
 
-        for outcome, indices in method_sites(code).items():
+        for outcome, indices in method_sites(program, code).items():
             sites[outcome].extend((mid, i) for i in indices)
 
         for index, ins in enumerate(code):
