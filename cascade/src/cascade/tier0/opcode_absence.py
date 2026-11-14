@@ -3,6 +3,11 @@
 Check for code that could cause an outcome, if that instruction is not found, answer no
 """
 
+import jpamb
+import jvm
+from jvm.classfile import AbsMethodID, MethodID, Parameters
+from jvm.type import Type
+
 ASSERTION = "assertion error"
 DIVZERO = "divide by zero"
 NULL = "null pointer"
@@ -114,3 +119,43 @@ def method_sites(code: list[dict]) -> dict[str, list[int]]:
         for outcome in local_outcomes(code, index):
             sites[outcome].append(index)
     return sites
+
+
+def method_id(classname: jvm.ClassName, mjson: dict) -> AbsMethodID:
+    """Build the id of a method from its decompiled JSON."""
+    rtype = mjson["returns"]["type"]
+    return AbsMethodID(
+        classname,
+        MethodID(
+            name=mjson["name"],
+            params=Parameters.from_json(mjson["params"], annotated=True),
+            return_type=Type.from_json(rtype) if rtype is not None else None,
+        ),
+    )
+
+
+class Program:
+    """All decompiled classes of the benchmark, loaded once."""
+
+    def __init__(self, suite: jpamb.Suite, eff):
+        self.classes: dict[str, dict] = {}         # "jpamb/cases/Calls" -> class JSON
+        self.methods: dict[AbsMethodID, dict] = {}  # method id -> method JSON
+
+        for cn in suite.classes(eff=eff):
+            cjson = suite.findclass(cn, eff=eff)
+            self.classes[cn.slashed()] = cjson
+            for mjson in cjson["methods"]:
+                self.methods[method_id(cn, mjson)] = mjson
+
+    def code(self, mid: AbsMethodID) -> list[dict] | None:
+        """The instructions of a method, or None if we don't have its bytecode
+        (a library method, or an abstract method)."""
+        mjson = self.methods.get(mid)
+        if mjson is None or mjson.get("code") is None:
+            return None
+        return mjson["code"]["bytecode"]
+
+    def superclass(self, cls: str) -> str | None:
+        """The superclass of a benchmark class, e.g. "java/lang/Object"."""
+        sup = self.classes[cls].get("super")
+        return sup["name"] if sup else None
