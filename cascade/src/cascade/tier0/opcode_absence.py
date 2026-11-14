@@ -180,3 +180,45 @@ def call_targets(program: Program, ins: dict) -> list[AbsMethodID] | None:
         return [named, *others]
     # static / special: exactly the named method.
     return [named]
+
+
+def analyse(program: Program, entry: AbsMethodID) -> dict[str, list[tuple[AbsMethodID, int]]]:
+    """Fault sites of every outcome in all methods reachable from `entry`.
+
+    A site is (method, instruction index); index -1 means "somewhere inside a
+    method we cannot see".
+    """
+    sites: dict[str, list[tuple[AbsMethodID, int]]] = {o: [] for o in ALL_OUTCOMES}
+    todo = [entry]
+    seen: set[AbsMethodID] = set()
+
+    while todo:
+        mid = todo.pop()
+        if mid in seen:
+            continue
+        seen.add(mid)
+
+        code = program.code(mid)
+        if code is None:
+            # No bytecode (library / abstract method) - assume the worst.
+            for outcome in ALL_OUTCOMES:
+                sites[outcome].append((mid, -1))
+            continue
+
+        # 1. the method's own fault sites (the rule table)
+        for outcome, indices in method_sites(code).items():
+            sites[outcome].extend((mid, i) for i in indices)
+
+        # 2. follow every call
+        for index, ins in enumerate(code):
+            if ins["opr"] != "invoke":
+                continue
+            targets = call_targets(program, ins)
+            if targets is None:
+                # Cannot tell what runs - assume the worst at the call.
+                for outcome in ALL_OUTCOMES:
+                    sites[outcome].append((mid, index))
+            else:
+                todo.extend(targets)
+
+    return sites
