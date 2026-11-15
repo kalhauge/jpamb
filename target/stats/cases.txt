@@ -26,6 +26,8 @@ jpamb.cases.Calls.callsAssertIf:(Z)V                         (false) -> assertio
 jpamb.cases.Calls.callsAssertIf:(Z)V                         (true) -> ok
 jpamb.cases.Calls.callsAssertIfWithTrue:()V                  () -> ok
 jpamb.cases.Calls.callsAssertTrue:()V                        () -> ok
+jpamb.cases.Calls.divideViaHelper:(I)I                       (0) -> ok
+jpamb.cases.Calls.divideViaHelper:(I)I                       (3) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (0, 0) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (1, 1) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
