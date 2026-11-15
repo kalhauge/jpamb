@@ -1,7 +1,7 @@
 """String references and the small library model used by the static interpreter.
 
-Only string objects are supported. Object IDs describe parameters or interned
-literals, not concrete JVM addresses. Contents and nullability stay separate.
+AbstractReference is shared by strings and arrays. Object IDs describe parameters,
+allocation sites, or interned literals, not concrete JVM addresses. Contents and nullability stay separate.
 """
 
 from dataclasses import dataclass
@@ -58,7 +58,10 @@ def contents(reference, heap):
         raise NotImplementedError("Expected a string reference")
     result = StringSet.bot()
     for target in reference.targets:
-        result = result | heap[target]
+        value = heap[target]
+        if not isinstance(value, StringSet):
+            raise NotImplementedError("String method requires string heap contents")
+        result = result | value
     return result
 
 
