@@ -1,4 +1,4 @@
-# Modular static analysis: signs, intervals, and strings
+# Modular static analysis: signs, intervals, strings, and array execution
 
 This solution keeps JPAMB's existing worklist, instruction matching, entry points,
 and prediction protocol. All implementation changes are under `solutions/static`;
@@ -107,104 +107,44 @@ Scores on the current suite are compatibility observations, not the goal of thes
 changes. Dedicated accuracy tests should check both coverage of real outcomes and
 unnecessary extra predictions. Only one existing benchmark uses Java String.
 
-## How intervals work
+## Array support and score checks
 
-`Interval(min, max)` represents every Java int between inclusive bounds:
+Array instructions work automatically whenever an integer domain is selected;
+there is no extra `array` abstraction option. Supported arrays are one-dimensional
+`int[]` and `char[]`. String-only mode deliberately does not enable integer array
+analysis. Integer modes with string support can use both types of heap objects.
 
-- `[5, 5]`: exactly 5.
-- `[2, 5]`: 2, 3, 4, or 5.
-- `[-2147483648, 2147483647]`: top, any Java int.
-- `[1, 0]`: bottom, no possible value. Every empty interval is normalized to this.
+To evaluate analysis scores, run from the repository root in the active venv:
 
-For branches assigning 2 and 5, the joined interval is `[2, 5]`. Adding 3 gives
-`[5, 8]`. Comparing that result with 10 using `<` gives only true, because even
-the maximum is below 10. Extra values in a range are allowed, but actual values
-must never be omitted.
+```bash
+# Full-suite scores, with JPAMB's default three iterations.
+jpamb analyse -- static-analysis --abstractions sign
+jpamb analyse -- static-analysis --abstractions interval
+jpamb analyse -- static-analysis --abstractions sign,interval,string
 
-`Interval` implements the same IntegerAbstraction interface as SignSet:
-abstraction, membership, containment ordering, join/meet, arithmetic, comparisons,
-trace serialization, and widening. The existing instruction handlers are reused.
+# Quick array-only score check (one iteration, no saved report).
+jpamb analyse --filter Arrays --iterations 1 -- static-analysis --abstractions interval
 
-Arithmetic covers addition, subtraction, multiplication, division, and remainder.
-Singleton results wrap exactly like Java int arithmetic. For nonsingleton ranges
-that may overflow, the initial implementation conservatively returns top.
-Division truncates toward zero using integer calculations, not floating point.
-Zero divisors produce an error; nonzero divisor ranges produce normal successors.
-Remainder bounds respect the dividend's sign and the divisor's magnitude.
-
-## Combining signs and intervals
-
-`SignInterval` describes one integer through the intersection of both components.
-For example, joining -5 and 5 gives:
-
-```text
-interval = [-5, 5]
-signs    = {negative, positive}
+# Validate concrete array cases and the unknown-input cases.
+jpamb interpret --abstract --max-steps 300 --filter Arrays -- static-interpreter --abstractions interval
+jpamb interpret --abstract --max-steps 300 --filter Arrays -- static-interpreter --abstractions sign,interval
 ```
 
-Zero is excluded even though it lies between the interval bounds. For `10 / x`,
-interval-only analysis allows division by zero. Combined analysis splits the
-input into `[-5, -1]` and `[1, 5]` before calculating results and excludes that error.
+Use `--max-steps 300` for array interpreter validation. At JPAMB's default
+100-step budget, some loop-heavy cases exhaust the trace budget before covering
+all required program points (28/30 with signs, 25/30 with interval modes in the
+validation run). At 300 steps, all three integer configurations pass 30/30.
+The interpreter's default budget and scheduling policy have not been changed.
 
-Construction reduces the components by removing impossible signs and trimming
-bounds. Inconsistent pairs normalize to bottom. Joins and meets combine components
-and normalize again. Arithmetic evaluates pairs of sign-restricted ranges and
-intersects their interval/sign result descriptions. Comparisons evaluate those
-same restricted ranges, so they also use both components.
+## Implementation information
 
-This is a genuine combined domain, not an alias for either component. It remains
-non-relational: it does not remember equations between different variables or
-that two operands came from the same variable.
+The detailed explanations have moved to [information/static_analysis.md](../../information/static_analysis.md).
+It covers intervals, combined signs and intervals, strings, array summaries,
+widening, the code map, and current limitations.
 
-## Loop convergence
-
-Loops can produce growing ranges such as `[0, 1]`, `[0, 2]`, `[0, 3]`, ... .
-After three growing updates to a saved instruction state, later updates use
-widening. A decreasing lower bound jumps to Java's minimum integer, and an
-increasing upper bound jumps to its maximum. SignInterval also unions the sign
-component and reduces the result. Signs use their ordinary join; boolean,
-reference, and string values retain their joined values.
-
-For simplicity, this applies at any repeatedly changing instruction position,
-not only identified loop headers. It can sacrifice precision at frequently
-visited merge points. The original 300-step analysis budget still applies.
-Widening helps the analyzer converge; it does NOT establish Java-program termination.
-
-## Code map
-
-- `abstractions.py`: IntegerAbstraction, SignSet, Interval, SignInterval, StringSet,
-  and the independent BooleanSet. Also contains domain-law test helpers.
-- `configuration.py`: selection, metadata, scalar construction, and integer-domain
-  availability checks. It consumes our options and leaves JPAMB's positional
-  arguments (`info`, method, input, step limit) intact.
-- `static.py`: state initialization, bytecode handlers, joins, delayed widening,
-  worklist execution, and the original analysis/interpreter reporting workflows.
-- `string_methods.py`: references, heap-content lookup, reference identity, and
-  the model of `String.equals(Object)` including null behavior.
-
-StringSet retains at most eight exact contents, then becomes top. Java null is
-tracked on references, not as unknown string contents. Unknown string parameters
-may be null; supplied string inputs are exact non-null contents. For example,
-unknown `sayHello` input allows normal completion, assertion failure, and a
-null-pointer error even though the benchmark only lists non-null examples.
-
-String equality results use the selected integer domain (0/1 intervals, signs,
-or combined values), or BooleanSet in string-only mode. Reference identity is
-kept separate from string-content equality. State updates copy the heap so one
-successor cannot modify another successor's contents.
-
-## Scope and limitations
-
-No branch refinement is added: a condition such as `x > 0` does not narrow the
-stored interval on its successful path. There are no relational constraints or
-narrowing pass after widening. These can be separate precision improvements.
-
-String method support remains limited to `String.equals(Object)` for supported
-string/null operands. Length, concatenation, substring, constructors, arrays,
-general calls, and exception handlers are not added by the interval work.
-The existing assertion-allocation shortcut and nontermination `unknown` prediction
-remain. Unsupported operations or exhausted budgets preserve incomplete/unknown
-reporting rather than silently declaring unseen outcomes impossible.
+See [information/score_similarity.md](../../information/score_similarity.md) for
+why some configurations score alike and example methods that can reveal their
+differences. Setup, execution commands, and test instructions remain here.
 
 ## Tests
 
@@ -218,3 +158,17 @@ ranges, widening convergence, branch joins, bounded assertions, CLI metadata,
 trace serialization, and cooperation with string execution. Previously skipped
 interval tests are now enabled. Existing sign and string tests remain, including
 tests that forbid SignSet use in string-only mode.
+
+
+Array tests additionally cover allocation defaults, empty arrays, negative and
+uncertain indices, null access, weak stores and aliases, parameter abstraction,
+UTF-16 char stores, mixed heap joins, heap widening, stack duplication, CLI
+predictions, and string-only isolation. Earlier tests expecting arrays to be
+unsupported now use unsupported general method calls instead.
+
+Array-support validation: 175 static tests passed; sign, interval, and combined
+sign-interval modes passed 30/30 array interpreter cases at a 300-step budget.
+Full-suite three-iteration reports were generated for all seven selections.
+In this run the scores were 146.20 (sign), 156.15 (interval or sign+interval),
+148.74 (sign+string), 158.62 (interval+string or all three), and 72.90 (string).
+Scores describe this benchmark version, not general proof of soundness or accuracy.
