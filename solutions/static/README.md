@@ -1,19 +1,19 @@
-# Static analysis: signs and strings
+# Modular static analysis: signs, intervals, and strings
 
-This solution keeps JPAMB's existing worklist, instruction matching, state joins,
-entry points, and prediction protocol. No changes to the JPAMB library or CLI are
-needed. All implementation changes live under `solutions/static`.
+This solution keeps JPAMB's existing worklist, instruction matching, entry points,
+and prediction protocol. All implementation changes are under `solutions/static`;
+the JPAMB library, CLI, decoder, and Java benchmark sources are unchanged.
 
 ## Setup (WSL / Bash)
 
-Run from this checkout, not another JPAMB checkout:
+From this checkout:
 
 ```bash
 cd /home/sweet/project_PA/pa-code
 source .venv/bin/activate
 ```
 
-The local `.venv` was created for this implementation. On a fresh checkout:
+On a fresh checkout, install the projects and test dependencies first:
 
 ```bash
 uv venv --python 3.13 .venv
@@ -21,176 +21,200 @@ source .venv/bin/activate
 uv pip install -e . -e solutions/static pytest hypothesis
 ```
 
-## Select abstractions on the command line
+## Select abstractions independently or together
 
 ```bash
-# Original sign analysis (also the default when the option is omitted).
+# Individual domains
 jpamb analyse -- static-analysis --abstractions sign
-
-# Strings cooperating with signs in one analysis.
-jpamb analyse -- static-analysis --abstractions sign,string
-
-# Strings only, with minimal boolean support and no sign analysis.
+jpamb analyse -- static-analysis --abstractions interval
 jpamb analyse -- static-analysis --abstractions string
+
+# Pairs
+jpamb analyse -- static-analysis --abstractions sign,interval
+jpamb analyse -- static-analysis --abstractions sign,string
+jpamb analyse -- static-analysis --abstractions interval,string
+
+# All three
+jpamb analyse -- static-analysis --abstractions sign,interval,string
 ```
 
-Put JPAMB options before `--`, and analyzer options after the program name:
+Sign analysis remains the default if `--abstractions` is omitted. Order does not
+matter: `string,interval,sign` selects the same domains as `sign,interval,string`.
+Unknown or empty names produce a CLI error. The `info` tags list selected domains.
 
-```bash
-jpamb analyse --filter Strings --iterations 1 -- static-analysis --abstractions sign,string
-jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions sign,string
-```
-
-`--` stops JPAMB from trying to parse the analyzer's options. Do not quote the
-whole analyzer command as one argument. Options also work with direct calls:
-
-```bash
-static-analysis --help
-static-analysis --abstractions sign,string info
-static-analysis --abstractions sign,string 'jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V'
-static-interpreter --abstractions sign,string 'jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V' "(s'hello')" 100
-```
-
-Available selections:
-
-| Selection | Integer / boolean values | String contents |
+| Selection | Integer / boolean representation | String contents |
 | --- | --- | --- |
-| `sign` (default) | SignSet | Unsupported |
-| `string` | BooleanSet only (no general integer analysis) | StringSet |
+| `sign` | SignSet | Unsupported |
+| `interval` | Interval | Unsupported |
+| `string` | BooleanSet only | StringSet |
+| `sign,interval` | SignInterval | Unsupported |
 | `sign,string` | SignSet | StringSet |
+| `interval,string` | Interval | StringSet |
+| `sign,interval,string` | SignInterval | StringSet |
 
-`string` does not use SignSet. It uses a small `BooleanSet` to represent false,
-true, or both, including JVM boolean constants 0 and 1. This supports string
-comparison results, assertion checks, boolean parameters, and branching.
-General integer parameters, other integer constants, arithmetic, increments,
-and negation are unsupported and cause incomplete/`unknown` analysis.
-Since JVM boolean constants are integer bytecodes, trivial methods involving
-only 0/1 and branches can still run; this does not enable general integer analysis.
-Selected domains appear in JPAMB's `info` tags. Unknown names, including the
-unfinished `interval` domain, are rejected with an explanatory CLI error.
+String-only mode never uses SignSet or Interval. Its BooleanSet handles true,
+false, or both, including JVM constants 0 and 1. General integer parameters,
+arithmetic, increments, negation, and other integer constants are unsupported.
+Trivial methods using only 0/1 and branching can still execute because JVM
+booleans use integer bytecodes.
 
-To compare configurations separately, run the three analysis commands above.
-They keep separate states and reports. `sign,string` means cooperation inside
-one run; it does not run two analyzers and merge their predictions. There is no
-sign/interval product domain or automatic multi-run report merger yet.
+Put JPAMB options before `--` and analyzer options after the executable name.
+Do not quote the entire analyzer command as one argument:
 
-## Run and save each configuration separately
+```bash
+jpamb analyse --filter Simple --iterations 1 -- static-analysis --abstractions interval
+jpamb analyse --filter Strings --iterations 1 -- static-analysis --abstractions interval,string
 
-Run these commands from the repository root with the virtual environment active:
+static-analysis --help
+static-analysis --abstractions sign,interval,string info
+static-analysis --abstractions interval 'jpamb.cases.Simple.divideByN:(I)I'
+```
+
+## Separate interpreter runs and reports
+
+```bash
+# Integer examples
+jpamb interpret --abstract --filter Simple -- static-interpreter --abstractions sign
+jpamb interpret --abstract --filter Simple -- static-interpreter --abstractions interval
+jpamb interpret --abstract --filter Simple -- static-interpreter --abstractions sign,interval
+
+# String examples in each supporting configuration
+jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions string
+jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions sign,string
+jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions interval,string
+jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions sign,interval,string
+
+# One concrete execution trace
+static-interpreter --abstractions interval 'jpamb.cases.Simple.divideByN:(I)I' '(2)' 100
+```
+
+Remove the filter to exercise the full suite; unsupported cases are still expected.
+To save independent analysis reports for all configurations:
 
 ```bash
 mkdir -p reports
-
-# Separate analysis reports. JPAMB defaults to the required three iterations.
-jpamb analyse --report reports/sign-analysis.sexp -- static-analysis --abstractions sign
-jpamb analyse --report reports/string-analysis.sexp -- static-analysis --abstractions string
-jpamb analyse --report reports/sign-string-analysis.sexp -- static-analysis --abstractions sign,string
-
-# Separate abstract-interpreter runs.
-jpamb interpret --abstract -- static-interpreter --abstractions sign
-jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions string
-jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions sign,string
+for domains in sign interval string sign,interval sign,string interval,string sign,interval,string; do
+    jpamb analyse --report "reports/${domains}-analysis.sexp" -- static-analysis --abstractions "$domains"
+done
 ```
 
-Do not combine `--report` with `--filter`, or use one iteration for a saved
-analysis report: JPAMB requires full-suite reports with three iterations.
-The `reports/` directory is ignored by Git. Remove `--filter Strings` to exercise
-string-enabled interpreter configurations against the full suite; unsupported
-cases are expected, particularly in string-only mode.
+JPAMB requires three iterations for saved analysis reports (the default). Do not
+combine `--report` with `--filter`. The `reports/` directory is ignored by Git.
 
-The current suite has only one Java String benchmark method. Treat its overall
-score as a compatibility check, not a measure of string-analysis quality. Future
-dedicated string cases should check outcome coverage and precision in each mode.
+Separate commands produce separate analyses. A comma-separated selection makes
+the domains cooperate inside ONE analysis; it does not merge independent reports.
+Scores on the current suite are compatibility observations, not the goal of these
+changes. Dedicated accuracy tests should check both coverage of real outcomes and
+unnecessary extra predictions. Only one existing benchmark uses Java String.
 
-## Changes in this branch
+## How intervals work
 
-- Added `IntegerAbstraction`, bounded `StringSet`, and independent `BooleanSet`.
-- Added `--abstractions sign`, `string`, and `sign,string` selection and metadata.
-- Generalized interpreter values and added references and a copy-on-update heap.
-- Added string inputs/constants, reference operations, and `String.equals`.
-- Kept unsupported operations explicit and retained JPAMB's existing execution
-  and reporting structure. The JPAMB core and benchmark sources are unchanged.
-- Added domain, execution, CLI, serialization, and string-only isolation tests.
+`Interval(min, max)` represents every Java int between inclusive bounds:
 
-## How the implementation works
+- `[5, 5]`: exactly 5.
+- `[2, 5]`: 2, 3, 4, or 5.
+- `[-2147483648, 2147483647]`: top, any Java int.
+- `[1, 0]`: bottom, no possible value. Every empty interval is normalized to this.
 
-1. `configuration.py` consumes `--abstractions` and leaves the original JPAMB
-   positional arguments (`info`, method, input, step limit) for JPAMB to parse.
-2. `IntegerAbstraction` in `abstractions.py` specifies the existing integer
-   operations. `SignSet` implements it; the interpreter constructs integer values
-   through `AnalysisConfig.scalar` rather than naming `SignSet`. With string-only
-   selection, `integer_domain` is `None` and `scalar` creates `BooleanSet` values.
-   Arithmetic handlers explicitly require an enabled integer domain.
-3. `StringSet` holds up to eight exact strings. An empty set is bottom; `None` is
-   top (any contents). Joining more than eight strings produces top. The empty
-   string is an ordinary concrete value and is different from bottom.
-4. Locals and the operand stack hold integer values, boolean values, or references.
-   `None` in a local means uninitialized, not Java null. The heap maps stable
-   parameter/literal IDs to string contents. Successors copy the heap on updates;
-   state joins combine reference targets and heap contents.
-5. `string_methods.py` models `String.equals(Object)`. It compares every possible
-   pair of contents and returns possible boolean answers and null-pointer errors.
-   The interpreter converts answers to `BooleanSet` in string-only mode, or through
-   the chosen integer domain in combined mode, then uses the existing branches.
+For branches assigning 2 and 5, the joined interval is `[2, 5]`. Adding 3 gives
+`[5, 8]`. Comparing that result with 10 using `<` gives only true, because even
+the maximum is below 10. Extra values in a range are allowed, but actual values
+must never be omitted.
 
-For example, `{"hello", "bye"}.equals({"hello"})` produces both true and false.
-With signs those results become `{0,+}`; with string-only mode they remain
-`{false,true}`. In both modes the existing interpreter follows
-both assertion outcomes. Java reference equality is handled separately from
-content equality. Parameter objects may alias; matching summary locations do
-not prove identity. Literal locations use Java's string interning semantics.
+`Interval` implements the same IntegerAbstraction interface as SignSet:
+abstraction, membership, containment ordering, join/meet, arithmetic, comparisons,
+trace serialization, and widening. The existing instruction handlers are reused.
 
-Supplied string inputs are non-null exact contents. Unknown string parameters
-include both arbitrary contents and null. Therefore analysis of `sayHello` reports
-possible normal completion, assertion failure, and null-pointer error. The last
-possibility is conservative even though the current benchmark annotations only
-list non-null examples. Normal successors are emitted only if a call has a
-possible normal result.
+Arithmetic covers addition, subtraction, multiplication, division, and remainder.
+Singleton results wrap exactly like Java int arithmetic. For nonsingleton ranges
+that may overflow, the initial implementation conservatively returns top.
+Division truncates toward zero using integer calculations, not floating point.
+Zero divisors produce an error; nonzero divisor ranges produce normal successors.
+Remainder bounds respect the dividend's sign and the divisor's magnitude.
 
-## Adding an integer abstraction later
+## Combining signs and intervals
 
-1. Finish `Interval` in `abstractions.py` and make it implement
-   `IntegerAbstraction`: abstraction, top/bottom, ordering, join/meet, membership,
-   arithmetic, comparisons, and trace serialization.
-2. Account for Java 32-bit arithmetic and establish a practical loop-convergence
-   policy (for example, widening) before enabling it.
-3. Add its name to `parse_options` and map the selection to
-   `AnalysisConfig(integer_domain=Interval, strings=...)`. Update the metadata
-   tags there to reflect the chosen integer domain; currently `sign` is included
-   only when sign analysis is selected.
-4. Define `interval,string` as interval integers plus the existing string support.
-   Reject `sign,interval` until a genuine product domain or explicit independent
-   run mode is implemented; do not silently choose one.
-5. Add domain and integration tests. The worklist and string equality handler
-   should not need to be copied or rewritten.
+`SignInterval` describes one integer through the intersection of both components.
+For example, joining -5 and 5 gives:
 
-## Current scope and limitations
+```text
+interval = [-5, 5]
+signs    = {negative, positive}
+```
 
-Supported additions: string parameters/constants, reference load/store, null
-constants, reference comparisons using the existing decoded comparison operators,
-and the exact `java.lang.String.equals(Object)` method signature. JVM decoding is
-unchanged; unsupported instruction encodings still fail explicitly.
+Zero is excluded even though it lies between the interval bounds. For `10 / x`,
+interval-only analysis allows division by zero. Combined analysis splits the
+input into `[-5, -1]` and `[1, 5]` before calculating results and excludes that error.
 
-Length, concatenation, substring, constructors, arbitrary object arguments,
-arrays, general method execution, and exception handlers are not added here.
-Unknown calls mark analysis incomplete, preserving `unknown` predictions.
-The original assertion-allocation shortcut, 300-step analysis budget, lack of
-branch refinement, and `unknown` nontermination prediction remain in place.
+Construction reduces the components by removing impossible signs and trimming
+bounds. Inconsistent pairs normalize to bottom. Joins and meets combine components
+and normalize again. Arithmetic evaluates pairs of sign-restricted ranges and
+intersects their interval/sign result descriptions. Comparisons evaluate those
+same restricted ranges, so they also use both components.
+
+This is a genuine combined domain, not an alias for either component. It remains
+non-relational: it does not remember equations between different variables or
+that two operands came from the same variable.
+
+## Loop convergence
+
+Loops can produce growing ranges such as `[0, 1]`, `[0, 2]`, `[0, 3]`, ... .
+After three growing updates to a saved instruction state, later updates use
+widening. A decreasing lower bound jumps to Java's minimum integer, and an
+increasing upper bound jumps to its maximum. SignInterval also unions the sign
+component and reduces the result. Signs use their ordinary join; boolean,
+reference, and string values retain their joined values.
+
+For simplicity, this applies at any repeatedly changing instruction position,
+not only identified loop headers. It can sacrifice precision at frequently
+visited merge points. The original 300-step analysis budget still applies.
+Widening helps the analyzer converge; it does NOT establish Java-program termination.
+
+## Code map
+
+- `abstractions.py`: IntegerAbstraction, SignSet, Interval, SignInterval, StringSet,
+  and the independent BooleanSet. Also contains domain-law test helpers.
+- `configuration.py`: selection, metadata, scalar construction, and integer-domain
+  availability checks. It consumes our options and leaves JPAMB's positional
+  arguments (`info`, method, input, step limit) intact.
+- `static.py`: state initialization, bytecode handlers, joins, delayed widening,
+  worklist execution, and the original analysis/interpreter reporting workflows.
+- `string_methods.py`: references, heap-content lookup, reference identity, and
+  the model of `String.equals(Object)` including null behavior.
+
+StringSet retains at most eight exact contents, then becomes top. Java null is
+tracked on references, not as unknown string contents. Unknown string parameters
+may be null; supplied string inputs are exact non-null contents. For example,
+unknown `sayHello` input allows normal completion, assertion failure, and a
+null-pointer error even though the benchmark only lists non-null examples.
+
+String equality results use the selected integer domain (0/1 intervals, signs,
+or combined values), or BooleanSet in string-only mode. Reference identity is
+kept separate from string-content equality. State updates copy the heap so one
+successor cannot modify another successor's contents.
+
+## Scope and limitations
+
+No branch refinement is added: a condition such as `x > 0` does not narrow the
+stored interval on its successful path. There are no relational constraints or
+narrowing pass after widening. These can be separate precision improvements.
+
+String method support remains limited to `String.equals(Object)` for supported
+string/null operands. Length, concatenation, substring, constructors, arrays,
+general calls, and exception handlers are not added by the interval work.
+The existing assertion-allocation shortcut and nontermination `unknown` prediction
+remain. Unsupported operations or exhausted budgets preserve incomplete/unknown
+reporting rather than silently declaring unseen outcomes impossible.
 
 ## Tests
 
 ```bash
 python -m pytest solutions/static/tests -q
-jpamb interpret --abstract --filter Strings -- static-interpreter --abstractions sign,string
 ```
 
-Tests cover bounded-set lattice laws and concrete equality containment, null and
-identity semantics, heap joins, options/metadata, unsupported selections and
-calls, both concrete string benchmark inputs, unknown input, and trace parsing.
-Tests also prevent any SignSet use in string-only execution and check that
-integer operations are rejected in that mode. The existing integer regression
-tests run unchanged. Existing interval tests stay skipped until interval
-implementation is undertaken.
-
-Validation for this change: 57 static tests passed, 3 existing interval tests
-skipped; both string-enabled interpreter modes passed all 3 String cases.
+Interval tests cover lattice properties, concrete Java arithmetic and comparisons,
+integer boundaries, zero divisors, remainder, normalization, nonzero combined
+ranges, widening convergence, branch joins, bounded assertions, CLI metadata,
+trace serialization, and cooperation with string execution. Previously skipped
+interval tests are now enabled. Existing sign and string tests remain, including
+tests that forbid SignSet use in string-only mode.
