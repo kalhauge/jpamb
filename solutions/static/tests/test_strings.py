@@ -109,7 +109,7 @@ def test_options(selection, strings):
 @pytest.mark.parametrize(
     "arguments",
     [
-        ["--abstractions", "interval"],
+        ["--abstractions", "unknown-domain"],
         ["--abstractions", ""],
         ["--abstractions", "sign,typo"],
         ["--typo"],
