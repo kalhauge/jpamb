@@ -162,6 +162,10 @@ class IntegerAbstraction(Abstraction, Lattice):
     @abstractmethod
     def compare(self, other, opr): ...
 
+    def widen(self, newer):
+        """Finite domains such as signs need only their ordinary join."""
+        return self | newer
+
 
 @dataclass(frozen=True)
 class SignSet(IntegerAbstraction):
@@ -307,44 +311,301 @@ class SignSet(IntegerAbstraction):
         return cases
 
 
-from collections.abc import Iterable
-from dataclasses import dataclass
-from typing import Self
+I32_MIN = -(2**31)
+I32_MAX = 2**31 - 1
+
+
+def java_quotient(left: int, right: int) -> int:
+    """Integer division truncated toward zero, without floating-point rounding.
+
+    Return the mathematical quotient; the caller handles Java int overflow.
+    """
+    quotient = abs(left) // abs(right)
+    return -quotient if (left < 0) != (right < 0) else quotient
 
 
 @dataclass(frozen=True)
-class Interval(Abstraction, Lattice):
-    min: int | None
-    max: int | None
+class Interval(IntegerAbstraction):
+    """Inclusive Java int bounds. [1, 0] is the unique empty interval.
+
+    Top uses the Java limits instead of infinities. If arithmetic may overflow,
+    use top, except that singleton operations can be wrapped exactly.
+    """
+
+    min: int
+    max: int
+
+    def __post_init__(self):
+        if self.min > self.max:
+            object.__setattr__(self, "min", 1)
+            object.__setattr__(self, "max", 0)
+        elif self.min < I32_MIN or self.max > I32_MAX:
+            raise ValueError("Interval bounds must be Java int values")
 
     def __str__(self):
-        return f"{self.min if self.min is not None else '-inf'}:{self.max if self.max is not None else 'inf'}"
+        return "bottom" if self.is_bottom() else f"{self.min}:{self.max}"
 
     def __sexpr__(self):
         return str(self)
 
+    def is_bottom(self):
+        return self.min > self.max
+
     @classmethod
     def abstract(cls, values: Iterable[jvms.StackValue]) -> Self:
-        raise NotImplementedError("TODO")
-
-    def __contains__(self, value: jvms.StackValue) -> bool:
-        raise NotImplementedError("TODO")
+        numbers = []
+        for value in values:
+            if not isinstance(value, jvms.StackInt):
+                raise NotImplementedError("Expected an integer")
+            numbers.append(value.value)
+        return cls(min(numbers), max(numbers)) if numbers else cls.bot()
 
     @classmethod
     def top(cls) -> Self:
-        raise NotImplementedError("TODO")
+        return cls(I32_MIN, I32_MAX)
 
-    def __or__(self, other: "Interval") -> "Interval":
-        raise NotImplementedError("TODO")
+    @classmethod
+    def bot(cls) -> Self:
+        return cls(1, 0)
 
-    def __and__(self, other: "Interval") -> "Interval":
-        raise NotImplementedError("TODO")
+    def __contains__(self, value):
+        if not isinstance(value, jvms.StackInt):
+            raise NotImplementedError("Expected an integer")
+        return self.min <= value.value <= self.max
 
-    def __lt__(self, other: "Interval") -> bool:
-        raise NotImplementedError("TODO")
+    def __lt__(self, other):
+        if self.is_bottom():
+            return not other.is_bottom()
+        return (
+            not other.is_bottom()
+            and self != other
+            and other.min <= self.min
+            and self.max <= other.max
+        )
 
-    def __gt__(self, other: "Interval") -> bool:
-        raise NotImplementedError("TODO")
+    def __gt__(self, other):
+        return other < self
+
+    def __or__(self, other):
+        if self.is_bottom():
+            return other
+        if other.is_bottom():
+            return self
+        return Interval(min(self.min, other.min), max(self.max, other.max))
+
+    def __and__(self, other):
+        if self.is_bottom() or other.is_bottom():
+            return self.bot()
+        return Interval(max(self.min, other.min), min(self.max, other.max))
+
+    def widen(self, newer):
+        """Jump an expanding bound to a Java limit so loops stabilize quickly."""
+        if self.is_bottom():
+            return newer
+        if newer.is_bottom():
+            return self
+        return Interval(
+            I32_MIN if newer.min < self.min else self.min,
+            I32_MAX if newer.max > self.max else self.max,
+        )
+
+    @classmethod
+    def bounded(cls, lower, upper):
+        """Cover possible wrapping conservatively; preserve exact constants."""
+        if lower == upper:
+            wrapped = (lower - I32_MIN) % (2**32) + I32_MIN
+            return cls(wrapped, wrapped)
+        if lower < I32_MIN or upper > I32_MAX:
+            return cls.top()
+        return cls(lower, upper)
+
+    def arithmetic(self, other, opr):
+        if self.is_bottom() or other.is_bottom():
+            return self.bot(), set()
+
+        match opr:
+            case jvm.BinaryOpr.Add:
+                result = self.bounded(self.min + other.min, self.max + other.max)
+            case jvm.BinaryOpr.Sub:
+                result = self.bounded(self.min - other.max, self.max - other.min)
+            case jvm.BinaryOpr.Mul:
+                products = [
+                    a * b for a in (self.min, self.max) for b in (other.min, other.max)
+                ]
+                result = self.bounded(min(products), max(products))
+            case jvm.BinaryOpr.Div | jvm.BinaryOpr.Rem:
+                errors = {"divide by zero"} if jvms.StackInt(0) in other else set()
+                result = self.bot()
+                # Remove zero from normal execution. Negative and positive
+                # divisors are evaluated separately, then their results joined.
+                for part in (
+                    other & Interval(I32_MIN, -1),
+                    other & Interval(1, I32_MAX),
+                ):
+                    if not part.is_bottom():
+                        result = result | self.divide_nonzero(part, opr)
+                return result, errors
+            case _:
+                raise NotImplementedError(f"Unsupported arithmetic: {opr}")
+        return result, set()
+
+    def divide_nonzero(self, divisor, opr):
+        """The divisor must lie wholly above or below zero."""
+        if self.min == self.max and divisor.min == divisor.max:
+            quotient = java_quotient(self.min, divisor.min)
+            value = (
+                quotient
+                if opr == jvm.BinaryOpr.Div
+                else self.min - quotient * divisor.min
+            )
+            return self.bounded(value, value)
+
+        if opr == jvm.BinaryOpr.Div:
+            # MIN_VALUE / -1 wraps; mixed ranges containing this pair use top.
+            if self.min == I32_MIN and jvms.StackInt(-1) in divisor:
+                return self.top()
+            quotients = [
+                java_quotient(a, b)
+                for a in (self.min, self.max)
+                for b in (divisor.min, divisor.max)
+            ]
+            return Interval(min(quotients), max(quotients))
+
+        # A remainder has the dividend's sign and magnitude < |divisor|.
+        limit = max(abs(divisor.min), abs(divisor.max)) - 1
+        lower = max(self.min, -limit) if self.min < 0 else 0
+        upper = min(self.max, limit) if self.max > 0 else 0
+        return Interval(lower, upper)
+
+    def compare(self, other, opr):
+        if self.is_bottom() or other.is_bottom():
+            return set()
+        match opr:
+            case jvm.CmpOpr.Eq:
+                if (self & other).is_bottom():
+                    return {False}
+                if self.min == self.max == other.min == other.max:
+                    return {True}
+                return {False, True}
+            case jvm.CmpOpr.Ne:
+                return {not answer for answer in self.compare(other, jvm.CmpOpr.Eq)}
+            case jvm.CmpOpr.Lt:
+                if self.max < other.min:
+                    return {True}
+                if self.min >= other.max:
+                    return {False}
+            case jvm.CmpOpr.Le:
+                if self.max <= other.min:
+                    return {True}
+                if self.min > other.max:
+                    return {False}
+            case jvm.CmpOpr.Gt:
+                return other.compare(self, jvm.CmpOpr.Lt)
+            case jvm.CmpOpr.Ge:
+                return other.compare(self, jvm.CmpOpr.Le)
+            case _:
+                raise NotImplementedError(f"Unsupported comparison: {opr}")
+        return {False, True}
+
+
+SIGN_RANGES = {
+    -1: Interval(I32_MIN, -1),
+    0: Interval(0, 0),
+    1: Interval(1, I32_MAX),
+}
+
+
+@dataclass(frozen=True)
+class SignInterval(IntegerAbstraction):
+    """One integer described by BOTH components, interpreted as intersection.
+
+    Normalization removes impossible signs and trims the bounds. Operations split
+    the interval by permitted signs, so an excluded zero is never reintroduced
+    as an input. The representation can retain the hole at zero after a join.
+    """
+
+    signs: SignSet
+    interval: Interval
+
+    def __post_init__(self):
+        parts = self.parts()
+        interval = Interval.bot()
+        for _, part in parts:
+            interval = interval | part
+        object.__setattr__(self, "signs", SignSet(frozenset(sign for sign, _ in parts)))
+        object.__setattr__(self, "interval", interval)
+
+    def parts(self):
+        parts = []
+        for sign in sorted(self.signs.signs):
+            part = self.interval & SIGN_RANGES[sign]
+            if not part.is_bottom():
+                parts.append((sign, part))
+        return parts
+
+    @classmethod
+    def abstract(cls, values) -> Self:
+        values = list(values)  # Both components must see the same generator input.
+        return cls(SignSet.abstract(values), Interval.abstract(values))
+
+    @classmethod
+    def top(cls) -> Self:
+        return cls(SignSet.top(), Interval.top())
+
+    @classmethod
+    def bot(cls) -> Self:
+        return cls(SignSet.bot(), Interval.bot())
+
+    def __contains__(self, value):
+        return value in self.signs and value in self.interval
+
+    def __lt__(self, other):
+        return (
+            self != other
+            and self.signs <= other.signs
+            and self.interval <= other.interval
+        )
+
+    def __gt__(self, other):
+        return other < self
+
+    def __or__(self, other):
+        return SignInterval(self.signs | other.signs, self.interval | other.interval)
+
+    def __and__(self, other):
+        return SignInterval(self.signs & other.signs, self.interval & other.interval)
+
+    def widen(self, newer):
+        return SignInterval(
+            self.signs | newer.signs, self.interval.widen(newer.interval)
+        )
+
+    def arithmetic(self, other, opr):
+        result = self.bot()
+        errors = set()
+        for left_sign, left in self.parts():
+            for right_sign, right in other.parts():
+                interval, interval_errors = left.arithmetic(right, opr)
+                signs, sign_errors = SignSet(frozenset({left_sign})).arithmetic(
+                    SignSet(frozenset({right_sign})), opr
+                )
+                result = result | SignInterval(signs, interval)
+                # Both sound component summaries must allow an error for this
+                # same pair of sign-restricted operands before we report it.
+                errors |= interval_errors & sign_errors
+        return result, errors
+
+    def compare(self, other, opr):
+        answers = set()
+        for _, left in self.parts():
+            for _, right in other.parts():
+                answers |= left.compare(right, opr)
+        return answers
+
+    def __sexpr__(self):
+        import sexpr
+
+        return sexpr.sexpr(["sign-interval", self.signs, self.interval])
 
 
 @dataclass(frozen=True)
@@ -402,8 +663,10 @@ class StringSet(Lattice):
 
     def __sexpr__(self):
         import sexpr
-        return sexpr.sexpr(["strings", "top" if self.values is None
-                            else sorted(self.values)])
+
+        return sexpr.sexpr(
+            ["strings", "top" if self.values is None else sorted(self.values)]
+        )
 
 
 @dataclass(frozen=True)
@@ -421,7 +684,9 @@ class BooleanSet:
         answers = set()
         for value in values:
             if not isinstance(value, jvms.StackInt) or value.value not in (0, 1):
-                raise NotImplementedError("Integer values require --abstractions sign,string")
+                raise NotImplementedError(
+                    "Integer values require sign or interval in --abstractions"
+                )
             answers.add(bool(value.value))
         return cls(frozenset(answers))
 
@@ -443,4 +708,5 @@ class BooleanSet:
 
     def __sexpr__(self):
         import sexpr
+
         return sexpr.sexpr(["booleans", sorted(self.values)])
