@@ -567,7 +567,7 @@
             "opr": "invoke"
           },
           {
-            "condition": "lt",
+            "condition": "le",
             "offset": 13,
             "opr": "if",
             "target": 13

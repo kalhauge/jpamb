@@ -27,7 +27,7 @@ final class BitSmith implements Smith {
 
     @Override
     public int draw(int bits) {
-        if (index + bits >= this.bits.length()) {
+        if (index + bits > this.bits.length()) {
             throw new IllegalStateException("Smith input exhausted");
         }
         int value = 0;

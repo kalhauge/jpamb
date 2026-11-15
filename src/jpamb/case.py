@@ -159,7 +159,6 @@ class Smith(Value):
     def __sexpr__(self) -> sexpr.SExpr:
         return sexpr.sexpr([sexpr.sexpr(self.type), self.value])
 
-    #TODO: add draw??
 
 @dataclass(frozen=True)
 class Array(Value):

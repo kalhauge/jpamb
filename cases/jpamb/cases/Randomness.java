@@ -81,16 +81,18 @@ public class Randomness {
     @Case("(r'1') -> assertion error")
     @Case("(r'000010000000001') -> ok")
     @Case("(r'1100010101110101011101010') -> ok")
-    @Case("(r'000010000000000') -> divide by zero")
+    @Case("(r'01010000000000') -> divide by zero")
+    @Case("(r'0001') -> ok")
     public static void drawInt(Smith smith) {
+        int value = 0;
         try {
-            int value = smith.draw(4);
+            value = smith.draw(4);
         } catch (IllegalStateException e) {
             assert false;
         }
 
         if (value >= 5) {
-            1/smith.draw(10);
+            int quotient = 1 / smith.draw(10);
         }
     }
     
