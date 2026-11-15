@@ -40,8 +40,8 @@ def test_integer_methods(run_analysis, method, expected):
 @pytest.mark.parametrize(
     "method",
     [
-        "jpamb.cases.Arrays.arrayNotEmpty:([I)V",
-        "jpamb.cases.Arrays.arrayContent:()V",
+        "jpamb.cases.Calls.callsAssertFalse:()V",
+        "jpamb.cases.Calls.callsAssertTrue:()V",
     ],
 )
 def test_unsupported_analysis_is_unknown(run_analysis, method):

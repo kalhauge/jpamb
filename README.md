@@ -52,6 +52,15 @@ To effectively do that please consult the [Python](docs/python.md) section.
 The static solution supports sign, interval, and string analysis independently
 or in any combination through `--abstractions`. The combined sign-interval domain
 uses both bounds and signs. String-only mode uses minimal boolean handling and
-does not run integer analysis. See the [static analyzer guide](solutions/static/README.md)
+does not run integer analysis. Integer modes also support one-dimensional
+`int[]` and `char[]` array execution with conservative element summaries. See the [static analyzer guide](solutions/static/README.md)
 for setup, separate analysis/interpreter commands, saved reports, implementation
 notes, tests, and current limitations.
+
+
+## Project information
+
+Explanations and analysis notes are collected in [information/](information/README.md):
+
+- [Why analysis scores can be similar](information/score_similarity.md)
+- [How the static analyzer is implemented](information/static_analysis.md)

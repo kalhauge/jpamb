@@ -3,7 +3,9 @@ from collections import deque
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 
+import array_methods
 from abstractions import BooleanSet, IntegerAbstraction, StringSet
+from array_methods import AbstractArray
 from configuration import DEFAULT_CONFIG, AnalysisConfig, parse_options
 from string_methods import AbstractReference
 from string_methods import equals as string_equals
@@ -20,7 +22,7 @@ class State(sexpr.AsSExpr):
     stack: tuple[IntegerAbstraction | BooleanSet | AbstractReference, ...]
 
     # Copy on update: successor states never mutate a predecessor's heap.
-    heap: dict[str, StringSet] = field(default_factory=dict)
+    heap: dict[str, StringSet | AbstractArray] = field(default_factory=dict)
 
     def __post_init__(self):
         assert isinstance(self.locals, tuple)
@@ -36,7 +38,7 @@ class State(sexpr.AsSExpr):
 
         heap = dict(self.heap)
         for target, value in other.heap.items():
-            heap[target] = heap.get(target, StringSet.bot()) | value
+            heap[target] = heap[target] | value if target in heap else value
         return State(
             tuple(join_value(s1, s2) for s1, s2 in zip(self.locals, other.locals)),
             tuple(join_value(s1, s2) for s1, s2 in zip(self.stack, other.stack)),
@@ -46,18 +48,23 @@ class State(sexpr.AsSExpr):
     def widen(self, newer):
         """Widen numeric values after joining; keep the joined heap/references.
 
-        Only integer domains need this hook. The string and boolean domains
-        already have finite height. Uninitialized locals stay uninitialized.
+        Numeric locals, stack values, and array heap summaries may grow.
+        Strings and booleans have finite height. Uninitialized locals stay so.
         """
         def widen_value(old, new):
             if isinstance(old, IntegerAbstraction) and isinstance(new, type(old)):
                 return old.widen(new)
             return new
 
+        heap = dict(newer.heap)
+        for target, value in heap.items():
+            before = self.heap.get(target)
+            if isinstance(before, AbstractArray) and isinstance(value, AbstractArray):
+                heap[target] = before.widen(value)
         return State(
             tuple(widen_value(a, b) for a, b in zip(self.locals, newer.locals)),
             tuple(widen_value(a, b) for a, b in zip(self.stack, newer.stack)),
-            newer.heap,
+            heap,
         )
 
     def push(self, value):
@@ -82,9 +89,12 @@ class State(sexpr.AsSExpr):
         )
 
     def string_reference(self, target, value, nullable=False):
-        """Return a reference and a state containing its abstract contents."""
+        return self.heap_reference(target, value, nullable)
+
+    def heap_reference(self, target, value, nullable=False):
+        """Create/join a heap summary without modifying the predecessor state."""
         heap = dict(self.heap)
-        heap[target] = heap.get(target, StringSet.bot()) | value
+        heap[target] = heap[target] | value if target in heap else value
         return AbstractReference(frozenset({target}), nullable), replace(
             self, heap=heap
         )
@@ -130,9 +140,45 @@ def manystep(
             yield (pc + 1, after.push(reference))
 
         case jvm.Push(type=jvm.Reference(), value=0):
-            if not config.strings:
-                raise NotImplementedError("Reference support requires string mode")
             yield (pc + 1, state.push(AbstractReference(frozenset(), True)))
+
+        case jvm.Dup(words=1):
+            # All currently supported values occupy one JVM stack word.
+            yield (pc + 1, state.push(state.stack[-1]))
+
+        case jvm.NewArray(type=element_type, dim=1):
+            domain = config.require_integers()
+            [length], after = state.pop(1)
+            array = array_methods.allocate(element_type, length, domain)
+            if array is not None:
+                # Repeated executions at the same site share a summary object.
+                reference, after = after.heap_reference(f"array-site:{pc}", array)
+                yield (pc + 1, after.push(reference))
+
+        case jvm.ArrayLength():
+            domain = config.require_integers()
+            [reference], after = state.pop(1)
+            value, errors = array_methods.length(reference, state.heap, domain)
+            yield from errors
+            if value != domain.bot():
+                yield (pc + 1, after.push(value))
+
+        case jvm.ArrayLoad(type=element_type):
+            domain = config.require_integers()
+            [reference, index], after = state.pop(2)
+            value, errors = array_methods.load(reference, index, state.heap, domain, element_type)
+            yield from errors
+            if value != domain.bot():
+                yield (pc + 1, after.push(value))
+
+        case jvm.ArrayStore(type=element_type):
+            domain = config.require_integers()
+            [reference, index, value], after = state.pop(3)
+            heap, errors = array_methods.store(
+                reference, index, value, state.heap, domain, element_type)
+            yield from errors
+            if heap is not None:
+                yield (pc + 1, replace(after, heap=heap))
 
         case jvm.InvokeVirtual(method=method):
             if not config.strings or method != jpamb.parse_methodid(
@@ -259,6 +305,16 @@ def initialstate(
                 value = config.scalar([StackInt(int(supplied.value))])
             else:
                 raise NotImplementedError(f"Unsupported input: {supplied}")
+        elif isinstance(parameter, jvm.Array):
+            domain = config.require_integers()
+            if supplied is not None and not isinstance(supplied, jpamb.case.Array):
+                raise NotImplementedError(f"Unsupported array input: {supplied}")
+            array = array_methods.parameter(parameter.contains, supplied, domain)
+            # Same-typed unknown parameters may alias: use a common summary so
+            # writes through one parameter are visible through another.
+            target = (f"array-parameter:{parameter.contains.encode()}" if inputs is None
+                      else f"array-input:{i}")
+            value, state = state.heap_reference(target, array, nullable=inputs is None)
         elif (
             parameter == jvm.Object(jvm.ClassName("java.lang.String"))
             and config.strings
