@@ -1,9 +1,12 @@
 import sys
 from collections import deque
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 
-from abstractions import SignSet
+from abstractions import BooleanSet, IntegerAbstraction, StringSet
+from configuration import DEFAULT_CONFIG, AnalysisConfig, parse_options
+from string_methods import AbstractReference
+from string_methods import equals as string_equals
 
 import jpamb
 import sexpr
@@ -13,8 +16,11 @@ from jvm.state import PC, StackInt
 
 @dataclass(frozen=True)
 class State(sexpr.AsSExpr):
-    locals: tuple[SignSet, ...]
-    stack: tuple[SignSet, ...]
+    locals: tuple[IntegerAbstraction | BooleanSet | AbstractReference | None, ...]
+    stack: tuple[IntegerAbstraction | BooleanSet | AbstractReference, ...]
+
+    # Copy on update: successor states never mutate a predecessor's heap.
+    heap: dict[str, StringSet] = field(default_factory=dict)
 
     def __post_init__(self):
         assert isinstance(self.locals, tuple)
@@ -28,26 +34,53 @@ class State(sexpr.AsSExpr):
         assert len(self.stack) == len(other.stack), "Stacks should be equal lenght"
         assert len(self.locals) == len(other.locals), "Locals should be equal lenght"
 
+        heap = dict(self.heap)
+        for target, value in other.heap.items():
+            heap[target] = heap.get(target, StringSet.bot()) | value
         return State(
-            tuple(s1 | s2 for s1, s2 in zip(self.locals, other.locals)),
-            tuple(s1 | s2 for s1, s2 in zip(self.stack, other.stack)),
+            tuple(join_value(s1, s2) for s1, s2 in zip(self.locals, other.locals)),
+            tuple(join_value(s1, s2) for s1, s2 in zip(self.stack, other.stack)),
+            heap,
         )
 
-    def push(self, value: SignSet):
-        assert isinstance(value, SignSet), f"Expected sign set but got {value}"
-        return State(self.locals, self.stack + (value,))
+    def push(self, value):
+        if not isinstance(value, (IntegerAbstraction, BooleanSet, AbstractReference)):
+            raise NotImplementedError(f"Unsupported stack value: {value}")
+        return replace(self, stack=self.stack + (value,))
 
     def pop(self, number=1):
-        return self.stack[-number:], State(self.locals, self.stack[:-number])
+        return self.stack[-number:], replace(self, stack=self.stack[:-number])
 
     def load(self, index):
-        return self.locals[index]
+        value = self.locals[index]
+        if value is None:
+            raise NotImplementedError("Read of an uninitialized local")
+        return value
 
     def store(self, index, value):
         return State(
             tuple(self.locals[:index]) + (value,) + tuple(self.locals[index + 1 :]),
             self.stack,
+            self.heap,
         )
+
+    def string_reference(self, target, value, nullable=False):
+        """Return a reference and a state containing its abstract contents."""
+        heap = dict(self.heap)
+        heap[target] = heap.get(target, StringSet.bot()) | value
+        return AbstractReference(frozenset({target}), nullable), replace(
+            self, heap=heap
+        )
+
+
+def join_value(left, right):
+    # None denotes an uninitialized local, not a Java null reference. If either
+    # path leaves a slot uninitialized it cannot safely be loaded after the join.
+    if left is None or right is None:
+        return None
+    if type(left) is not type(right):
+        raise NotImplementedError("Joining incompatible local/stack types")
+    return left | right
 
 
 # Handle one instruction and produce possible next states or final outcomes.
@@ -60,12 +93,41 @@ def manystep(
     bc: jpamb.Bytecode,
     pc: PC,
     state: State,
+    config: AnalysisConfig = DEFAULT_CONFIG,
 ) -> Iterable[tuple[PC, object] | str]:
+    integer_domain = config.integer_domain
     opr = bc[pc]
     match opr:
         case jvm.Push(type=jvm.Int(), value=value):
-            abstract_value = SignSet.abstract([StackInt(value)])
+            abstract_value = config.scalar([StackInt(value)])
             yield (pc + 1, state.push(abstract_value))
+
+        case jvm.Push(type=jvm.Object(cn), value=text) if cn == jvm.ClassName(
+            "java.lang.String"
+        ):
+            if not config.strings:
+                raise NotImplementedError("Enable --abstractions string or sign,string")
+            reference, after = state.string_reference(
+                "literal:" + text, StringSet.abstract([text])
+            )
+            yield (pc + 1, after.push(reference))
+
+        case jvm.Push(type=jvm.Reference(), value=0):
+            if not config.strings:
+                raise NotImplementedError("Reference support requires string mode")
+            yield (pc + 1, state.push(AbstractReference(frozenset(), True)))
+
+        case jvm.InvokeVirtual(method=method):
+            if not config.strings or method != jpamb.parse_methodid(
+                "java.lang.String.equals:(Ljava/lang/Object;)Z"
+            ):
+                raise NotImplementedError(f"Unsupported call: {method}")
+            [receiver, argument], after = state.pop(2)
+            answers, errors = string_equals(receiver, argument, state.heap)
+            yield from errors
+            if answers:
+                result = config.scalar(StackInt(int(a)) for a in answers)
+                yield (pc + 1, after.push(result))
 
         case jvm.Get(static=True, field=field):
             # Hack - Only handle the assertion case
@@ -73,14 +135,19 @@ def manystep(
                 raise NotImplementedError(f"Unsupported field: {field}")
 
             # Hack - Assuming assertions are never disabled
-            va = SignSet.abstract([StackInt(0)])
+            va = config.scalar([StackInt(0)])
 
             yield (pc + 1, state.push(va))
 
         case jvm.Ifz(condition=op, target=target):
             [val], after = state.pop(1)
 
-            for res in SignSet.compare(val, SignSet.abstract([StackInt(0)]), op):
+            zero = (
+                AbstractReference(frozenset(), True)
+                if isinstance(val, AbstractReference)
+                else config.scalar([StackInt(0)])
+            )
+            for res in val.compare(zero, op):
                 match res:
                     case True:
                         yield (pc % target, after)
@@ -93,7 +160,7 @@ def manystep(
             va = state.load(i)
             yield (pc + 1, state.push(va))
 
-        case jvm.Store(type=jvm.Int(), index=index):
+        case jvm.Store(type=jvm.Int() | jvm.Reference(), index=index):
             [value], after = state.pop(1)
             yield (pc + 1, after.store(index, value))
 
@@ -106,13 +173,15 @@ def manystep(
                     yield (pc + 1, after)
 
         case jvm.Incr(index=index, amount=amount):
-            increment = SignSet.abstract([StackInt(amount)])
+            config.require_integers()
+            increment = config.scalar([StackInt(amount)])
             result, _errors = state.load(index).arithmetic(increment, jvm.BinaryOpr.Add)
             yield (pc + 1, state.store(index, result))
 
         case jvm.Negate(type=jvm.Int()):
+            config.require_integers()
             [value], after = state.pop(1)
-            zero = SignSet.abstract([StackInt(0)])
+            zero = config.scalar([StackInt(0)])
             result, _errors = zero.arithmetic(value, jvm.BinaryOpr.Sub)
             yield (pc + 1, after.push(result))
 
@@ -120,14 +189,14 @@ def manystep(
             yield (pc % t, state)
 
         case jvm.Binary(type=jvm.Int(), operant=operation):
+            config.require_integers()
             operands, after = state.pop(2)
             left, right = operands
             result, errors = left.arithmetic(right, operation)
 
-            for error in errors:
-                yield error
+            yield from errors
 
-            if result != SignSet.bot():
+            if result != integer_domain.bot():
                 yield (pc + 1, after.push(result))
 
         case jvm.Return(type=None):
@@ -149,31 +218,47 @@ def initialstate(
     bc: jpamb.Bytecode,
     methodid: jvm.AbsMethodID,
     inputs: jpamb.Input | None,
+    config: AnalysisConfig = DEFAULT_CONFIG,
 ) -> dict[PC, State]:
+    integer_domain = config.integer_domain
     method = bc.getmethod(methodid)
-    locals = [SignSet.bot()] * method.max_locals    # Initially just {}
+    state = State((None,) * method.max_locals, ())
+    parameters = methodid.extension.params
+    if inputs is not None and len(inputs.values) != len(parameters):
+        raise NotImplementedError("Input count does not match method parameters")
 
-    for parameter in methodid.extension.params:
-        if not isinstance(parameter, (jvm.Int, jvm.Boolean)):
-            raise NotImplementedError(f"Unsupported parameter type: {parameter}")
-
-    if inputs is None:
-        for i, parameter in enumerate(methodid.extension.params):
-            if isinstance(parameter, jvm.Boolean):
-                locals[i] = SignSet.from_sign("0+")
+    for i, parameter in enumerate(parameters):
+        supplied = None if inputs is None else inputs.values[i]
+        if isinstance(parameter, (jvm.Int, jvm.Boolean)):
+            if isinstance(parameter, jvm.Int):
+                config.require_integers()
+            if inputs is None:
+                value = (
+                    config.scalar([StackInt(0), StackInt(1)])
+                    if isinstance(parameter, jvm.Boolean)
+                    else integer_domain.top()
+                )
+            elif isinstance(supplied, (jpamb.case.Int, jpamb.case.Boolean)):
+                value = config.scalar([StackInt(int(supplied.value))])
             else:
-                locals[i] = SignSet.top()
-    else:
-        for i, x in enumerate(inputs.values):
-            match x:
-                case jpamb.case.Boolean(value=value):
-                    locals[i] = SignSet.abstract([StackInt(int(value))])
-                case jpamb.case.Int(value=value):
-                    locals[i] = SignSet.abstract([StackInt(int(value))])
-                case _:
-                    raise NotImplementedError(f"Unsupported value {x!r}")
+                raise NotImplementedError(f"Unsupported input: {supplied}")
+        elif (
+            parameter == jvm.Object(jvm.ClassName("java.lang.String"))
+            and config.strings
+        ):
+            if inputs is None:
+                contents = StringSet.top()
+            elif isinstance(supplied, jpamb.case.String):
+                contents = StringSet.abstract([supplied.value])
+            else:
+                raise NotImplementedError(f"Unsupported string input: {supplied}")
+            value, state = state.string_reference(
+                f"parameter:{i}", contents, nullable=inputs is None
+            )
+        else:
+            raise NotImplementedError(f"Unsupported parameter type: {parameter}")
+        state = state.store(i, value)
 
-    state = State(tuple(locals), ())
     return {PC(methodid, 0): state}
 
 
@@ -182,22 +267,25 @@ class AbstractInterpreter:
     bc: jpamb.Bytecode
     worklist: deque[PC]
     states: dict[PC, State]
+    config: AnalysisConfig = DEFAULT_CONFIG
 
     @staticmethod
-    def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, inputs):
-        states = initialstate(bc, methodid, inputs)
+    def initial(
+        bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, inputs, config=DEFAULT_CONFIG
+    ):
+        states = initialstate(bc, methodid, inputs, config)
         worklist = deque(states.keys())
 
-        return AbstractInterpreter(bc, worklist, states)
+        return AbstractInterpreter(bc, worklist, states, config)
 
-    def step(self) -> tuple[PC, set[str]]:      # Processing one instruction
+    def step(self) -> tuple[PC, set[str]]:  # Processing one instruction
         pc = self.worklist.pop()
 
         print(f"Stepping {pc}:\n > {self.bc[pc]}", file=sys.stderr)
 
         finals = set()
 
-        for res in manystep(self.bc, pc, self.states[pc]):
+        for res in manystep(self.bc, pc, self.states[pc], self.config):
             if isinstance(res, str):
                 finals.add(res)
             else:
@@ -216,18 +304,20 @@ class AbstractInterpreter:
 
 
 def interpret():
-    """The static analysis"""
+    """Use the original JPAMB protocol after consuming our own options."""
+    config, arguments = parse_options(sys.argv[1:])
+    sys.argv = [sys.argv[0], *arguments]
     methodid, input, steps = jpamb.getcase(
         "static",
         "1.0",
         "Los Pollos Hermanos",
-        ["static", "sign", "python"],
+        config.tags,
         for_science=True,
     )
     suite, eff = jpamb.setup()
     bc = jpamb.Bytecode(suite, eff, {})
 
-    ai = AbstractInterpreter.initial(bc, methodid, input)
+    ai = AbstractInterpreter.initial(bc, methodid, input, config)
 
     x = jpamb.emit_init(ai.states)
 
@@ -242,13 +332,15 @@ def interpret():
 
 
 def analyse():
-    """The static analysis"""
+    """Use the original JPAMB protocol after consuming our own options."""
+    config, arguments = parse_options(sys.argv[1:])
+    sys.argv = [sys.argv[0], *arguments]
 
     methodid = jpamb.getmethodid(
         "static",
         "1.0",
         "Los Pollos Hermanos",
-        ["static", "sign", "python"],
+        config.tags,
         for_science=True,
     )
 
@@ -261,7 +353,7 @@ def analyse():
     incomplete = False
 
     try:
-        ai = AbstractInterpreter.initial(bc, methodid, None)
+        ai = AbstractInterpreter.initial(bc, methodid, None, config)
         while steps > 0 and ai.worklist:
             _pc, finals = ai.step()
             final |= finals

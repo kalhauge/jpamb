@@ -45,3 +45,12 @@ To effectively do that please consult the [Python](docs/python.md) section.
 - **[JVM2JSON codec](https://github.com/kalhauge/jvm2json/blob/main/CODEC.txt)** - Understanding bytecode format
 - **[Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)** - Windows C++ compiler
 - **[JPAMB GitHub Issues](https://github.com/kalhauge/jpamb/issues)** - Get help if stuck
+
+
+## Modular static analyzer
+
+The static solution supports sign-only, string-only, and combined sign/string
+analysis through `--abstractions`. String-only mode uses minimal boolean handling
+and does not run sign analysis. See the [static analyzer guide](solutions/static/README.md)
+for setup, separate analysis/interpreter commands, saved reports, implementation
+notes, tests, and current limitations.

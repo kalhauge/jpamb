@@ -153,8 +153,18 @@ def to_sign(value: jvms.StackValue) -> Sign:
             raise NotImplementedError(f"Unsupported value {value!r}")
 
 
+class IntegerAbstraction(Abstraction, Lattice):
+    """Operations the bytecode interpreter needs from an integer domain."""
+
+    @abstractmethod
+    def arithmetic(self, other, opr): ...
+
+    @abstractmethod
+    def compare(self, other, opr): ...
+
+
 @dataclass(frozen=True)
-class SignSet(Abstraction, Lattice):
+class SignSet(IntegerAbstraction):
     signs: frozenset[Sign]
 
     def __str__(self):
@@ -335,3 +345,102 @@ class Interval(Abstraction, Lattice):
 
     def __gt__(self, other: "Interval") -> bool:
         raise NotImplementedError("TODO")
+
+
+@dataclass(frozen=True)
+class StringSet(Lattice):
+    """At most eight exact contents, or None for any non-null string contents.
+
+    The empty frozenset is bottom. Java null belongs to AbstractReference instead.
+    This finite-height domain needs no widening: oversized joins become top.
+    """
+
+    values: frozenset[str] | None
+
+    def __post_init__(self):
+        if self.values is not None and len(self.values) > 8:
+            object.__setattr__(self, "values", None)
+
+    @classmethod
+    def abstract(cls, values: Iterable[str]) -> Self:
+        return cls(frozenset(values))
+
+    @classmethod
+    def top(cls) -> Self:
+        return cls(None)
+
+    def __contains__(self, value: str) -> bool:
+        return self.values is None or value in self.values
+
+    def __or__(self, other):
+        if self.values is None or other.values is None:
+            return self.top()
+        return StringSet(self.values | other.values)
+
+    def __and__(self, other):
+        if self.values is None:
+            return other
+        if other.values is None:
+            return self
+        return StringSet(self.values & other.values)
+
+    def __lt__(self, other):
+        if self.values is None:
+            return False
+        return other.values is None or self.values < other.values
+
+    def __gt__(self, other):
+        return other < self
+
+    def equals(self, other) -> set[bool]:
+        """Possible content-equality answers; impossible operands give no answers."""
+        if self == self.bot() or other == self.bot():
+            return set()
+        if self.values is None or other.values is None:
+            return {True, False}
+        return {left == right for left in self.values for right in other.values}
+
+    def __sexpr__(self):
+        import sexpr
+        return sexpr.sexpr(["strings", "top" if self.values is None
+                            else sorted(self.values)])
+
+
+@dataclass(frozen=True)
+class BooleanSet:
+    """Minimal JVM boolean support, independent of integer sign analysis.
+
+    JVM booleans use 0 and 1 on the operand stack. Other integers and arithmetic
+    are deliberately unsupported; this class is not a general integer domain.
+    """
+
+    values: frozenset[bool]
+
+    @classmethod
+    def abstract(cls, values):
+        answers = set()
+        for value in values:
+            if not isinstance(value, jvms.StackInt) or value.value not in (0, 1):
+                raise NotImplementedError("Integer values require --abstractions sign,string")
+            answers.add(bool(value.value))
+        return cls(frozenset(answers))
+
+    def __or__(self, other):
+        return BooleanSet(self.values | other.values)
+
+    def compare(self, other, operation):
+        if not isinstance(other, BooleanSet):
+            raise NotImplementedError("Boolean comparison requires boolean operands")
+        comparisons = {
+            jvm.CmpOpr.Eq: lambda a, b: a == b,
+            jvm.CmpOpr.Ne: lambda a, b: a != b,
+            jvm.CmpOpr.Lt: lambda a, b: a < b,
+            jvm.CmpOpr.Le: lambda a, b: a <= b,
+            jvm.CmpOpr.Gt: lambda a, b: a > b,
+            jvm.CmpOpr.Ge: lambda a, b: a >= b,
+        }
+        return {comparisons[operation](a, b) for a in self.values for b in other.values}
+
+    def __sexpr__(self):
+        import sexpr
+        return sexpr.sexpr(["booleans", sorted(self.values)])
