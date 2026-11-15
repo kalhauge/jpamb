@@ -43,6 +43,23 @@ class State(sexpr.AsSExpr):
             heap,
         )
 
+    def widen(self, newer):
+        """Widen numeric values after joining; keep the joined heap/references.
+
+        Only integer domains need this hook. The string and boolean domains
+        already have finite height. Uninitialized locals stay uninitialized.
+        """
+        def widen_value(old, new):
+            if isinstance(old, IntegerAbstraction) and isinstance(new, type(old)):
+                return old.widen(new)
+            return new
+
+        return State(
+            tuple(widen_value(a, b) for a, b in zip(self.locals, newer.locals)),
+            tuple(widen_value(a, b) for a, b in zip(self.stack, newer.stack)),
+            newer.heap,
+        )
+
     def push(self, value):
         if not isinstance(value, (IntegerAbstraction, BooleanSet, AbstractReference)):
             raise NotImplementedError(f"Unsupported stack value: {value}")
@@ -97,7 +114,7 @@ def manystep(
 ) -> Iterable[tuple[PC, object] | str]:
     integer_domain = config.integer_domain
     opr = bc[pc]
-    match opr:
+    match opr: # We match it for each different op codes like push, get, if zero,  binary (arithmetic) etc
         case jvm.Push(type=jvm.Int(), value=value):
             abstract_value = config.scalar([StackInt(value)])
             yield (pc + 1, state.push(abstract_value))
@@ -147,7 +164,7 @@ def manystep(
                 if isinstance(val, AbstractReference)
                 else config.scalar([StackInt(0)])
             )
-            for res in val.compare(zero, op):
+            for res in val.compare(zero, op):       ## Checks whether true or false (0 -> False, + -> True)
                 match res:
                     case True:
                         yield (pc % target, after)
@@ -268,6 +285,14 @@ class AbstractInterpreter:
     worklist: deque[PC]
     states: dict[PC, State]
     config: AnalysisConfig = DEFAULT_CONFIG
+    # A few exact joins retain short-branch precision. Later growth widens.
+    updates: dict[PC, int] = field(default_factory=dict)
+
+    """states:
+    What do we know at each instruction?
+
+    worklist:
+        Which instructions still need processing?"""
 
     @staticmethod
     def initial(
@@ -277,6 +302,39 @@ class AbstractInterpreter:
         worklist = deque(states.keys())
 
         return AbstractInterpreter(bc, worklist, states, config)
+
+    """for example,
+        static int example(int x) {
+        return x;
+        }
+
+
+        will get AbstractInterpreter object as:
+
+        AbstractInterpreter(
+            bc=bytecode,
+
+            worklist=deque([
+                PC(methodid, 0),
+            ]),
+
+            states={
+                PC(methodid, 0): State(
+                    locals=(
+                        SignSet(frozenset({-1, 0, 1})),
+                    ),
+                    stack=(),
+                    heap={},
+                ),
+            },
+
+            config=AnalysisConfig(
+                integer_domain=SignSet,
+                strings=False,
+            ),
+        )
+
+"""
 
     def step(self) -> tuple[PC, set[str]]:  # Processing one instruction
         pc = self.worklist.pop()
@@ -296,6 +354,10 @@ class AbstractInterpreter:
                     after = st
                 else:
                     after = before | st
+                if before is not None and after != before:
+                    self.updates[pc_] = self.updates.get(pc_, 0) + 1
+                    if self.updates[pc_] > 3:
+                        after = before.widen(after)
                 if before is None or after != before:
                     self.states[pc_] = after
                     self.worklist.append(pc_)

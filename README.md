@@ -49,8 +49,9 @@ To effectively do that please consult the [Python](docs/python.md) section.
 
 ## Modular static analyzer
 
-The static solution supports sign-only, string-only, and combined sign/string
-analysis through `--abstractions`. String-only mode uses minimal boolean handling
-and does not run sign analysis. See the [static analyzer guide](solutions/static/README.md)
+The static solution supports sign, interval, and string analysis independently
+or in any combination through `--abstractions`. The combined sign-interval domain
+uses both bounds and signs. String-only mode uses minimal boolean handling and
+does not run integer analysis. See the [static analyzer guide](solutions/static/README.md)
 for setup, separate analysis/interpreter commands, saved reports, implementation
 notes, tests, and current limitations.
