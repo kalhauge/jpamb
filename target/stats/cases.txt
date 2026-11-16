@@ -68,12 +68,22 @@ jpamb.cases.MagicConstants.computedIndex:(I)I                (0) -> ok
 jpamb.cases.MagicConstants.computedIndex:(I)I                (5) -> out of bounds
 jpamb.cases.MagicConstants.derivedNull:(I)I                  (0) -> ok
 jpamb.cases.MagicConstants.derivedNull:(I)I                  (50) -> null pointer
+jpamb.cases.MagicConstants.loopDoubling:(I)V                 (0) -> ok
+jpamb.cases.MagicConstants.loopDoubling:(I)V                 (24) -> assertion error
+jpamb.cases.MagicConstants.loopDoublingSafe:(I)V             (24) -> ok
 jpamb.cases.MagicConstants.squareThreshold:(I)V              (25) -> assertion error
 jpamb.cases.MagicConstants.squareThreshold:(I)V              (4) -> ok
 jpamb.cases.MagicConstants.squaredDivisor:(I)I               (10) -> divide by zero
 jpamb.cases.MagicConstants.squaredDivisor:(I)I               (3) -> ok
 jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (1) -> ok
 jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (42) -> assertion error
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (0) -> out of bounds
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (999990) -> ok
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (999993) -> divide by zero
+jpamb.cases.MagicConstants.tableLookupSafe:(I)I              (999993) -> ok
+jpamb.cases.MagicConstants.twoParams:(II)I                   (50, 50) -> ok
+jpamb.cases.MagicConstants.twoParams:(II)I                   (71, 29) -> divide by zero
+jpamb.cases.MagicConstants.twoParamsSafe:(II)I               (71, 29) -> ok
 jpamb.cases.Operators.branchRemainder:(ZI)I                  (false, 0) -> ok
 jpamb.cases.Operators.branchRemainder:(ZI)I                  (true, 0) -> divide by zero
 jpamb.cases.Operators.directRemainder:(II)I                  (2, 0) -> divide by zero
