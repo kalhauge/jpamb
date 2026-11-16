@@ -146,6 +146,19 @@ See [information/score_similarity.md](../../information/score_similarity.md) for
 why some configurations score alike and example methods that can reveal their
 differences. Setup, execution commands, and test instructions remain here.
 
+## Branch refinement
+
+All domain selections now refine branch operands, including stored locals,
+null checks, and `String.equals` predicates. See
+[branch refinement and results](../../information/branch_refinement.md) for the
+implementation, limitations, paired score table, and interpreter validation.
+
+Reproduce the seven-configuration comparison against the array-support baseline:
+
+```bash
+python solutions/static/scripts/compare_branch_refinement.py
+```
+
 ## Tests
 
 ```bash
