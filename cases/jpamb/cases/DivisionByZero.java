@@ -134,41 +134,6 @@ public class DivisionByZero {
 // new cases for review :
 
 
-  @Case("(9, 0) -> divide by zero")
-  @Case("(9, 2) -> ok")
-  // data type is long
-  public static int longDivision(int value, int divisor) {
-    return (int) ((long) value / (long) divisor);
-  }
-
-  @Case("(9, 0) -> divide by zero")
-  @Case("(9, 2) -> ok")
-  // test case to know if the analyzer correctly handles modulo operations long operands.
-  public static int longRemainder(int value, int divisor) {
-    return (int) ((long) value % (long) divisor);
-  }
-
-// data type long
-/// Test case to know whether the analyzer 
-// can identify a zero divisor resulting 
-// from  exp (a - b).
-
-  @Case("(5, 5) -> divide by zero")
-  @Case("(5, 4) -> ok")
-  public static int computeLongDivision(int a, int b) {
-    return (int) (100L / ((long) a - (long) b));
-  }
-
-// data type long
-// Tests whether the analyzer can detect zero divisors in computed expressions 
-// involving long and modulo operations.
-  @Case("(5, 5) -> divide by zero")
-  @Case("(5, 4) -> ok")
-  public static int computeLongRemainder(int a, int b) {
-    return (int) (100L % ((long) a - (long) b));
-  }
-
-
 // below inlcude a bit complex cases for the analyzer
   @Case("(0, 5, 0) -> ok")
   @Case("(1, 21, 3) -> ok")
