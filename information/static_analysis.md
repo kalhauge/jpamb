@@ -35,8 +35,8 @@ Current limitations: no per-index tracking, multidimensional or object arrays,
 other primitive array types, or negative-size exception model. A possibly
 negative allocation size leaves analysis incomplete because JPAMB has no matching
 outcome category. Array loops can still produce extra bounds/assertion warnings
-without branch refinement; ordinary methods and unsupported casts remain outside
-this implementation.
+because array summaries and non-relational filtering lose information; ordinary
+methods and unsupported casts remain outside this implementation.
 
 ## How intervals work
 
@@ -129,9 +129,9 @@ successor cannot modify another successor's contents.
 
 ## Scope and limitations
 
-No branch refinement is added: a condition such as `x > 0` does not narrow the
-stored interval on its successful path. There are no relational constraints or
-narrowing pass after widening. These can be separate precision improvements.
+Branches now narrow loaded locals, nullness, and supported string predicates; see
+[branch refinement](branch_refinement.md). General relational constraints, inverse
+arithmetic transfer, and a narrowing pass after widening remain unsupported.
 
 String method support remains limited to `String.equals(Object)` for supported
 string/null operands. String length, concatenation, substring, constructors,
