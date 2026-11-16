@@ -1,9 +1,6 @@
 jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
 jpamb.cases.Arrays.arrayContentAboveMinus13:()V              () -> ok
-jpamb.cases.Arrays.arrayFillUntilEqual:()V                   () -> ok
 jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
-jpamb.cases.Arrays.arrayIndexAfterOverflow:(I)I              (0) -> ok
-jpamb.cases.Arrays.arrayIndexAfterOverflow:(I)I              (2147483647) -> out of bounds
 jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
 jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer
 jpamb.cases.Arrays.arrayLength:()V                           () -> ok
@@ -29,16 +26,22 @@ jpamb.cases.Calls.callsAssertIf:(Z)V                         (false) -> assertio
 jpamb.cases.Calls.callsAssertIf:(Z)V                         (true) -> ok
 jpamb.cases.Calls.callsAssertIfWithTrue:()V                  () -> ok
 jpamb.cases.Calls.callsAssertTrue:()V                        () -> ok
-jpamb.cases.Calls.divideViaHelper:(I)I                       (0) -> ok
-jpamb.cases.Calls.divideViaHelper:(I)I                       (3) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (0, 0) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (1, 1) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
-jpamb.cases.Dependent.unreachableAssert:(I)V                 (-3) -> ok
-jpamb.cases.Dependent.unreachableAssert:(I)V                 (7) -> ok
+jpamb.cases.Group21Cases.arrayFillUntilEqual:()V             () -> ok
+jpamb.cases.Group21Cases.arrayIndexAfterOverflow:(I)I        (0) -> ok
+jpamb.cases.Group21Cases.arrayIndexAfterOverflow:(I)I        (2147483647) -> out of bounds
+jpamb.cases.Group21Cases.divideViaHelper:(I)I                (0) -> ok
+jpamb.cases.Group21Cases.divideViaHelper:(I)I                (3) -> divide by zero
+jpamb.cases.Group21Cases.secretThenDivide:([C)I              ([C:'s', 'e', 'c', 'r', 'e', 't']) -> divide by zero
+jpamb.cases.Group21Cases.secretThenDivide:([C)I              ([C:'s', 'e', 'c', 'r', 'e', 'x']) -> ok
+jpamb.cases.Group21Cases.secretThenDivide:([C)I              ([C:]) -> ok
+jpamb.cases.Group21Cases.unreachableAssert:(I)V              (-3) -> ok
+jpamb.cases.Group21Cases.unreachableAssert:(I)V              (7) -> ok
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *

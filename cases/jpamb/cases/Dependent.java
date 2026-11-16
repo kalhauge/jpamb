@@ -48,14 +48,4 @@ public class Dependent {
     }
     assert n != 32;
   }
-
-    // This case is unreachable because n * 2 is always even
-  @Case("(7) -> ok")
-  @Case("(-3) -> ok")
-  public static void unreachableAssert(int n) {
-    int x = n * 2;
-    if (x % 2 != 0) {
-      assert false;
-    }
-  }
 }

@@ -21,7 +21,7 @@ public class Runtime {
           jpamb.cases.Strings.class,
           Dependent.class,
           Calls.class,
-          Fuzzing.class);
+          Group21Cases.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
