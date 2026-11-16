@@ -1,5 +1,9 @@
 # Why are some analysis scores so similar?
 
+This note records the array-support baseline before branch refinement. For the
+current implementation and new scores, see [branch refinement](branch_refinement.md).
+The combined domain now outperforms intervals on the existing suite.
+
 Our abstractions remember different information. But the benchmark scores the
 **final predicted outcomes**, not how much information an abstraction remembers.
 A more precise value only helps the score if it changes a prediction.
@@ -77,7 +81,7 @@ must actually use that extra information in a way that changes an outcome.
 
 ## The interpreter also limits the benefit
 
-### Conditions do not yet narrow stored values
+### The baseline did not narrow stored values
 
 ```java
 if (n != 0) {
@@ -86,13 +90,13 @@ if (n != 0) {
 return 0;
 ```
 
-Inside the true branch, a person knows that `n` is not zero. Our interpreter
-currently follows the branch without updating the stored description of `n`.
-It may therefore still predict division by zero.
+Inside the true branch, a person knows that `n` is not zero. The baseline interpreter
+followed the branch without updating the stored description of `n`.
+It could therefore still predict division by zero.
 
 Signs and the combined domain could represent the nonzero fact, but the
-interpreter has not passed that fact to them. Branch refinement is a separate
-improvement. A single interval still cannot represent a hole at zero, even after
+baseline interpreter did not pass that fact to them. Branch refinement now
+provides that information for loaded locals. A single interval still cannot represent a hole at zero, even after
 refinement; it can represent a condition such as `n > 0` as `[1, MAX]` instead.
 
 ### Arrays summarize all positions together
@@ -218,7 +222,7 @@ To measure the numeric improvement clearly, use a variant that assigns `"hello"`
 on both branches, or split the assertions into separate benchmark methods. This
 is an example of why richer code does not automatically make a better test.
 
-### 5. Test branch refinement separately when it is added
+### 5. Test branch refinement separately
 
 ```java
 static int positiveDivisor(int n) {
@@ -229,9 +233,8 @@ static int positiveDivisor(int n) {
 }
 ```
 
-No execution divides by zero. After branch refinement is implemented, all integer
-domains should be able to exclude that error. Until then, this tests an interpreter
-limitation rather than a missing interval arithmetic rule.
+No execution divides by zero. Branch refinement now lets all integer domains
+exclude that error; a synthetic interpreter regression exercises this guard.
 
 ## How to build useful accuracy tests
 

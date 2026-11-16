@@ -2,7 +2,9 @@
 
 Simple explanations and design notes for our static analyzer belong here.
 
-- [Why analysis scores can be similar](score_similarity.md): current results,
+- [Branch refinement](branch_refinement.md): current implementation, paired scores,
+  interpreter validation, and reproducible evaluation commands.
+- [Why analysis scores can be similar](score_similarity.md): pre-refinement results,
   reasons for similar predictions, and proposed Java examples to test differences.
 - [How the analyzer is implemented](static_analysis.md): the domain and array
   explanations moved from the static solution README, including limitations.
