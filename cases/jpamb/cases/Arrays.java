@@ -114,4 +114,44 @@ public class Arrays {
     }
     assert sum > 300;
   }
+
+
+    @Case("(1) -> assertion error")
+  @Case("(0) -> ok")
+  public static void arraySumIsLargeInt(int n) {
+    int[] a = {n, 100, 200};
+    int sum = 0;
+
+    for (int i = 0; i < a.length; i++) {
+      sum += a[i];
+    }
+
+    assert sum != 301;
+  }
+
+  
+  @Case("(5) -> assertion error")
+  @Case("(4) -> ok")
+  public static void arrayIndexValue(int n) {
+    int[] a = {0, 1, 2, 3, 4, 5, 6, 7};
+
+    if (n >= 0 && n < a.length) {
+      assert a[n] != 5;
+    }
+  }
+
+  
+  @Case("(6) -> assertion error")
+  @Case("(5) -> ok")
+  public static void arrayLoop(int n) {
+    int[] a = new int[8];
+
+    for (int i = 0; i < a.length; i++) {
+      a[i] = i * 2;
+    }
+
+    if (n >= 0 && n < a.length) {
+      assert a[n] != 12;
+    }
+  }
 }
