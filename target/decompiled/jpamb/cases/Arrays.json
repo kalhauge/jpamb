@@ -3386,6 +3386,466 @@
     },
     {
       "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Case",
+          "values": {
+            "value": {
+              "type": "string",
+              "value": "() -> ok"
+            }
+          }
+        },
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Tag",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "enum",
+                  "value": {
+                    "name": "ARRAY",
+                    "type": {
+                      "kind": "class",
+                      "name": "jpamb/utils/Tag$TagType"
+                    }
+                  }
+                },
+                {
+                  "type": "enum",
+                  "value": {
+                    "name": "LOOP",
+                    "type": {
+                      "kind": "class",
+                      "name": "jpamb/utils/Tag$TagType"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 8
+            }
+          },
+          {
+            "dim": 1,
+            "offset": 2,
+            "opr": "newarray",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "offset": 5,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 1,
+            "offset": 6,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 7,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 8,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 8
+            }
+          },
+          {
+            "condition": "eq",
+            "offset": 10,
+            "opr": "if",
+            "target": 14
+          },
+          {
+            "index": 0,
+            "offset": 13,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 1,
+            "offset": 14,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 15,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 16,
+            "opr": "array_store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 1,
+            "offset": 17,
+            "opr": "incr"
+          },
+          {
+            "offset": 20,
+            "opr": "goto",
+            "target": 5
+          },
+          {
+            "offset": 23,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 124,
+            "offset": 0
+          },
+          {
+            "line": 125,
+            "offset": 3
+          },
+          {
+            "line": 126,
+            "offset": 8
+          },
+          {
+            "line": 125,
+            "offset": 12
+          },
+          {
+            "line": 128,
+            "offset": 14
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 3,
+        "stack_map": [
+          {
+            "index": 5,
+            "info": [
+              {
+                "ref": {
+                  "kind": "array",
+                  "type": "int"
+                },
+                "type": "object"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 14,
+            "info": 1,
+            "type": "chop_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "arrayFillUntilEqual",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0) -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(2147483647) -> out of bounds"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Tag",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "enum",
+                  "value": {
+                    "name": "ARRAY",
+                    "type": {
+                      "kind": "class",
+                      "name": "jpamb/utils/Tag$TagType"
+                    }
+                  }
+                },
+                {
+                  "type": "enum",
+                  "value": {
+                    "name": "INTEGER_OVERFLOW",
+                    "type": {
+                      "kind": "class",
+                      "name": "jpamb/utils/Tag$TagType"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "dim": 1,
+            "offset": 1,
+            "opr": "newarray",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 3,
+            "opr": "store",
+            "type": "ref"
+          },
+          {
+            "index": 0,
+            "offset": 4,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "lt",
+            "offset": 5,
+            "opr": "ifz",
+            "target": 16
+          },
+          {
+            "index": 0,
+            "offset": 8,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 9,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "offset": 10,
+            "operant": "add",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 11,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 12,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 13,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "condition": "ge",
+            "offset": 14,
+            "opr": "if",
+            "target": 16
+          },
+          {
+            "index": 1,
+            "offset": 17,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "index": 2,
+            "offset": 18,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 19,
+            "opr": "array_load",
+            "type": "int"
+          },
+          {
+            "offset": 20,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "offset": 21,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 22,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 136,
+            "offset": 0
+          },
+          {
+            "line": 137,
+            "offset": 3
+          },
+          {
+            "line": 138,
+            "offset": 5
+          },
+          {
+            "line": 139,
+            "offset": 9
+          },
+          {
+            "line": 140,
+            "offset": 12
+          },
+          {
+            "line": 143,
+            "offset": 16
+          }
+        ],
+        "max_locals": 3,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 16,
+            "info": [
+              {
+                "ref": {
+                  "kind": "array",
+                  "type": "int"
+                },
+                "type": "object"
+              }
+            ],
+            "type": "append_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "arrayIndexAfterOverflow",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
         "static"
       ],
       "annotations": [],

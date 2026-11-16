@@ -1,6 +1,9 @@
 jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
 jpamb.cases.Arrays.arrayContentAboveMinus13:()V              () -> ok
+jpamb.cases.Arrays.arrayFillUntilEqual:()V                   () -> ok
 jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
+jpamb.cases.Arrays.arrayIndexAfterOverflow:(I)I              (0) -> ok
+jpamb.cases.Arrays.arrayIndexAfterOverflow:(I)I              (2147483647) -> out of bounds
 jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
 jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer
 jpamb.cases.Arrays.arrayLength:()V                           () -> ok
@@ -34,6 +37,8 @@ jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
+jpamb.cases.Dependent.unreachableAssert:(I)V                 (-3) -> ok
+jpamb.cases.Dependent.unreachableAssert:(I)V                 (7) -> ok
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
