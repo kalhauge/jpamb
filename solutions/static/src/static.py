@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
 
 import array_methods
+import refinement
 from abstractions import BooleanSet, IntegerAbstraction, StringSet
 from array_methods import AbstractArray
 from configuration import DEFAULT_CONFIG, AnalysisConfig, parse_options
@@ -24,7 +25,21 @@ class State(sexpr.AsSExpr):
     # Copy on update: successor states never mutate a predecessor's heap.
     heap: dict[str, StringSet | AbstractArray] = field(default_factory=dict)
 
+    # Transient provenance participates in joins, but is omitted from JVM traces.
+    # An origin is retained only while it identifies the same unchanged local.
+    origins: tuple = ()
+    predicates: tuple = ()
+
+    def __sexpr__(self):
+        return sexpr.data("state", locals=self.locals, stack=self.stack, heap=self.heap)
+
     def __post_init__(self):
+        if not self.origins:
+            object.__setattr__(self, "origins", (None,) * len(self.stack))
+        if not self.predicates:
+            object.__setattr__(self, "predicates", (None,) * len(self.locals))
+        assert len(self.origins) == len(self.stack)
+        assert len(self.predicates) == len(self.locals)
         assert isinstance(self.locals, tuple)
         assert isinstance(self.stack, tuple)
 
@@ -43,6 +58,10 @@ class State(sexpr.AsSExpr):
             tuple(join_value(s1, s2) for s1, s2 in zip(self.locals, other.locals)),
             tuple(join_value(s1, s2) for s1, s2 in zip(self.stack, other.stack)),
             heap,
+            tuple(a if a == b else None for a, b in zip(self.origins, other.origins)),
+            tuple(
+                a if a == b else None for a, b in zip(self.predicates, other.predicates)
+            ),
         )
 
     def widen(self, newer):
@@ -51,6 +70,7 @@ class State(sexpr.AsSExpr):
         Numeric locals, stack values, and array heap summaries may grow.
         Strings and booleans have finite height. Uninitialized locals stay so.
         """
+
         def widen_value(old, new):
             if isinstance(old, IntegerAbstraction) and isinstance(new, type(old)):
                 return old.widen(new)
@@ -65,15 +85,21 @@ class State(sexpr.AsSExpr):
             tuple(widen_value(a, b) for a, b in zip(self.locals, newer.locals)),
             tuple(widen_value(a, b) for a, b in zip(self.stack, newer.stack)),
             heap,
+            newer.origins,
+            newer.predicates,
         )
 
-    def push(self, value):
+    def push(self, value, origin=None):
         if not isinstance(value, (IntegerAbstraction, BooleanSet, AbstractReference)):
             raise NotImplementedError(f"Unsupported stack value: {value}")
-        return replace(self, stack=self.stack + (value,))
+        return replace(
+            self, stack=self.stack + (value,), origins=self.origins + (origin,)
+        )
 
     def pop(self, number=1):
-        return self.stack[-number:], replace(self, stack=self.stack[:-number])
+        return self.stack[-number:], replace(
+            self, stack=self.stack[:-number], origins=self.origins[:-number]
+        )
 
     def load(self, index):
         value = self.locals[index]
@@ -81,11 +107,17 @@ class State(sexpr.AsSExpr):
             raise NotImplementedError("Read of an uninitialized local")
         return value
 
-    def store(self, index, value):
-        return State(
-            tuple(self.locals[:index]) + (value,) + tuple(self.locals[index + 1 :]),
-            self.stack,
-            self.heap,
+    def store(self, index, value, predicate=None):
+        def valid(origin):
+            return None if refinement.depends_on(origin, index) else origin
+
+        predicates = [valid(o) for o in self.predicates]
+        predicates[index] = valid(predicate)
+        return replace(
+            self,
+            locals=self.locals[:index] + (value,) + self.locals[index + 1 :],
+            origins=tuple(valid(o) for o in self.origins),
+            predicates=tuple(predicates),
         )
 
     def string_reference(self, target, value, nullable=False):
@@ -113,9 +145,7 @@ def join_value(left, right):
 # Handle one instruction and produce possible next states or final outcomes.
 # Division such as 10 / n can report division by zero and also
 # continue with the possible result signs {-, 0, +} kept together in one state.
-# A later condition can create two paths. Currently their variable signs stay
-# the same, but their next instruction positions differ. The worklist follows
-# these paths through later calls to this function.
+# Branches refine operands with surviving local or string-predicate provenance.
 def manystep(
     bc: jpamb.Bytecode,
     pc: PC,
@@ -124,7 +154,7 @@ def manystep(
 ) -> Iterable[tuple[PC, object] | str]:
     integer_domain = config.integer_domain
     opr = bc[pc]
-    match opr: # We match it for each different op codes like push, get, if zero,  binary (arithmetic) etc
+    match opr:  # We match it for each different op codes like push, get, if zero,  binary (arithmetic) etc
         case jvm.Push(type=jvm.Int(), value=value):
             abstract_value = config.scalar([StackInt(value)])
             yield (pc + 1, state.push(abstract_value))
@@ -144,7 +174,7 @@ def manystep(
 
         case jvm.Dup(words=1):
             # All currently supported values occupy one JVM stack word.
-            yield (pc + 1, state.push(state.stack[-1]))
+            yield (pc + 1, state.push(state.stack[-1], state.origins[-1]))
 
         case jvm.NewArray(type=element_type, dim=1):
             domain = config.require_integers()
@@ -166,7 +196,9 @@ def manystep(
         case jvm.ArrayLoad(type=element_type):
             domain = config.require_integers()
             [reference, index], after = state.pop(2)
-            value, errors = array_methods.load(reference, index, state.heap, domain, element_type)
+            value, errors = array_methods.load(
+                reference, index, state.heap, domain, element_type
+            )
             yield from errors
             if value != domain.bot():
                 yield (pc + 1, after.push(value))
@@ -175,7 +207,8 @@ def manystep(
             domain = config.require_integers()
             [reference, index, value], after = state.pop(3)
             heap, errors = array_methods.store(
-                reference, index, value, state.heap, domain, element_type)
+                reference, index, value, state.heap, domain, element_type
+            )
             yield from errors
             if heap is not None:
                 yield (pc + 1, replace(after, heap=heap))
@@ -190,7 +223,15 @@ def manystep(
             yield from errors
             if answers:
                 result = config.scalar(StackInt(int(a)) for a in answers)
-                yield (pc + 1, after.push(result))
+                yield (
+                    pc + 1,
+                    after.push(
+                        result,
+                        refinement.StringEquals(
+                            receiver, argument, *state.origins[-2:]
+                        ),
+                    ),
+                )
 
         case jvm.Get(static=True, field=field):
             # Hack - Only handle the assertion case
@@ -210,30 +251,36 @@ def manystep(
                 if isinstance(val, AbstractReference)
                 else config.scalar([StackInt(0)])
             )
-            for res in val.compare(zero, op):       ## Checks whether true or false (0 -> False, + -> True)
-                match res:
-                    case True:
-                        yield (pc % target, after)
-                    case False:
-                        yield (pc + 1, after)
-                    case err:
-                        yield err
+            for answer in val.compare(zero, op):
+                refined = refinement.branch(
+                    after, val, zero, state.origins[-1], None, op, answer
+                )
+                if refined is not None:
+                    yield (pc % target if answer else pc + 1, refined)
 
         case jvm.Load(index=i):
             va = state.load(i)
-            yield (pc + 1, state.push(va))
+            yield (pc + 1, state.push(va, refinement.Local(i)))
 
         case jvm.Store(type=jvm.Int() | jvm.Reference(), index=index):
             [value], after = state.pop(1)
-            yield (pc + 1, after.store(index, value))
+            origin = state.origins[-1]
+            if isinstance(origin, refinement.Local):
+                predicate = state.predicates[origin.index]
+            elif isinstance(origin, refinement.StringEquals):
+                predicate = origin
+            else:
+                predicate = None
+            yield (pc + 1, after.store(index, value, predicate))
 
         case jvm.If(condition=operation, target=target):
             [left, right], after = state.pop(2)
             for answer in left.compare(right, operation):
-                if answer:
-                    yield (pc % target, after)
-                else:
-                    yield (pc + 1, after)
+                refined = refinement.branch(
+                    after, left, right, *state.origins[-2:], operation, answer
+                )
+                if refined is not None:
+                    yield (pc % target if answer else pc + 1, refined)
 
         case jvm.Incr(index=index, amount=amount):
             config.require_integers()
@@ -312,8 +359,11 @@ def initialstate(
             array = array_methods.parameter(parameter.contains, supplied, domain)
             # Same-typed unknown parameters may alias: use a common summary so
             # writes through one parameter are visible through another.
-            target = (f"array-parameter:{parameter.contains.encode()}" if inputs is None
-                      else f"array-input:{i}")
+            target = (
+                f"array-parameter:{parameter.contains.encode()}"
+                if inputs is None
+                else f"array-input:{i}"
+            )
             value, state = state.heap_reference(target, array, nullable=inputs is None)
         elif (
             parameter == jvm.Object(jvm.ClassName("java.lang.String"))
