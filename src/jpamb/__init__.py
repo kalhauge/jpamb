@@ -309,6 +309,7 @@ class Suite:
                         "-s",
                         self.classfile(cl).relative_to(self.workdir).as_posix(),
                     ],
+                    timeout=30,
                     eff=eff,
                 )
                 file = self.decompiledfile(cl)
@@ -405,7 +406,8 @@ class Suite:
             opcode_urls = {}
             class_opcodes = {}
             for experiment in self.experiments(eff=eff):
-                class_opcodes[str(experiment.entry.classname).split(".")[-1]] = set()
+                name = str(experiment.entry.classname).split(".")[-1]
+                class_opcodes.setdefault(name, set())
                 list_ops = []
                 for opcode in self.method_opcodes(experiment.entry, eff=eff):
                     index = opcode.mnemonic()  # opcode.real().split()[0]
@@ -420,7 +422,7 @@ class Suite:
                     opcode_counts[index] += 1
 
                 for o in list_ops:
-                    class_opcodes[str(experiment.entry.classname).split(".")[-1]].add(o)
+                    class_opcodes[name].add(o)
 
             with (
                 eff.context("Writing OPCODES.md"),
@@ -443,7 +445,7 @@ class Suite:
                     file = getsourcefile(opcode.__class__)
                     assert file is not None
                     source = Path(file)
-                    rel = Path("utils") / source.relative_to(source.parent.parent)
+                    rel = Path("src") / source.relative_to(source.parent.parent)
                     giturl = f"{rel.as_posix()}?plain=1#L{getsourcelines(opcode.__class__)[1]}"
 
                     document.write(
