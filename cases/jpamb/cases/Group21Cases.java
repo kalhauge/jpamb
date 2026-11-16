@@ -8,7 +8,7 @@ import jpamb.utils.Tag;
 // Benchmark methods added by Group 21.
 public class Group21Cases {
 
-  // Bastian: safe, but the loop condition is `!=` instead of `<`. An interval
+  // Bastian: safe, but the loop condition is '!=' instead of '<'. An interval
   // cannot exclude a single value in the middle, so an analysis that widens i
   // to "any non-negative int" can no longer recover the bound 8.
   @Case("() -> ok")
