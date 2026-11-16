@@ -1620,7 +1620,7 @@
       },
       "default": null,
       "exceptions": [],
-      "name": "DrawInt",
+      "name": "drawInt",
       "params": [
         {
           "annotations": [],
