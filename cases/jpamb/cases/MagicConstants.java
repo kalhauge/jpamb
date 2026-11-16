@@ -46,4 +46,38 @@ public class MagicConstants {
   public static void squareThreshold(int x) {
     assert x * x != 625;
   }
+
+  
+  @Case("(123456789) -> assertion error")
+  @Case("(123456788) -> ok")
+  public static void narrowEquality(int n) {
+    assert n != 123456789;
+  }
+
+  
+  @Case("(1005) -> assertion error")
+  @Case("(1004) -> ok")
+  public static void rangeCondition(int n) {
+    if (n >= 1000 && n <= 1010) {
+      assert n != 1005;
+    }
+  }
+
+  
+  @Case("(40) -> assertion error")
+  @Case("(39) -> ok")
+  public static void loopAndEquality(int n) {
+    for (int i = 0; i < 3; i++) {
+      n += 10;
+    }
+    assert n != 70;
+  }
+
+  
+  @Case("(101) -> ok")
+  public static void unreachableRange(int n) {
+    if (n > 100 && n < 50) {
+      assert false;
+    }
+  }
 }
