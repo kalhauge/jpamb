@@ -633,27 +633,27 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 30,
+            "line": 32,
             "offset": 0
           },
           {
-            "line": 31,
+            "line": 33,
             "offset": 5
           },
           {
-            "line": 32,
+            "line": 34,
             "offset": 7
           },
           {
-            "line": 33,
+            "line": 35,
             "offset": 12
           },
           {
-            "line": 34,
+            "line": 36,
             "offset": 17
           },
           {
-            "line": 36,
+            "line": 38,
             "offset": 24
           }
         ],
@@ -1616,83 +1616,83 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 41,
+            "line": 43,
             "offset": 0
           },
           {
-            "line": 42,
+            "line": 44,
             "offset": 4
           },
           {
-            "line": 43,
+            "line": 45,
             "offset": 9
           },
           {
-            "line": 44,
+            "line": 46,
             "offset": 13
           },
           {
-            "line": 45,
+            "line": 47,
             "offset": 18
           },
           {
-            "line": 46,
+            "line": 48,
             "offset": 22
           },
           {
-            "line": 47,
+            "line": 49,
             "offset": 27
           },
           {
-            "line": 48,
+            "line": 50,
             "offset": 31
           },
           {
-            "line": 49,
+            "line": 51,
             "offset": 36
           },
           {
-            "line": 50,
+            "line": 52,
             "offset": 40
           },
           {
-            "line": 51,
+            "line": 53,
             "offset": 45
           },
           {
-            "line": 52,
+            "line": 54,
             "offset": 49
           },
           {
-            "line": 53,
+            "line": 55,
             "offset": 54
           },
           {
-            "line": 54,
+            "line": 56,
             "offset": 58
           },
           {
-            "line": 55,
+            "line": 57,
             "offset": 63
           },
           {
-            "line": 56,
+            "line": 58,
             "offset": 67
           },
           {
-            "line": 57,
+            "line": 59,
             "offset": 72
           },
           {
-            "line": 58,
+            "line": 60,
             "offset": 76
           },
           {
-            "line": 60,
+            "line": 62,
             "offset": 81
           },
           {
-            "line": 62,
+            "line": 64,
             "offset": 88
           }
         ],
@@ -2136,35 +2136,35 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 65,
+            "line": 67,
             "offset": 0
           },
           {
-            "line": 66,
+            "line": 68,
             "offset": 4
           },
           {
-            "line": 67,
+            "line": 69,
             "offset": 8
           },
           {
-            "line": 68,
+            "line": 70,
             "offset": 23
           },
           {
-            "line": 67,
+            "line": 69,
             "offset": 26
           },
           {
-            "line": 70,
+            "line": 72,
             "offset": 28
           },
           {
-            "line": 71,
+            "line": 73,
             "offset": 32
           },
           {
-            "line": 72,
+            "line": 74,
             "offset": 36
           }
         ],
@@ -3112,123 +3112,123 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 76,
+            "line": 78,
             "offset": 0
           },
           {
-            "line": 77,
+            "line": 79,
             "offset": 4
           },
           {
-            "line": 78,
+            "line": 80,
             "offset": 10
           },
           {
-            "line": 80,
+            "line": 82,
             "offset": 14
           },
           {
-            "line": 81,
+            "line": 83,
             "offset": 18
           },
           {
-            "line": 84,
+            "line": 86,
             "offset": 19
           },
           {
-            "line": 85,
+            "line": 87,
             "offset": 23
           },
           {
-            "line": 88,
+            "line": 90,
             "offset": 24
           },
           {
-            "line": 89,
+            "line": 91,
             "offset": 28
           },
           {
-            "line": 92,
+            "line": 94,
             "offset": 29
           },
           {
-            "line": 93,
+            "line": 95,
             "offset": 30
           },
           {
-            "line": 94,
+            "line": 96,
             "offset": 32
           },
           {
-            "line": 95,
+            "line": 97,
             "offset": 36
           },
           {
-            "line": 96,
+            "line": 98,
             "offset": 41
           },
           {
-            "line": 97,
+            "line": 99,
             "offset": 46
           },
           {
-            "line": 98,
+            "line": 100,
             "offset": 50
           },
           {
-            "line": 99,
+            "line": 101,
             "offset": 54
           },
           {
-            "line": 101,
+            "line": 103,
             "offset": 55
           },
           {
-            "line": 103,
+            "line": 105,
             "offset": 61
           },
           {
-            "line": 108,
+            "line": 110,
             "offset": 63
           },
           {
-            "line": 109,
+            "line": 111,
             "offset": 64
           },
           {
-            "line": 111,
+            "line": 113,
             "offset": 68
           },
           {
-            "line": 112,
+            "line": 114,
             "offset": 72
           },
           {
-            "line": 115,
+            "line": 117,
             "offset": 73
           },
           {
-            "line": 116,
+            "line": 118,
             "offset": 77
           },
           {
-            "line": 119,
+            "line": 121,
             "offset": 78
           },
           {
-            "line": 77,
+            "line": 79,
             "offset": 82
           },
           {
-            "line": 126,
+            "line": 128,
             "offset": 84
           },
           {
-            "line": 127,
+            "line": 129,
             "offset": 88
           },
           {
-            "line": 129,
+            "line": 131,
             "offset": 92
           }
         ],
@@ -5176,143 +5176,143 @@
         ],
         "lines": [
           {
-            "line": 134,
+            "line": 136,
             "offset": 0
           },
           {
-            "line": 135,
+            "line": 137,
             "offset": 3
           },
           {
-            "line": 136,
+            "line": 138,
             "offset": 9
           },
           {
-            "line": 137,
+            "line": 139,
             "offset": 19
           },
           {
-            "line": 138,
+            "line": 140,
             "offset": 34
           },
           {
-            "line": 139,
+            "line": 141,
             "offset": 38
           },
           {
-            "line": 140,
+            "line": 142,
             "offset": 41
           },
           {
-            "line": 141,
+            "line": 143,
             "offset": 49
           },
           {
-            "line": 142,
+            "line": 144,
             "offset": 53
           },
           {
-            "line": 144,
+            "line": 146,
             "offset": 59
           },
           {
-            "line": 137,
+            "line": 139,
             "offset": 73
           },
           {
-            "line": 146,
+            "line": 148,
             "offset": 75
           },
           {
-            "line": 147,
+            "line": 149,
             "offset": 76
           },
           {
-            "line": 149,
+            "line": 151,
             "offset": 77
           },
           {
-            "line": 150,
+            "line": 152,
             "offset": 81
           },
           {
-            "line": 151,
+            "line": 153,
             "offset": 84
           },
           {
-            "line": 152,
+            "line": 154,
             "offset": 88
           },
           {
-            "line": 153,
+            "line": 155,
             "offset": 91
           },
           {
-            "line": 154,
+            "line": 156,
             "offset": 95
           },
           {
-            "line": 155,
+            "line": 157,
             "offset": 99
           },
           {
-            "line": 156,
+            "line": 158,
             "offset": 103
           },
           {
-            "line": 157,
+            "line": 159,
             "offset": 121
           },
           {
-            "line": 158,
+            "line": 160,
             "offset": 128
           },
           {
-            "line": 159,
+            "line": 161,
             "offset": 132
           },
           {
-            "line": 161,
+            "line": 163,
             "offset": 139
           },
           {
-            "line": 162,
+            "line": 164,
             "offset": 145
           },
           {
-            "line": 163,
+            "line": 165,
             "offset": 150
           },
           {
-            "line": 165,
+            "line": 167,
             "offset": 165
           },
           {
-            "line": 169,
+            "line": 171,
             "offset": 170
           },
           {
-            "line": 166,
+            "line": 168,
             "offset": 171
           },
           {
-            "line": 167,
+            "line": 169,
             "offset": 172
           },
           {
-            "line": 168,
+            "line": 170,
             "offset": 177
           },
           {
-            "line": 161,
+            "line": 163,
             "offset": 178
           },
           {
-            "line": 171,
+            "line": 173,
             "offset": 180
           },
           {
-            "line": 173,
+            "line": 175,
             "offset": 183
           }
         ],
@@ -5847,7 +5847,7 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 135,
+            "line": 137,
             "offset": 0
           }
         ],
@@ -5895,7 +5895,7 @@
             "opr": "push",
             "value": {
               "type": "integer",
-              "value": 11
+              "value": 12
             }
           },
           {
@@ -6014,7 +6014,7 @@
               "type": "class",
               "value": {
                 "kind": "class",
-                "name": "jpamb/cases/Arrays"
+                "name": "java/util/Arrays"
               }
             }
           },
@@ -6217,12 +6217,41 @@
               "type": "class",
               "value": {
                 "kind": "class",
-                "name": "jpamb/cases/DivisionByZero"
+                "name": "jpamb/cases/Operators"
               }
             }
           },
           {
             "offset": 75,
+            "opr": "array_store",
+            "type": "ref"
+          },
+          {
+            "offset": 76,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "offset": 77,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 11
+            }
+          },
+          {
+            "offset": 79,
+            "opr": "push",
+            "value": {
+              "type": "class",
+              "value": {
+                "kind": "class",
+                "name": "jpamb/cases/Extended"
+              }
+            }
+          },
+          {
+            "offset": 82,
             "opr": "array_store",
             "type": "ref"
           },
@@ -6249,7 +6278,7 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 76,
+            "offset": 83,
             "opr": "invoke"
           },
           {
@@ -6261,12 +6290,12 @@
                 "name": "java/util/List"
               }
             },
-            "offset": 79,
+            "offset": 86,
             "opr": "put",
             "static": true
           },
           {
-            "offset": 82,
+            "offset": 89,
             "opr": "return",
             "type": null
           }
@@ -6279,11 +6308,11 @@
           },
           {
             "line": 16,
-            "offset": 46
+            "offset": 50
           },
           {
             "line": 15,
-            "offset": 48
+            "offset": 52
           }
         ],
         "max_locals": 0,

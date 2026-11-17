@@ -1,21 +1,3 @@
-jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
-jpamb.cases.Arrays.arrayContentAboveMinus13:()V              () -> ok
-jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
-jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
-jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer
-jpamb.cases.Arrays.arrayLength:()V                           () -> ok
-jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:1]) -> ok
-jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:]) -> assertion error
-jpamb.cases.Arrays.arrayOutOfBounds:()V                      () -> out of bounds
-jpamb.cases.Arrays.arraySometimesNull:(I)V                   (0) -> out of bounds
-jpamb.cases.Arrays.arraySometimesNull:(I)V                   (11) -> null pointer
-jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:'h', 'e', 'l', 'l', 'o']) -> ok
-jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:'x']) -> assertion error
-jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:]) -> out of bounds
-jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:50, 100, 200]) -> ok
-jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:]) -> assertion error
-jpamb.cases.Arrays.binarySearch:(I)V                         (3) -> ok
-jpamb.cases.Arrays.binarySearch:(I)V                         (6) -> assertion error
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
@@ -42,116 +24,46 @@ jpamb.cases.Calls.callsTadpole:(II)I                         (-1, 2) -> assertio
 jpamb.cases.Calls.callsTadpole:(II)I                         (1, 2) -> ok
 jpamb.cases.Calls.callsWheel:(II)I                           (-1, 2) -> assertion error
 jpamb.cases.Calls.callsWheel:(II)I                           (1, 2) -> ok
+jpamb.cases.Calls.divisionThroughHelper:(II)I                (0, 0) -> divide by zero
+jpamb.cases.Calls.divisionThroughHelper:(II)I                (10, 2) -> ok
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (0, 0) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (1, 1) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
-jpamb.cases.DivisionByZero.branchDivision:(ZI)I              (false, 0) -> ok
-jpamb.cases.DivisionByZero.branchDivision:(ZI)I              (false, 5) -> ok
-jpamb.cases.DivisionByZero.branchDivision:(ZI)I              (true, -1) -> ok
-jpamb.cases.DivisionByZero.branchDivision:(ZI)I              (true, 0) -> divide by zero
-jpamb.cases.DivisionByZero.branchDivision:(ZI)I              (true, 2) -> ok
-jpamb.cases.DivisionByZero.branchRemainder:(ZI)I             (false, 0) -> ok
-jpamb.cases.DivisionByZero.branchRemainder:(ZI)I             (false, 2) -> ok
-jpamb.cases.DivisionByZero.branchRemainder:(ZI)I             (true, -3) -> ok
-jpamb.cases.DivisionByZero.branchRemainder:(ZI)I             (true, 0) -> divide by zero
-jpamb.cases.DivisionByZero.branchRemainder:(ZI)I             (true, 3) -> ok
-jpamb.cases.DivisionByZero.computedLongDivision:(II)I        (-2, -2) -> divide by zero
-jpamb.cases.DivisionByZero.computedLongDivision:(II)I        (0, 3) -> ok
-jpamb.cases.DivisionByZero.computedLongDivision:(II)I        (4, 5) -> ok
-jpamb.cases.DivisionByZero.computedLongDivision:(II)I        (5, 4) -> ok
-jpamb.cases.DivisionByZero.computedLongDivision:(II)I        (5, 5) -> divide by zero
-jpamb.cases.DivisionByZero.computedLongRemainder:(II)I       (-2, -2) -> divide by zero
-jpamb.cases.DivisionByZero.computedLongRemainder:(II)I       (0, 3) -> ok
-jpamb.cases.DivisionByZero.computedLongRemainder:(II)I       (4, 5) -> ok
-jpamb.cases.DivisionByZero.computedLongRemainder:(II)I       (5, 4) -> ok
-jpamb.cases.DivisionByZero.computedLongRemainder:(II)I       (5, 5) -> divide by zero
-jpamb.cases.DivisionByZero.directDivision:(II)I              (-12, -3) -> ok
-jpamb.cases.DivisionByZero.directDivision:(II)I              (-12, 3) -> ok
-jpamb.cases.DivisionByZero.directDivision:(II)I              (0, 0) -> divide by zero
-jpamb.cases.DivisionByZero.directDivision:(II)I              (12, -3) -> ok
-jpamb.cases.DivisionByZero.directDivision:(II)I              (12, 3) -> ok
-jpamb.cases.DivisionByZero.directRemainder:(II)I             (-2, 1) -> ok
-jpamb.cases.DivisionByZero.directRemainder:(II)I             (-8, -3) -> ok
-jpamb.cases.DivisionByZero.directRemainder:(II)I             (2, 0) -> divide by zero
-jpamb.cases.DivisionByZero.directRemainder:(II)I             (2, 1) -> ok
-jpamb.cases.DivisionByZero.directRemainder:(II)I             (8, 3) -> ok
-jpamb.cases.DivisionByZero.divisionChain:(IIII)I             (0, 2, 1, 0) -> divide by zero
-jpamb.cases.DivisionByZero.divisionChain:(IIII)I             (0, 2, 1, 1) -> ok
-jpamb.cases.DivisionByZero.divisionChain:(IIII)I             (20, 0, 1, 1) -> divide by zero
-jpamb.cases.DivisionByZero.divisionChain:(IIII)I             (20, 2, 0, 1) -> divide by zero
-jpamb.cases.DivisionByZero.divisionChain:(IIII)I             (20, 2, 1, 1) -> ok
-jpamb.cases.DivisionByZero.divisionThroughHelper:(II)I       (-10, 2) -> ok
-jpamb.cases.DivisionByZero.divisionThroughHelper:(II)I       (0, 0) -> divide by zero
-jpamb.cases.DivisionByZero.divisionThroughHelper:(II)I       (0, 3) -> ok
-jpamb.cases.DivisionByZero.divisionThroughHelper:(II)I       (10, -2) -> ok
-jpamb.cases.DivisionByZero.divisionThroughHelper:(II)I       (10, 2) -> ok
-jpamb.cases.DivisionByZero.doWhileDivision:(II)I             (-2, 1) -> ok
-jpamb.cases.DivisionByZero.doWhileDivision:(II)I             (0, 0) -> divide by zero
-jpamb.cases.DivisionByZero.doWhileDivision:(II)I             (0, 3) -> divide by zero
-jpamb.cases.DivisionByZero.doWhileDivision:(II)I             (2, 0) -> ok
-jpamb.cases.DivisionByZero.doWhileDivision:(II)I             (3, 2) -> ok
-jpamb.cases.DivisionByZero.forLoopDivision:(II)I             (-2, 2) -> ok
-jpamb.cases.DivisionByZero.forLoopDivision:(II)I             (0, 0) -> ok
-jpamb.cases.DivisionByZero.forLoopDivision:(II)I             (0, 1) -> divide by zero
-jpamb.cases.DivisionByZero.forLoopDivision:(II)I             (2, 3) -> ok
-jpamb.cases.DivisionByZero.forLoopDivision:(II)I             (3, -1) -> ok
-jpamb.cases.DivisionByZero.guardedDivision:(I)I              (-2) -> ok
-jpamb.cases.DivisionByZero.guardedDivision:(I)I              (-40) -> ok
-jpamb.cases.DivisionByZero.guardedDivision:(I)I              (0) -> ok
-jpamb.cases.DivisionByZero.guardedDivision:(I)I              (1) -> ok
-jpamb.cases.DivisionByZero.guardedDivision:(I)I              (40) -> ok
-jpamb.cases.DivisionByZero.longDivision:(II)I                (-9, 2) -> ok
-jpamb.cases.DivisionByZero.longDivision:(II)I                (0, -3) -> ok
-jpamb.cases.DivisionByZero.longDivision:(II)I                (9, -2) -> ok
-jpamb.cases.DivisionByZero.longDivision:(II)I                (9, 0) -> divide by zero
-jpamb.cases.DivisionByZero.longDivision:(II)I                (9, 2) -> ok
-jpamb.cases.DivisionByZero.longRemainder:(II)I               (-9, 2) -> ok
-jpamb.cases.DivisionByZero.longRemainder:(II)I               (0, -3) -> ok
-jpamb.cases.DivisionByZero.longRemainder:(II)I               (9, -2) -> ok
-jpamb.cases.DivisionByZero.longRemainder:(II)I               (9, 0) -> divide by zero
-jpamb.cases.DivisionByZero.longRemainder:(II)I               (9, 2) -> ok
-jpamb.cases.DivisionByZero.loopRemainder:(II)I               (-3, 2) -> ok
-jpamb.cases.DivisionByZero.loopRemainder:(II)I               (0, 0) -> ok
-jpamb.cases.DivisionByZero.loopRemainder:(II)I               (0, 1) -> divide by zero
-jpamb.cases.DivisionByZero.loopRemainder:(II)I               (3, 2) -> ok
-jpamb.cases.DivisionByZero.loopRemainder:(II)I               (5, -1) -> ok
-jpamb.cases.DivisionByZero.multiplyForDivisor:(II)I          (-2, -3) -> ok
-jpamb.cases.DivisionByZero.multiplyForDivisor:(II)I          (-2, 3) -> ok
-jpamb.cases.DivisionByZero.multiplyForDivisor:(II)I          (0, 3) -> divide by zero
-jpamb.cases.DivisionByZero.multiplyForDivisor:(II)I          (3, 0) -> divide by zero
-jpamb.cases.DivisionByZero.multiplyForDivisor:(II)I          (5, 2) -> ok
-jpamb.cases.DivisionByZero.negatedDivisor:(I)I               (-1) -> ok
-jpamb.cases.DivisionByZero.negatedDivisor:(I)I               (-3) -> ok
-jpamb.cases.DivisionByZero.negatedDivisor:(I)I               (0) -> divide by zero
-jpamb.cases.DivisionByZero.negatedDivisor:(I)I               (1) -> ok
-jpamb.cases.DivisionByZero.negatedDivisor:(I)I               (2) -> ok
-jpamb.cases.DivisionByZero.nestedBranchDivision:(II)I        (-1, 0) -> divide by zero
-jpamb.cases.DivisionByZero.nestedBranchDivision:(II)I        (-1, 2) -> ok
-jpamb.cases.DivisionByZero.nestedBranchDivision:(II)I        (0, -2) -> ok
-jpamb.cases.DivisionByZero.nestedBranchDivision:(II)I        (1, 0) -> divide by zero
-jpamb.cases.DivisionByZero.nestedBranchDivision:(II)I        (1, 2) -> ok
-jpamb.cases.DivisionByZero.selectedDivisor:(ZII)I            (false, 0, 0) -> divide by zero
-jpamb.cases.DivisionByZero.selectedDivisor:(ZII)I            (false, 0, 3) -> ok
-jpamb.cases.DivisionByZero.selectedDivisor:(ZII)I            (false, 2, 0) -> divide by zero
-jpamb.cases.DivisionByZero.selectedDivisor:(ZII)I            (true, 7, 0) -> ok
-jpamb.cases.DivisionByZero.selectedDivisor:(ZII)I            (true, 7, 2) -> ok
-jpamb.cases.DivisionByZero.subtractForDivisor:(II)I          (-2, -2) -> divide by zero
-jpamb.cases.DivisionByZero.subtractForDivisor:(II)I          (0, 3) -> ok
-jpamb.cases.DivisionByZero.subtractForDivisor:(II)I          (4, 5) -> ok
-jpamb.cases.DivisionByZero.subtractForDivisor:(II)I          (5, 4) -> ok
-jpamb.cases.DivisionByZero.subtractForDivisor:(II)I          (5, 5) -> divide by zero
-jpamb.cases.DivisionByZero.whileLoopDivision:(II)I           (-1, 1) -> ok
-jpamb.cases.DivisionByZero.whileLoopDivision:(II)I           (0, 0) -> ok
-jpamb.cases.DivisionByZero.whileLoopDivision:(II)I           (0, 2) -> divide by zero
-jpamb.cases.DivisionByZero.whileLoopDivision:(II)I           (2, 3) -> ok
-jpamb.cases.DivisionByZero.whileLoopDivision:(II)I           (4, -1) -> ok
+jpamb.cases.Extended.safeDifferenceChain:(III)I              (100, 9, 4) -> ok
+jpamb.cases.Extended.safeDifferenceChain:(III)I              (50, 5, 5) -> ok
+jpamb.cases.Extended.safeLoopAccumulation:(III)I             (0, 3, 10) -> ok
+jpamb.cases.Extended.safeLoopAccumulation:(III)I             (2, 4, 0) -> ok
+jpamb.cases.Extended.safeNestedLoopDivision:(III)I           (0, 3, 3) -> ok
+jpamb.cases.Extended.safeNestedLoopDivision:(III)I           (2, 3, 3) -> ok
+jpamb.cases.Extended.safeSelectedDivisor:(ZIII)I             (false, -4, 2, 12) -> ok
+jpamb.cases.Extended.safeSelectedDivisor:(ZIII)I             (true, 0, 5, 20) -> ok
+jpamb.cases.Extended.unsafeComputedRemainder:(IIIII)I        (0, 3, 4, -11, 20) -> ok
+jpamb.cases.Extended.unsafeComputedRemainder:(IIIII)I        (1, 3, 4, -12, 20) -> divide by zero
+jpamb.cases.Extended.unsafeLoopOffsetDivisor:(IIII)I         (0, 5, 0, 10) -> divide by zero
+jpamb.cases.Extended.unsafeLoopOffsetDivisor:(IIII)I         (4, 1, 2, 20) -> ok
+jpamb.cases.Extended.unsafeModeDerivedDivisor:(IIII)I        (-1, 0, 4, 10) -> divide by zero
+jpamb.cases.Extended.unsafeModeDerivedDivisor:(IIII)I        (1, 5, 2, 9) -> ok
+jpamb.cases.Extended.unsafeNestedAffineDivisor:(IIIII)I      (1, 4, 4, 1, 20) -> divide by zero
+jpamb.cases.Extended.unsafeNestedAffineDivisor:(IIIII)I      (1, 5, 3, 1, 20) -> ok
+jpamb.cases.Extended.unsafeNestedLoopDivisor:(IIIII)I        (0, 4, 0, 0, 10) -> divide by zero
+jpamb.cases.Extended.unsafeNestedLoopDivisor:(IIIII)I        (10, 2, 2, 2, 20) -> ok
+jpamb.cases.Loops.doWhileDivision:(II)I                      (0, 0) -> divide by zero
+jpamb.cases.Loops.doWhileDivision:(II)I                      (2, 0) -> ok
+jpamb.cases.Loops.forLoopDivision:(II)I                      (0, 0) -> ok
+jpamb.cases.Loops.forLoopDivision:(II)I                      (0, 1) -> divide by zero
 jpamb.cases.Loops.forever:()V                                () -> *
+jpamb.cases.Loops.loopRemainder:(II)I                        (0, 0) -> ok
+jpamb.cases.Loops.loopRemainder:(II)I                        (0, 1) -> divide by zero
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
+jpamb.cases.Loops.safeNestedBranchDivision:(III)I            (0, 5, 0) -> ok
+jpamb.cases.Loops.safeNestedBranchDivision:(III)I            (1, 21, 3) -> ok
 jpamb.cases.Loops.terminates:()V                             () -> assertion error
+jpamb.cases.Loops.whileLoopDivision:(II)I                    (0, 0) -> ok
+jpamb.cases.Loops.whileLoopDivision:(II)I                    (0, 2) -> divide by zero
 jpamb.cases.MagicConstants.computedIndex:(I)I                (0) -> ok
 jpamb.cases.MagicConstants.computedIndex:(I)I                (5) -> out of bounds
 jpamb.cases.MagicConstants.derivedNull:(I)I                  (0) -> ok
@@ -162,6 +74,16 @@ jpamb.cases.MagicConstants.squaredDivisor:(I)I               (10) -> divide by z
 jpamb.cases.MagicConstants.squaredDivisor:(I)I               (3) -> ok
 jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (1) -> ok
 jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (42) -> assertion error
+jpamb.cases.Operators.branchRemainder:(ZI)I                  (false, 0) -> ok
+jpamb.cases.Operators.branchRemainder:(ZI)I                  (true, 0) -> divide by zero
+jpamb.cases.Operators.directRemainder:(II)I                  (2, 0) -> divide by zero
+jpamb.cases.Operators.directRemainder:(II)I                  (8, 3) -> ok
+jpamb.cases.Operators.divisionChain:(IIII)I                  (20, 0, 1, 1) -> divide by zero
+jpamb.cases.Operators.divisionChain:(IIII)I                  (20, 2, 1, 1) -> ok
+jpamb.cases.Operators.multiplyForDivisor:(II)I               (-2, 3) -> ok
+jpamb.cases.Operators.multiplyForDivisor:(II)I               (3, 0) -> divide by zero
+jpamb.cases.Operators.negatedDivisor:(I)I                    (0) -> divide by zero
+jpamb.cases.Operators.negatedDivisor:(I)I                    (1) -> ok
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
@@ -170,11 +92,15 @@ jpamb.cases.Simple.assertInteger:(I)V                        (1) -> ok
 jpamb.cases.Simple.assertPositive:(I)V                       (-1) -> assertion error
 jpamb.cases.Simple.assertPositive:(I)V                       (1) -> ok
 jpamb.cases.Simple.assertTrue:()V                            () -> ok
+jpamb.cases.Simple.branchDivision:(ZI)I                      (false, 0) -> ok
+jpamb.cases.Simple.branchDivision:(ZI)I                      (true, 0) -> divide by zero
 jpamb.cases.Simple.checkBeforeAssert:(I)V                    (-1) -> assertion error
 jpamb.cases.Simple.checkBeforeAssert:(I)V                    (0) -> ok
 jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (0) -> ok
 jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (0) -> assertion error
 jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (1) -> ok
+jpamb.cases.Simple.directDivision:(II)I                      (0, 0) -> divide by zero
+jpamb.cases.Simple.directDivision:(II)I                      (12, 3) -> ok
 jpamb.cases.Simple.divideByN:(I)I                            (0) -> divide by zero
 jpamb.cases.Simple.divideByN:(I)I                            (1) -> ok
 jpamb.cases.Simple.divideByNMinus10054203:(I)I               (0) -> ok
@@ -184,12 +110,20 @@ jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
 jpamb.cases.Simple.doNothing:()V                             () -> ok
 jpamb.cases.Simple.earlyReturn:()I                           () -> ok
+jpamb.cases.Simple.guardedDivision:(I)I                      (0) -> ok
+jpamb.cases.Simple.guardedDivision:(I)I                      (1) -> ok
 jpamb.cases.Simple.justAdd:(II)I                             (1, 2) -> ok
 jpamb.cases.Simple.justMulitply:(II)I                        (1, 2) -> ok
 jpamb.cases.Simple.justReturn:()I                            () -> ok
 jpamb.cases.Simple.justReturnNothing:()V                     () -> ok
 jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertion error
 jpamb.cases.Simple.multiError:(Z)I                           (true) -> divide by zero
+jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 0) -> divide by zero
+jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 2) -> ok
+jpamb.cases.Simple.selectedDivisor:(ZII)I                    (false, 2, 0) -> divide by zero
+jpamb.cases.Simple.selectedDivisor:(ZII)I                    (true, 7, 0) -> ok
+jpamb.cases.Simple.subtractForDivisor:(II)I                  (5, 4) -> ok
+jpamb.cases.Simple.subtractForDivisor:(II)I                  (5, 5) -> divide by zero
 jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A------Z') -> assertion error
 jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A---B---X') -> assertion error
 jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A---B---Z') -> ok

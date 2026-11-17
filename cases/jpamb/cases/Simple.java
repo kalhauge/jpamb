@@ -118,4 +118,48 @@ public class Simple {
   public static int divideByNMinus10054203(int n) {
     return 1 / (n - 10054203);
   }
+
+  @Case("(0, 0) -> divide by zero")
+  @Case("(12, 3) -> ok")
+  public static int directDivision(int numerator, int denominator) {
+    return numerator / denominator;
+  }
+
+  @Case("(0) -> ok")
+  @Case("(1) -> ok")
+  public static int guardedDivision(int divisor) {
+    if (divisor == 0) return 0;
+    return 40 / divisor;
+  }
+
+  @Case("(false, 0) -> ok")
+  @Case("(true, 0) -> divide by zero")
+  public static int branchDivision(boolean shouldDivide, int divisor) {
+    if (shouldDivide) return 10 / divisor;
+    return 0;
+  }
+
+  @Case("(1, 0) -> divide by zero")
+  @Case("(1, 2) -> ok")
+  public static int nestedBranchDivision(int selector, int divisor) {
+    if (selector > 0) {
+      if (divisor == 0) return selector / divisor;
+      return 10 / divisor;
+    }
+    if (divisor == 0) return selector / divisor;
+    return 20 / divisor;
+  }
+
+  @Case("(true, 7, 0) -> ok")
+  @Case("(false, 2, 0) -> divide by zero")
+  public static int selectedDivisor(boolean useFirst, int first, int second) {
+    int divisor = useFirst ? first : second;
+    return 30 / divisor;
+  }
+
+  @Case("(5, 5) -> divide by zero")
+  @Case("(5, 4) -> ok")
+  public static int subtractForDivisor(int a, int b) {
+    return 20 / (a - b);
+  }
 }

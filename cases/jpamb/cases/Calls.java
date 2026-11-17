@@ -278,4 +278,14 @@ public class Calls {
     assert n >= 0;
     return wheelSpokeA(n, x) + wheelSpokeB(n, x) + wheelSpokeC(n, x);
   }
+
+  private static int divideHelper(int numerator, int denominator) {
+    return numerator / denominator;
+  }
+
+  @Case("(0, 0) -> divide by zero")
+  @Case("(10, 2) -> ok")
+  public static int divisionThroughHelper(int numerator, int denominator) {
+    return divideHelper(numerator, denominator);
+  }
 }
