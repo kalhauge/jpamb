@@ -20,8 +20,7 @@ public class Runtime {
           jpamb.cases.Arrays.class,
           jpamb.cases.Strings.class,
           Dependent.class,
-          Calls.class,
-          Fuzzer.class);
+          Calls.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
