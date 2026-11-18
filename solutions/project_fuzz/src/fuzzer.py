@@ -396,6 +396,20 @@ def step(bc: jpamb.Bytecode, state: jvmc.State) -> tuple[jvmc.PC, jvmc.State | s
     return pc, output
 
 
+def run_with_coverage(
+    bc: jpamb.Bytecode, state: jvmc.State, max_steps: int
+) -> tuple[jvmc.State | str, frozenset[jvmc.PC]]:
+    """Run an input and return its outcome and the bytecode locations it executed."""
+    coverage: set[jvmc.PC] = set()
+    for _ in range(max_steps):
+        pc, state = step(bc, state)
+        coverage.add(pc)
+        if isinstance(state, str):
+            break
+
+    return state, frozenset(coverage)
+
+
 def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, input: jpamb.Input):
     frame = jvmc.Frame.from_method(bc.getmethod(methodid))
     state = jvmc.State(jvmc.Heap(), jvmc.CallStack.from_frames([frame]))
