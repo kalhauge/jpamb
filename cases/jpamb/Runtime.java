@@ -14,13 +14,19 @@ import jpamb.utils.CaseContent.ResultType;
 public class Runtime {
   static List<Class<?>> caseclasses =
       List.of(
+          // Add new cases to the top of the list to avoid diff issues.
           Simple.class,
           Loops.class,
           Tricky.class,
-          jpamb.cases.Arrays.class,
-          jpamb.cases.Strings.class,
+          Arrays.class,
+          Strings.class,
           Dependent.class,
-          Calls.class);
+          Calls.class,
+          jpamb.cases.advanced.CWE470.class,
+          jpamb.cases.advanced.CWE502.class,
+          MagicConstants.class,
+          Operators.class,
+          Extended.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
