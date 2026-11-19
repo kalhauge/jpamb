@@ -69,23 +69,22 @@ public class Dependent {
 
   @Case("(24691, 400, 12013) -> ok")
   @Case("(24691, 400, 12014) -> assertion error")
-  public static void combinedGuidance(
-      int gate, int base, int candidate) {
-  if (gate != 24691) {
+  public static void combinedGuidance(int gate, int base, int candidate) {
+    if (gate != 24691) {
       return;
-  }
-  if (base < 400) {
+    }
+    if (base < 400) {
       return;
-  }
-  if (base > 900) {
+    }
+    if (base > 900) {
       return;
-  }
+    }
 
-  int target = base * 30 + 13;
-  if (candidate > target) {
+    int target = base * 30 + 13;
+    if (candidate > target) {
       if (candidate < target + 2) {
-      assert false;
+        assert false;
       }
-  }
+    }
   }
 }
