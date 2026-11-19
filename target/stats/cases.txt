@@ -1,3 +1,19 @@
+jpamb.cases.BitOperations.DrawInt:(I)V                       (32) -> ok
+jpamb.cases.BitOperations.DrawInt:(I)V                       (4) -> assertion error
+jpamb.cases.BitOperations.bitshiftLeft:(I)V                  (1) -> assertion error
+jpamb.cases.BitOperations.bitshiftLeft:(I)V                  (4) -> ok
+jpamb.cases.BitOperations.bitshiftRight:(I)V                 (10000) -> assertion error
+jpamb.cases.BitOperations.bitshiftRight:(I)V                 (128) -> ok
+jpamb.cases.BitOperations.bitshiftUnsignedRight:(I)V         (-1) -> assertion error
+jpamb.cases.BitOperations.bitshiftUnsignedRight:(I)V         (128) -> ok
+jpamb.cases.BitOperations.bitwiseAnd:(II)V                   (10000, 4) -> assertion error
+jpamb.cases.BitOperations.bitwiseAnd:(II)V                   (128, 128) -> ok
+jpamb.cases.BitOperations.bitwiseNot:(I)V                    (10000) -> assertion error
+jpamb.cases.BitOperations.bitwiseNot:(I)V                    (128) -> ok
+jpamb.cases.BitOperations.bitwiseOr:(II)V                    (10000, 2) -> assertion error
+jpamb.cases.BitOperations.bitwiseOr:(II)V                    (128, 3) -> ok
+jpamb.cases.BitOperations.xor:(II)V                          (10, 10) -> assertion error
+jpamb.cases.BitOperations.xor:(II)V                          (4, 0) -> ok
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
@@ -94,6 +110,37 @@ jpamb.cases.Operators.multiplyForDivisor:(II)I               (-2, 3) -> ok
 jpamb.cases.Operators.multiplyForDivisor:(II)I               (3, 0) -> divide by zero
 jpamb.cases.Operators.negatedDivisor:(I)I                    (0) -> divide by zero
 jpamb.cases.Operators.negatedDivisor:(I)I                    (1) -> ok
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'0000') -> assertion error
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'0101') -> divide by zero
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'010110000000001') -> ok
+jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'1') -> assertion error
+jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'100000000000000000000000000000001') -> ok
+jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'') -> assertion error
+jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'10000000000000000000000000000000011') -> ok
+jpamb.cases.Randomness.draw36Bits:(Ljpamb/utils/Smith;)V     (r'') -> assertion error
+jpamb.cases.Randomness.draw36Bits:(Ljpamb/utils/Smith;)V     (r'1000000000000000000000000000000000011') -> ok
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'0') -> ok
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'1') -> divide by zero
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'0') -> assertion error
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'1') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'0000100000000000000000000000000000001') -> assertion error
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'010110000000001') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'1') -> divide by zero
+jpamb.cases.Randomness.drawIntOverflow:(Ljpamb/utils/Smith;)V (r'') -> ok
+jpamb.cases.Randomness.drawIntOverflow:(Ljpamb/utils/Smith;)V (r'1111111111111111111111111111111') -> assertion error
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0000') -> *
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'00001') -> assertion error
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0001') -> ok
+jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'01010101') -> assertion error
+jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'100000') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'0') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'1') -> out of bounds
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'0') -> null pointer
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'1') -> ok
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'0') -> *
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'1') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'10') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'11') -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error

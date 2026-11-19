@@ -43,12 +43,15 @@ class Value(ABC):
             #     return Reference(None if value == 0 else value - 1)
             case jvm.Object(cn) if cn.slashed() == "java/lang/String":
                 return String(sexpr.to_str(expr))
+            case jvm.Object(cn) if cn.slashed() == "jpamb/utils/Smith":
+                return Smith(sexpr.to_str(expr))
             case jvm.Array(contains=jvm.Int()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_int)
                 return Array(jvm.Int(), tuple(values))
             case jvm.Array(contains=jvm.Char()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_str)
                 return Array(jvm.Char(), tuple(values))
+
             case _:
                 raise sexpr.FromSExprError(f"{expr} is not a known value")
 
@@ -144,6 +147,21 @@ class String(Value):
 
 
 @dataclass(frozen=True)
+class Smith(Value):
+    value: str
+
+    @property
+    def type(self) -> jvm.Type:
+        return jvm.Object(jvm.ClassName("jpamb.utils.Smith"))
+
+    def encode(self) -> str:
+        return f"r'{self.value}'"
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.sexpr([sexpr.sexpr(self.type), self.value])
+
+
+@dataclass(frozen=True)
 class Array(Value):
     contains: jvm.Type
     values: tuple[int | str | float | bool, ...]
@@ -188,6 +206,7 @@ class InputParser:
             ("INT", r"-?\d+"),
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
+            ("SMITH", r"r'[^']*'"),
             ("STRING", r"s'[^']*'"),
             ("COMMA", r","),
             ("SKIP", r"[ \t]+"),
@@ -234,6 +253,8 @@ class InputParser:
                 return Char(self.parse_char())
             case "BOOL":
                 return Boolean(self.parse_bool())
+            case "SMITH":
+                return self.parse_smith()
             case "STRING":
                 return String(self.parse_string())
             case "OPEN_ARRAY":
@@ -255,6 +276,10 @@ class InputParser:
     def parse_string(self):
         tok = self.expect("STRING")
         return tok.value[2:-1]
+
+    def parse_smith(self):
+        tok = self.expect("SMITH")
+        return Smith(tok.value[2:-1])
 
     def parse_array(self):
         key = self.expect("OPEN_ARRAY")

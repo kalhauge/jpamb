@@ -200,6 +200,7 @@ class Push(Opcode):
     def __str__(self):
         return f"push:{self.type} {self.value}"
 
+
 @dataclass(frozen=True, order=True)
 class Put(Opcode):
     """The put opcode (handles both putfield and putstatic)"""
@@ -208,13 +209,13 @@ class Put(Opcode):
     field: classfile.AbsFieldID
 
     @classmethod
-    def from_json(cls, json: dict) -> 'Opcode':
+    def from_json(cls, json: dict) -> "Opcode":
         is_static = json.get("static", False)
-        
+
         field_data = json.get("field")
         if not isinstance(field_data, dict):
             raise NotImplementedError(f"Cannot handle field data {field_data!r}")
-            
+
         try:
             field = classfile.AbsFieldID.from_json(field_data)
         except Exception as e:
@@ -252,6 +253,7 @@ class Put(Opcode):
         op_name = "putstatic" if self.static else "putfield"
         return f"{op_name} {self.field}"
 
+
 @dataclass(frozen=True, order=True)
 class Pop(Opcode):
     """The pop opcode that removes the top value from the stack."""
@@ -276,7 +278,8 @@ class Pop(Opcode):
 
     def __str__(self):
         return "pop"
-    
+
+
 @dataclass(frozen=True, order=True)
 class Negate(Opcode):
     """The new array opcode"""
@@ -446,6 +449,7 @@ class Cast(Opcode):
     def __str__(self):
         return f"cast {self.from_} {self.to_}"
 
+
 @dataclass(frozen=True, order=True)
 class CheckCast(Opcode):
     """Check that a reference can be cast to a type (throws ClassCastException)"""
@@ -470,6 +474,8 @@ class CheckCast(Opcode):
 
     def __str__(self):
         return f"checkcast {self.type}"
+
+
 @dataclass(frozen=True, order=True)
 class ArrayLoad(Opcode):
     """The Array Load command that load a value from the array."""
@@ -698,10 +704,13 @@ class InvokeSpecial(Opcode):
 
 @dataclass(frozen=True, order=True)
 class InvokeDynamic(Opcode):
-    index: int                     # bootstrap method index
-    method: classfile.AbsMethodID  
+    index: int  # bootstrap method index
+    method: classfile.AbsMethodID
 
-    DYNAMIC_OWNER = "jvm/Dynamic"  # pseudo-class for coherence, to consider in the interpreter
+    DYNAMIC_OWNER = (
+        "jvm/Dynamic"  # pseudo-class for coherence, to consider in the interpreter
+    )
+
     @classmethod
     def from_json(cls, json: dict) -> "Opcode":
         assert json["opr"] == "invoke" and json["access"] == "dynamic"
@@ -746,6 +755,7 @@ class InvokeDynamic(Opcode):
         no objectref is consumed, and [result] is pushed only
         if m.returns is not void
         """
+
 
 @dataclass(frozen=True, order=True)
 class Store(Opcode):
@@ -904,6 +914,72 @@ class Binary(Opcode):
                 return "lmul"
             case (jvm_type.Long(), BinaryOpr.Sub):
                 return "lsub"
+        raise NotImplementedError(f"Unhandled real {self!r}")
+
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
+
+class BitOpr(enum.Enum):
+    Shl = enum.auto()
+    Shr = enum.auto()
+    Ushr = enum.auto()
+    And = enum.auto()
+    Or = enum.auto()
+    Xor = enum.auto()
+
+    @staticmethod
+    def from_str(name: str) -> "BitOpr":
+        return BIT_OPRS[name.lower()]
+
+    @staticmethod
+    def from_json(json: str) -> "BitOpr":
+        return BitOpr.from_str(json)
+
+    def __str__(self):
+        return self.name.lower()
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return str(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "BitOpr":
+        return BitOpr.from_str(sexpr.to_str(expr))
+
+
+BIT_OPRS = {
+    "shl": BitOpr.Shl,
+    "shr": BitOpr.Shr,
+    "ushr": BitOpr.Ushr,
+    "and": BitOpr.And,
+    "or": BitOpr.Or,
+    "xor": BitOpr.Xor,
+}
+
+
+@dataclass(frozen=True, order=True)
+class Bitopr(Opcode):
+    type: jvm_type.Type
+    operant: BitOpr
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        return cls(
+            offset=json["offset"],
+            type=jvm_type.Type.from_json(json["type"]),
+            operant=BitOpr.from_json(json["operant"]),
+        )
+
+    def __str__(self):
+        return f"bitopr:{self.type} {self.operant}"
+
+    def real(self) -> str:
+        match self.type:
+            case jvm_type.Int():
+                return f"i{self.operant}"
         raise NotImplementedError(f"Unhandled real {self!r}")
 
     def semantics(self) -> str | None:
@@ -1409,4 +1485,5 @@ OPCODES = {
     "goto": Goto,
     "put": Put,
     "pop": Pop,
+    "bitopr": Bitopr,
 }
