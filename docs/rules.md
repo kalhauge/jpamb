@@ -163,8 +163,8 @@ To evaluate your analysis you have to run the following command, from the JPAMB 
 $ uv run jpamb analyse ./your_analyser
 ```
 
-To get a shareable json report, you can run the following:
+To save a shareable S-expression report, use the default three iterations:
 
 ```bash
-$ uv run jpamb analyse --format=json ./your_analyser > report.json
+$ uv run jpamb analyse --report report.sexp ./your_analyser
 ```

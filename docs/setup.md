@@ -1,6 +1,6 @@
 # Setup
 
-This section details how to setup the JAMB benchmark suite.
+This section details how to set up the JPAMB benchmark suite.
 It assumes that you have already installed:
 
 - [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
@@ -61,8 +61,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Clone the repo and navigate to it.
 
 ```bash
-git clone https://github.com/kalhauge/jpamb.git
-cd jpamb
+git clone https://github.com/dtu-pa-group/pa-code.git
+cd pa-code
 ```
 
 ## Step 4: Verify everything works

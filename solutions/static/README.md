@@ -1,8 +1,9 @@
 # Modular static analysis: signs, intervals, strings, and array execution
 
 This solution keeps JPAMB's existing worklist, instruction matching, entry points,
-and prediction protocol. All implementation changes are under `solutions/static`;
-the JPAMB library, CLI, decoder, and Java benchmark sources are unchanged.
+and prediction protocol. The static implementation lives under `solutions/static`. The shared JPAMB CLI
+also supports forwarding analyzer flags and the experimental `--true` scoring
+option described in the [project README](../../README.md).
 
 ## Setup (WSL / Bash)
 

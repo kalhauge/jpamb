@@ -1,7 +1,9 @@
 # Project information
 
-Simple explanations and design notes for our static analyzer belong here.
+Explanations and design notes for the project belong here.
 
+- [Dynamic analyzer](../solutions/dynamic/README.md): fuzzer flags, combined results,
+  deterministic seeds, interpreter support, and experimental corrected scoring.
 - [Branch refinement](branch_refinement.md): current implementation, paired scores,
   interpreter validation, and reproducible evaluation commands.
 - [Why analysis scores can be similar](score_similarity.md): pre-refinement results,
@@ -13,5 +15,6 @@ The [static solution README](../solutions/static/README.md) retains installation
 execution, report-generation, and test commands. The original JPAMB guides remain
 in [docs](../docs). Generated reports and logs remain separate from documentation.
 
-There were no standalone abstract documents in this checkout when this directory
-was created. Future project abstracts and explanatory notes can be added here.
+See the [project README](../README.md) for the current research direction and
+commands. Historical scores in the notes describe their stated configurations;
+they should not be treated as current results for every analyzer.
