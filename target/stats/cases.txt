@@ -44,6 +44,10 @@ jpamb.cases.Calls.divisionThroughHelper:(II)I                (0, 0) -> divide by
 jpamb.cases.Calls.divisionThroughHelper:(II)I                (10, 2) -> ok
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (0, 0) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (1, 1) -> ok
+jpamb.cases.Dependent.combinedGuidance:(III)V                (24691, 400, 12013) -> ok
+jpamb.cases.Dependent.combinedGuidance:(III)V                (24691, 400, 12014) -> assertion error
+jpamb.cases.Dependent.compareEquality:(II)V                  (100, 0) -> ok
+jpamb.cases.Dependent.compareEquality:(II)V                  (100, 3017) -> assertion error
 jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
@@ -117,8 +121,6 @@ jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'1') -> assertion
 jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'100000000000000000000000000000001') -> ok
 jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'') -> assertion error
 jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'10000000000000000000000000000000011') -> ok
-jpamb.cases.Randomness.draw36Bits:(Ljpamb/utils/Smith;)V     (r'') -> assertion error
-jpamb.cases.Randomness.draw36Bits:(Ljpamb/utils/Smith;)V     (r'1000000000000000000000000000000000011') -> ok
 jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'0') -> ok
 jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'1') -> divide by zero
 jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'0') -> assertion error
@@ -141,6 +143,9 @@ jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'0') -> *
 jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'1') -> ok
 jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'10') -> ok
 jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'11') -> assertion error
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (0, s'fuzz') -> assertion error
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (0, s'other') -> ok
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (1339, s'other') -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
@@ -169,6 +174,8 @@ jpamb.cases.Simple.doNothing:()V                             () -> ok
 jpamb.cases.Simple.earlyReturn:()I                           () -> ok
 jpamb.cases.Simple.guardedDivision:(I)I                      (0) -> ok
 jpamb.cases.Simple.guardedDivision:(I)I                      (1) -> ok
+jpamb.cases.Simple.integerRangeBoundary:(I)V                 (4096) -> ok
+jpamb.cases.Simple.integerRangeBoundary:(I)V                 (4097) -> assertion error
 jpamb.cases.Simple.justAdd:(II)I                             (1, 2) -> ok
 jpamb.cases.Simple.justMulitply:(II)I                        (1, 2) -> ok
 jpamb.cases.Simple.justReturn:()I                            () -> ok
@@ -177,6 +184,8 @@ jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertio
 jpamb.cases.Simple.multiError:(Z)I                           (true) -> divide by zero
 jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 0) -> divide by zero
 jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 2) -> ok
+jpamb.cases.Simple.nestedConstantCoverage:(III)V             (31337, -27183, 0) -> ok
+jpamb.cases.Simple.nestedConstantCoverage:(III)V             (31337, -27183, 65521) -> assertion error
 jpamb.cases.Simple.selectedDivisor:(ZII)I                    (false, 2, 0) -> divide by zero
 jpamb.cases.Simple.selectedDivisor:(ZII)I                    (true, 7, 0) -> ok
 jpamb.cases.Simple.subtractForDivisor:(II)I                  (5, 4) -> ok
