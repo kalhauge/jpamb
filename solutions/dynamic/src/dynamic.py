@@ -1,3 +1,4 @@
+import argparse
 import random
 import sys
 from itertools import product
@@ -17,14 +18,28 @@ class UnsupportedInputType(NotImplementedError):
     """Raised when the random generator cannot represent a JVM parameter."""
 
 
+def int32(value: int) -> int:
+    """JVM integer arithmetic wraps to signed 32 bits."""
+    return (value + (1 << 31)) % (1 << 32) - (1 << 31)
+
+
 def binary(op, v1: int, v2: int) -> int | str:
     match op:
-        case jvm.BinaryOpr.Div:
-            try:
-                return v1 // v2
-            except ZeroDivisionError:
+        case jvm.BinaryOpr.Add:
+            return int32(v1 + v2)
+        case jvm.BinaryOpr.Sub:
+            return int32(v1 - v2)
+        case jvm.BinaryOpr.Mul:
+            return int32(v1 * v2)
+        case jvm.BinaryOpr.Div | jvm.BinaryOpr.Rem:
+            if v2 == 0:
                 return "divide by zero"
-        case a:
+            # Java truncates towards zero; Python // rounds down.
+            quotient = abs(v1) // abs(v2)
+            if (v1 < 0) != (v2 < 0):
+                quotient = -quotient
+            return int32(quotient if op == jvm.BinaryOpr.Div else v1 - quotient * v2)
+        case _:
             raise NotImplementedError(f"Unhandled binary {op!r}")
 
 
@@ -32,67 +47,162 @@ def compare(op, v1: int, v2: int) -> bool:
     match op:
         case jvm.CmpOpr.Eq:
             return v1 == v2
+        case jvm.CmpOpr.Ne:
+            return v1 != v2
+        case jvm.CmpOpr.Lt:
+            return v1 < v2
+        case jvm.CmpOpr.Le:
+            return v1 <= v2
+        case jvm.CmpOpr.Gt:
+            return v1 > v2
+        case jvm.CmpOpr.Ge:
+            return v1 >= v2
         case _:
-            raise NotImplementedError(f"Unhandled comparation {op!r}")
+            raise NotImplementedError(f"Unhandled comparison {op!r}")
 
 
 def step(bc: jpamb.Bytecode, state: jvmc.State) -> tuple[jvmc.PC, jvmc.State | str]:
-    assert isinstance(state, jvmc.State), f"expected state but got {state}"
+    """Execute one supported JVM instruction; never guess unsupported semantics."""
     frame = state.frames.peek()
     pc = frame.pc
     opr = bc[pc]
-    output = state
-    print(f"Stepping {pc}:\n > {opr}", file=sys.stderr)
+    # Branch and call instructions override this default next instruction.
+    frame.pc += 1
     match opr:
-        case jvm.Push(type=t, value=v):
-            if t is jvm.Int():
-                frame.stack.push(jvmc.StackInt(v))
+        case jvm.Push(type=jvm.Int(), value=value):
+            frame.stack.push(jvmc.StackInt(int32(value)))
+        case jvm.Push(type=jvm.Reference(), value=0):
+            frame.stack.push(jvmc.StackReference(0))
+        case jvm.Push(
+            type=jvm.Object(name=jvm.ClassName("java.lang.String")), value=value
+        ):
+            frame.stack.push(state.heap.new(jvmc.HeapString(value)))
+        case jvm.Load(index=index):
+            frame.stack.push(frame.locals[index])
+        case jvm.Store(index=index):
+            frame.locals[index] = frame.stack.pop()
+        case jvm.Incr(index=index, amount=amount):
+            frame.locals[index] = jvmc.StackInt(
+                int32(frame.locals[index].value + amount)
+            )
+        case jvm.Cast(from_=jvm.Int(), to_=target):
+            value = frame.stack.pop().value
+            if isinstance(target, jvm.Char):
+                value &= 0xFFFF
+            elif isinstance(target, jvm.Short):
+                value = (value + (1 << 15)) % (1 << 16) - (1 << 15)
+            elif isinstance(target, jvm.Byte):
+                value = (value + (1 << 7)) % (1 << 8) - (1 << 7)
             else:
-                raise NotImplementedError("Error")
-            frame.pc += 1
-
+                raise NotImplementedError(f"Unsupported integer cast: {target}")
+            frame.stack.push(jvmc.StackInt(value))
+        case jvm.Negate(type=jvm.Int()):
+            frame.stack.push(jvmc.StackInt(int32(-frame.stack.pop().value)))
         case jvm.Binary(type=jvm.Int(), operant=op):
-            v2, v1 = frame.stack.pop(), frame.stack.pop()
-            assert isinstance(v1, jvmc.StackInt), f"expected int, but got {v1}"
-            assert isinstance(v2, jvmc.StackInt), f"expected int, but got {v2}"
-
-            value = binary(op, v1.value, v2.value)
-
+            right, left = frame.stack.pop(), frame.stack.pop()
+            value = binary(op, left.value, right.value)
             if isinstance(value, str):
-                output = value
-            else:
-                frame.stack.push(jvmc.StackInt(value))
-                frame.pc += 1
-
-        case jvm.Return(type=t):
-            if t is not None:
-                raise NotImplementedError("Still to be done")
-
+                return pc, value
+            frame.stack.push(jvmc.StackInt(value))
+        case jvm.Ifz(condition=condition, target=target):
+            if compare(condition, frame.stack.pop().value, 0):
+                frame.pc = pc % target
+        case jvm.If(condition=condition, target=target):
+            right, left = frame.stack.pop(), frame.stack.pop()
+            if compare(condition, left.value, right.value):
+                frame.pc = pc % target
+        case jvm.Goto(target=target):
+            frame.pc = pc % target
+        case jvm.Return(type=return_type):
+            value = frame.stack.pop() if return_type is not None else None
             state.frames.pop()
-
-            if state.frames:
-                raise NotImplementedError("Still to be done")
-            else:
-                output = "ok"
-
-        case jvm.Get(static=True, field=field):
-            # Hack - Only handle the assertion case
-            assert field.extension.name == "$assertionsDisabled"
-
-            # Hack - Assuming assertions are never disabled
-            frame.stack.push(jvmc.StackInt(0))
-            frame.pc += 1
-
+            if not state.frames:
+                return pc, "ok"
+            if value is not None:
+                state.frames.peek().stack.push(value)
+        case jvm.Get(static=True, field=field) if (
+            field.extension.name == "$assertionsDisabled"
+        ):
+            frame.stack.push(jvmc.StackInt(0))  # JPAMB runs with assertions enabled.
         case jvm.New(classname=jvm.ClassName("java.lang.AssertionError")):
-            # Hack -- if we create an assertion error, we probably also throw it.
-            output = "assertion error"
-
-        case a:
-            raise NotImplementedError(a.help())
-
-    assert isinstance(output, (jvmc.State, str))
-
-    return pc, output
+            frame.stack.push(state.heap.new(jvmc.HeapObject(opr.classname, {})))
+        case jvm.Dup(words=1):
+            value = frame.stack.pop()
+            frame.stack.push(value).push(value)
+        case jvm.Throw():
+            ref = frame.stack.pop()
+            if ref.value == 0:
+                return pc, "null pointer"
+            obj = state.heap[ref]
+            if isinstance(obj, jvmc.HeapObject) and obj.classname == jvm.ClassName(
+                "java.lang.AssertionError"
+            ):
+                return pc, "assertion error"
+            raise NotImplementedError(f"Unsupported thrown object: {obj!r}")
+        case jvm.NewArray(type=element, dim=1) if isinstance(
+            element, (jvm.Int, jvm.Char)
+        ):
+            length = frame.stack.pop().value
+            # Allocation failures are outside JPAMB's six outcomes. Do not
+            # mislabel them as array bounds failures or attempt unbounded allocation.
+            if length < 0 or length > 100_000:
+                raise NotImplementedError(
+                    f"Unsupported array allocation length: {length}"
+                )
+            frame.stack.push(state.heap.new(jvmc.HeapArray(element, [0] * length)))
+        case jvm.ArrayLength():
+            ref = frame.stack.pop()
+            if ref.value == 0:
+                return pc, "null pointer"
+            frame.stack.push(jvmc.StackInt(len(state.heap[ref].values)))
+        case jvm.ArrayLoad(type=element) | jvm.ArrayStore(type=element):
+            if not isinstance(element, (jvm.Int, jvm.Char)):
+                raise NotImplementedError(f"Unsupported array element type: {element}")
+            stored = frame.stack.pop() if isinstance(opr, jvm.ArrayStore) else None
+            index, ref = frame.stack.pop().value, frame.stack.pop()
+            if ref.value == 0:
+                return pc, "null pointer"
+            array = state.heap[ref]
+            if not 0 <= index < len(array.values):
+                return pc, "out of bounds"
+            if stored is None:
+                frame.stack.push(jvmc.StackInt(array.values[index]))
+            else:
+                array.values[index] = (
+                    stored.value & 0xFFFF
+                    if isinstance(element, jvm.Char)
+                    else int32(stored.value)
+                )
+        case jvm.InvokeStatic(method=method):
+            arguments = [frame.stack.pop() for _ in method.extension.params][::-1]
+            # Calls within the suite use the same heap and instruction budget.
+            callee = jvmc.Frame.from_method(bc.getmethod(method))
+            for index, value in enumerate(arguments):
+                callee.locals[index] = value
+            state.frames.push(callee)
+        case jvm.InvokeSpecial(method=method) if (
+            method.classname == jvm.ClassName("java.lang.AssertionError")
+            and method.extension.name == "<init>"
+        ):
+            for _ in method.extension.params:
+                frame.stack.pop()
+            frame.stack.pop()  # Receiver; constructor has no relevant side effects.
+        case jvm.InvokeVirtual(method=method) if (
+            method.encode() == "java.lang.String.equals:(Ljava/lang/Object;)Z"
+        ):
+            other, receiver = frame.stack.pop(), frame.stack.pop()
+            if receiver.value == 0:
+                return pc, "null pointer"
+            content = state.heap[receiver].content
+            obj = state.heap[other] if other.value else None
+            frame.stack.push(
+                jvmc.StackInt(
+                    int(isinstance(obj, jvmc.HeapString) and obj.content == content)
+                )
+            )
+        case _:
+            raise NotImplementedError(f"Unsupported instruction: {opr!r}")
+    return pc, state
 
 
 def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, input: jpamb.Input):
@@ -320,14 +430,34 @@ def fuzz_mutation(rand, methodid, behaviors, budget=30):
             corpus.append(child)
 
 
+def parse_options(arguments):
+    """Consume fuzzer flags while retaining JPAMB's method/info protocol."""
+    parser = argparse.ArgumentParser(
+        description="Run selected dynamic fuzzers (default: --random).",
+        allow_abbrev=False,
+    )
+    for name in ("random", "small", "mutation"):
+        parser.add_argument(
+            f"--{name}", action="store_true", help=f"enable the {name} fuzzer"
+        )
+    parser.add_argument("method", help="JPAMB method identifier, or info")
+    options = parser.parse_args(arguments)
+    strategies = tuple(
+        name for name in ("random", "small", "mutation") if getattr(options, name)
+    ) or ("random",)
+    return strategies, [options.method]
+
+
 def analyse():
-    """The dynamic analysis, e.g. in this case a (dumb) fuzzer."""
+    """Run one or more fuzzers selected through command-line flags."""
+    strategies, arguments = parse_options(sys.argv[1:])
+    sys.argv = [sys.argv[0], *arguments]
 
     methodid = jpamb.getmethodid(
         "dynamic",
         "1.0",
         "Los Pollos Hermanos",
-        ["dynamic", "random", "python"],
+        ["dynamic", *strategies, "python"],
         for_science=True,
     )
 
@@ -336,21 +466,31 @@ def analyse():
 
     MAX_STEPS = 200
 
-    # Make the randomness deterministic
-    rand = random.Random(0)
-
     behaviors = set()
-    # Choose one input strategy.
-    inputs = random_inputs(rand, methodid)
-    # inputs = fuzz_small(rand, methodid)
-    # inputs = fuzz_mutation(rand, methodid, behaviors)
-    try:
-        for input in inputs:
-            behaviors.add(execute_input(bc, methodid, input, MAX_STEPS))
-    except UnsupportedInputType as error:
-        # One unsupported signature should not prevent JPAMB from evaluating the
-        # analyzer on the remaining methods.
-        print(error, file=sys.stderr)
+    unsupported = set()
+    # Fixed order and independent seeds make each generator reproducible even
+    # when other strategies are selected. Mutation uses shared outcome feedback.
+    for strategy in strategies:
+        rand = random.Random(0)
+        match strategy:
+            case "random":
+                inputs = random_inputs(rand, methodid)
+            case "small":
+                inputs = fuzz_small(rand, methodid)
+            case "mutation":
+                inputs = fuzz_mutation(rand, methodid, behaviors)
+        try:
+            for input in inputs:
+                try:
+                    behaviors.add(execute_input(bc, methodid, input, MAX_STEPS))
+                except NotImplementedError as error:
+                    message = str(error)
+                    if message not in unsupported:
+                        print(f"Unsupported execution: {message}", file=sys.stderr)
+                        unsupported.add(message)
+        except UnsupportedInputType as error:
+            # An unsupported strategy must not prevent the others from running.
+            print(error, file=sys.stderr)
 
     for query in jpamb.QUERIES:
         if query in behaviors:

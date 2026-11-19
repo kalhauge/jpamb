@@ -227,8 +227,30 @@ def interpret(
         write_report(summary, file=report, eff=eff)
 
 
-@cli.command()
+def benchmark_with_known_correction(benchmark):
+    """Copy the oracle and add the Java-verified integer-overflow outcome."""
+    experiment = jpamb.case.Experiment(
+        jvm.AbsMethodID.decode("jpamb.cases.Dependent.normalizedDistance:(II)I"),
+        None,
+    )
+    control = benchmark.experiments.get(experiment)
+    if control is None:
+        raise click.UsageError("--true requires normalizedDistance in the benchmark")
+    experiments = benchmark.experiments.copy()
+    experiments[experiment] = dataclasses.replace(
+        control, results=control.results | {"divide by zero"}
+    )
+    return dataclasses.replace(benchmark, experiments=experiments)
+
+
+@cli.command(context_settings={"allow_interspersed_args": False})
 @click.pass_obj
+@click.option(
+    "--true",
+    "correct_known_outcome",
+    is_flag=True,
+    help="Experimental scoring: add normalizedDistance's verified divide-by-zero outcome in memory.",
+)
 @click.option(
     "--iterations",
     "-N",
@@ -271,19 +293,29 @@ def interpret(
 def analyse(
     ctx,
     program,
+    correct_known_outcome,
     score_limit,
     filter,
     step_wise,
     report,
     **kwargs,
 ):
-    """Evaluate the PROGRAM as an analysis."""
+    """Evaluate PROGRAM as an analysis. Put JPAMB options before PROGRAM.
+
+    Arguments after PROGRAM are forwarded unchanged to the analyzer.
+    """
 
     eff = ctx.eff
 
     if ctx.suite.workdir != Path.cwd():
         eff.warning(f"Changing to {ctx.suite.workdir}")
         os.chdir(ctx.suite.workdir)
+
+    if correct_known_outcome and report:
+        raise click.UsageError(
+            "--true is an experimental score view; --report uses the original "
+            "benchmark on validation. Omit --report or --true."
+        )
 
     if step_wise and report:
         raise click.UsageError("Cannot produce report in step wise mode")
@@ -292,6 +324,12 @@ def analyse(
         raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
     benchmark = ctx.suite.benchmark(eff=eff)
+    if correct_known_outcome:
+        benchmark = benchmark_with_known_correction(benchmark)
+        click.echo(
+            "EXPERIMENTAL --true scoring: normalizedDistance includes divide by zero. "
+            "Benchmark files are unchanged."
+        )
 
     entries = []
     for entry in benchmark.entries():
@@ -315,7 +353,11 @@ def analyse(
 
     cache = ctx.suite.cache_folder(eff=eff)
 
-    state_file = cache / "analysis-state.sexp"
+    state_file = cache / (
+        "analysis-state-corrected.sexp"
+        if correct_known_outcome
+        else "analysis-state.sexp"
+    )
 
     state = None
 
