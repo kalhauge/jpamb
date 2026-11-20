@@ -114,4 +114,16 @@ public class Arrays {
     }
     assert sum > 300;
   }
+
+  // Safe, but the loop condition is '!=' instead of '<'. An interval
+  // cannot exclude a single value in the middle, so an analysis that widens i
+  // to "any non-negative int" can no longer recover the bound 8.
+  @Case("() -> ok")
+  @Tag({ARRAY, LOOP})
+  public static void arrayFillUntilEqual() {
+    int array[] = new int[8];
+    for (int i = 0; i != 8; i++) {
+      array[i] = i;
+    }
+  }
 }
