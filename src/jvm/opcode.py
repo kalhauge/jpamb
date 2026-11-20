@@ -49,6 +49,8 @@ class Opcode(ABC):
                             opr = InvokeInterface
                         case "special":
                             opr = InvokeSpecial
+                        case "dynamic":
+                            opr = InvokeDynamic
                         case access:
                             raise NotImplementedError(
                                 f"Unhandled invoke access {access!r} (implement yourself)"
@@ -152,6 +154,11 @@ class Push(Opcode):
                     case 5:
                         return "iconst_5"
                 return f"ldc [{self.value}]"
+            case jvm_type.Long():
+                assert isinstance(self.value, int)
+                if self.value in (0, 1):
+                    return f"lconst_{self.value}"
+                return f"ldc2_w [{self.value}]"
             case jvm_type.Object(cn) if cn == ClassName("java.lang.String"):
                 return f"ldc [{self.value}]"
             case jvm_type.Reference():
@@ -179,6 +186,9 @@ class Push(Opcode):
                     return "iconst_i"
                 else:
                     return "ldc"
+            case jvm_type.Long():
+                assert isinstance(self.value, int)
+                return "lconst" if self.value in (0, 1) else "ldc2_w"
             case jvm_type.Object(cn) if cn.dotted() == "java.lang.String":
                 return "ldc"
             case jvm_type.Reference():
@@ -189,6 +199,85 @@ class Push(Opcode):
 
     def __str__(self):
         return f"push:{self.type} {self.value}"
+
+
+@dataclass(frozen=True, order=True)
+class Put(Opcode):
+    """The put opcode (handles both putfield and putstatic)"""
+
+    static: bool
+    field: classfile.AbsFieldID
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        is_static = json.get("static", False)
+
+        field_data = json.get("field")
+        if not isinstance(field_data, dict):
+            raise NotImplementedError(f"Cannot handle field data {field_data!r}")
+
+        try:
+            field = classfile.AbsFieldID.from_json(field_data)
+        except NotImplementedError as e:
+            raise NotImplementedError(f"Cannot parse field data {field_data!r}") from e
+
+        return cls(
+            offset=json["offset"],
+            static=is_static,
+            field=field,
+        )
+
+    def real(self) -> str:
+        return "putstatic" if self.static else "putfield"
+
+    def semantics(self) -> str | None:
+        if self.static:
+            return """
+            bc[i].opr = 'putstatic'
+            bc[i].field = f
+            -------------------------[putstatic]
+            bc |- (i, s + [v], globals) -> (i+1, s, globals[f := v])
+            """
+        else:
+            return """
+            bc[i].opr = 'putfield'
+            bc[i].field = f
+            -------------------------[putfield]
+            bc |- (i, s + [obj_ref, v], heap) -> (i+1, s, heap[obj_ref.f := v])
+            """
+
+    def mnemonic(self) -> str:
+        return "putstatic" if self.static else "putfield"
+
+    def __str__(self):
+        op_name = "putstatic" if self.static else "putfield"
+        return f"{op_name} {self.field}"
+
+
+@dataclass(frozen=True, order=True)
+class Pop(Opcode):
+    """The pop opcode that removes the top value from the stack."""
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        return cls(offset=json["offset"])
+
+    def real(self) -> str:
+        return "pop"
+
+    def semantics(self) -> str | None:
+        semantics = """
+        bc[i].opr = 'pop'
+        -------------------------[pop]
+        bc |- (i, s + [value]) -> (i+1, s)
+        """
+        return None
+
+    def mnemonic(self) -> str:
+        return "pop"
+
+    def __str__(self):
+        return "pop"
 
 
 @dataclass(frozen=True, order=True)
@@ -343,6 +432,11 @@ class Cast(Opcode):
                 match self.to_:
                     case jvm_type.Short():
                         return "i2s"
+                    case jvm_type.Long():
+                        return "i2l"
+            case jvm_type.Long():
+                if isinstance(self.to_, jvm_type.Int):
+                    return "l2i"
 
         return super().real()
 
@@ -354,6 +448,32 @@ class Cast(Opcode):
 
     def __str__(self):
         return f"cast {self.from_} {self.to_}"
+
+
+@dataclass(frozen=True, order=True)
+class CheckCast(Opcode):
+    """Check that a reference can be cast to a type (throws ClassCastException)"""
+
+    type: jvm_type.Type
+
+    @classmethod
+    def from_json(cls, json: dict) -> Opcode:
+        return cls(
+            offset=json["offset"],
+            type=jvm_type.Type.from_json(json["type"]),
+        )
+
+    def real(self) -> str:
+        return "checkcast"
+
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
+    def __str__(self):
+        return f"checkcast {self.type}"
 
 
 @dataclass(frozen=True, order=True)
@@ -583,6 +703,61 @@ class InvokeSpecial(Opcode):
 
 
 @dataclass(frozen=True, order=True)
+class InvokeDynamic(Opcode):
+    index: int  # bootstrap method index
+    method: classfile.AbsMethodID
+
+    DYNAMIC_OWNER = (
+        "jvm/Dynamic"  # pseudo-class for coherence, to consider in the interpreter
+    )
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        assert json["opr"] == "invoke" and json["access"] == "dynamic"
+
+        m = json["method"]
+        returns = m.get("returns")
+        return cls(
+            offset=json["offset"],
+            index=json["index"],
+            method=classfile.AbsMethodID(
+                classname=ClassName.from_slashed(cls.DYNAMIC_OWNER),
+                extension=classfile.MethodID(
+                    name=m["name"],
+                    params=classfile.Parameters.from_json(m["args"]),
+                    return_type=(
+                        jvm_type.Type.from_json(returns)
+                        if returns is not None
+                        else None
+                    ),
+                ),
+            ),
+        )
+
+    def real(self) -> str:
+        return f"invokedynamic #{self.index} {self.method.methodid}"
+
+    def mnemonic(self) -> str:
+        return "invokedynamic"
+
+    def __str__(self):
+        return f"invoke dynamic #{self.index} {self.method.methodid}"
+
+    def semantics(self) -> str | None:
+        return """
+        bc[i].opr = 'invoke'
+        bc[i].access = 'dynamic'
+        bc[i].method = m
+        m.args = [t1, ..., tn]
+        ----------------------------------------[invokedynamic]
+        bc |- (i, s + [a1, ..., an]) -> (i+1, s + [result])
+        where the call site is linked by its bootstrap method;
+        no objectref is consumed, and [result] is pushed only
+        if m.returns is not void
+        """
+
+
+@dataclass(frozen=True, order=True)
 class Store(Opcode):
     """The store opcode that stores values to local variables"""
 
@@ -604,6 +779,8 @@ class Store(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return f"istore_{self.index}" if self.index < 4 else f"istore {self.index}"
+        elif isinstance(self.type, jvm_type.Long):
+            return f"lstore_{self.index}" if self.index < 4 else f"lstore {self.index}"
         return super().real()
 
     def semantics(self) -> str | None:
@@ -615,6 +792,8 @@ class Store(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return "istore_n" if self.index < 4 else "istore"
+        elif isinstance(self.type, jvm_type.Long):
+            return "lstore_n" if self.index < 4 else "lstore"
         return ""
 
         return self.real()
@@ -630,6 +809,7 @@ class CmpOpr(enum.Enum):
     Le = enum.auto()
     Ge = enum.auto()
     Gt = enum.auto()
+    Is = enum.auto()
 
     @staticmethod
     def from_str(name: str) -> "CmpOpr":
@@ -657,6 +837,7 @@ CMP_OPRS = {
     "le": CmpOpr.Le,
     "ge": CmpOpr.Ge,
     "gt": CmpOpr.Gt,
+    "is": CmpOpr.Is,
 }
 
 
@@ -723,6 +904,82 @@ class Binary(Opcode):
                 return "imul"
             case (jvm_type.Int(), BinaryOpr.Sub):
                 return "isub"
+            case (jvm_type.Long(), BinaryOpr.Add):
+                return "ladd"
+            case (jvm_type.Long(), BinaryOpr.Rem):
+                return "lrem"
+            case (jvm_type.Long(), BinaryOpr.Div):
+                return "ldiv"
+            case (jvm_type.Long(), BinaryOpr.Mul):
+                return "lmul"
+            case (jvm_type.Long(), BinaryOpr.Sub):
+                return "lsub"
+        raise NotImplementedError(f"Unhandled real {self!r}")
+
+    def semantics(self) -> str | None:
+        return None
+
+    def mnemonic(self) -> str:
+        return self.real()
+
+
+class BitOpr(enum.Enum):
+    Shl = enum.auto()
+    Shr = enum.auto()
+    Ushr = enum.auto()
+    And = enum.auto()
+    Or = enum.auto()
+    Xor = enum.auto()
+
+    @staticmethod
+    def from_str(name: str) -> "BitOpr":
+        return BIT_OPRS[name.lower()]
+
+    @staticmethod
+    def from_json(json: str) -> "BitOpr":
+        return BitOpr.from_str(json)
+
+    def __str__(self):
+        return self.name.lower()
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return str(self)
+
+    @classmethod
+    def from_sexpr(cls, expr: sexpr.SExpr) -> "BitOpr":
+        return BitOpr.from_str(sexpr.to_str(expr))
+
+
+BIT_OPRS = {
+    "shl": BitOpr.Shl,
+    "shr": BitOpr.Shr,
+    "ushr": BitOpr.Ushr,
+    "and": BitOpr.And,
+    "or": BitOpr.Or,
+    "xor": BitOpr.Xor,
+}
+
+
+@dataclass(frozen=True, order=True)
+class Bitopr(Opcode):
+    type: jvm_type.Type
+    operant: BitOpr
+
+    @classmethod
+    def from_json(cls, json: dict) -> "Opcode":
+        return cls(
+            offset=json["offset"],
+            type=jvm_type.Type.from_json(json["type"]),
+            operant=BitOpr.from_json(json["operant"]),
+        )
+
+    def __str__(self):
+        return f"bitopr:{self.type} {self.operant}"
+
+    def real(self) -> str:
+        match self.type:
+            case jvm_type.Int():
+                return f"i{self.operant}"
         raise NotImplementedError(f"Unhandled real {self!r}")
 
     def semantics(self) -> str | None:
@@ -754,6 +1011,8 @@ class Load(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return f"iload_{self.index}" if self.index < 4 else f"iload {self.index}"
+        elif isinstance(self.type, jvm_type.Long):
+            return f"lload_{self.index}" if self.index < 4 else f"lload {self.index}"
         return super().real()
 
     def semantics(self) -> str | None:
@@ -765,6 +1024,8 @@ class Load(Opcode):
         # Handle integer type
         elif isinstance(self.type, jvm_type.Int):
             return "iload_n" if self.index < 4 else "iload"
+        elif isinstance(self.type, jvm_type.Long):
+            return "lload_n" if self.index < 4 else "lload"
         return ""
 
     def __str__(self):
@@ -1202,6 +1463,7 @@ OPCODES = {
     "array_store": ArrayStore,
     "array-store": ArrayStore,
     "cast": Cast,
+    "checkcast": CheckCast,
     "array_load": ArrayLoad,
     "array-load": ArrayLoad,
     "arraylength": ArrayLength,
@@ -1210,6 +1472,7 @@ OPCODES = {
     "invoke_static": InvokeStatic,
     "invoke_interface": InvokeInterface,
     "invoke_special": InvokeSpecial,
+    "invoke_dynamic": InvokeDynamic,
     "store": Store,
     "binary": Binary,
     "load": Load,
@@ -1220,4 +1483,7 @@ OPCODES = {
     "throw": Throw,
     "incr": Incr,
     "goto": Goto,
+    "put": Put,
+    "pop": Pop,
+    "bitopr": Bitopr,
 }

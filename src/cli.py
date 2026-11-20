@@ -104,6 +104,12 @@ def checkhealth(ctx, docker):
     help="also run the cases with the `all` input",
 )
 @click.option(
+    "--coverage / --no-coverage",
+    show_default=True,
+    default=True,
+    help="check if the interperter gets full coverage",
+)
+@click.option(
     "--timeout",
     show_default=True,
     default=2.0,
@@ -132,6 +138,7 @@ def interpret(
     step_wise,
     report,
     abstract,
+    coverage,
     **kwargs,
 ):
     """Use PROGRAM as an interpreter."""
@@ -148,10 +155,8 @@ def interpret(
     if filter != re.compile(".*") and report:
         raise click.UsageError(f"Cannot produce report in while filtering {filter}")
 
-    benchmark = ctx.suite.benchmark(eff=eff)
-
     experiments = []
-    for experiment in sorted(benchmark.experiments):
+    for experiment in sorted(ctx.suite.experiments(eff=eff)):
         if not filter.search(str(experiment)):
             eff.debug(f"Skipping {experiment}, excluded by filter")
             continue
@@ -161,6 +166,12 @@ def interpret(
             continue
 
         experiments.append(experiment)
+
+    if coverage:
+        eff.info("Loading coverage information from benchmark.sexp")
+        benchmark = ctx.suite.benchmark(eff=eff)
+    else:
+        benchmark = jpamb.case.Benchmark.from_cases(ctx.suite.cases(eff=eff))
 
     try:
         config = jpamb.interpret.Config.from_cmd(

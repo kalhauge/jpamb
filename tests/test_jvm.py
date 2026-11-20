@@ -15,6 +15,10 @@ def test_singletons():
     assert jvm.Array(jvm.Boolean()) is not jvm.Array(jvm.Int())
 
 
+def test_long_type_from_json():
+    assert jvm.Type.from_json("long") == jvm.Long()
+
+
 # def test_value_parser():
 #     assert jvm.ValueParser.parse("1, 's', [I:10, 32]") == [
 #         jvm.Value.int(1),

@@ -14,13 +14,21 @@ import jpamb.utils.CaseContent.ResultType;
 public class Runtime {
   static List<Class<?>> caseclasses =
       List.of(
+          // Add new cases to the top of the list to avoid diff issues.
           Simple.class,
           Loops.class,
           Tricky.class,
-          jpamb.cases.Arrays.class,
-          jpamb.cases.Strings.class,
+          Arrays.class,
+          Strings.class,
           Dependent.class,
-          Calls.class);
+          Calls.class,
+          jpamb.cases.advanced.CWE470.class,
+          jpamb.cases.advanced.CWE502.class,
+          MagicConstants.class,
+          Operators.class,
+          Extended.class,
+          jpamb.cases.Randomness.class,
+          jpamb.cases.BitOperations.class);
 
   public static Case[] cases(Method m) {
     var cases = m.getAnnotation(Cases.class);
@@ -52,6 +60,8 @@ public class Runtime {
       b.append("[C");
     } else if (c.equals(String.class)) {
       b.append("Ljava/lang/String;");
+    } else if (c.equals(Smith.class)) {
+      b.append("Ljpamb/utils/Smith;");
     } else {
       throw new RuntimeException("Unknown type:" + c.toString());
     }
@@ -92,6 +102,9 @@ public class Runtime {
               var str = s.substring(start, i);
               if (str.equals("java/lang/String")) {
                 params.add(String.class);
+                break;
+              } else if (str.equals("jpamb/utils/Smith")) {
+                params.add(Smith.class);
                 break;
               }
               throw new InputParser.ParseError("Invalid type", str);

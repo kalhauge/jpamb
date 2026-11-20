@@ -4,6 +4,35 @@ from hypothesis import strategies as st
 import jpamb
 import jvm
 
+
+def test_long_opcodes():
+    cases = [
+        (
+            {
+                "opr": "push",
+                "offset": 0,
+                "value": {"type": "long", "value": 100},
+            },
+            "ldc2_w [100]",
+        ),
+        (
+            {"opr": "binary", "offset": 1, "type": "long", "operant": "div"},
+            "ldiv",
+        ),
+        (
+            {"opr": "binary", "offset": 2, "type": "long", "operant": "rem"},
+            "lrem",
+        ),
+        ({"opr": "cast", "offset": 3, "from": "int", "to": "long"}, "i2l"),
+        ({"opr": "cast", "offset": 4, "from": "long", "to": "int"}, "l2i"),
+        ({"opr": "load", "offset": 5, "type": "long", "index": 1}, "lload_1"),
+        ({"opr": "store", "offset": 6, "type": "long", "index": 1}, "lstore_1"),
+    ]
+
+    for data, expected in cases:
+        assert jvm.Opcode.from_json(data).real() == expected
+
+
 suite, eff = jpamb.setup()
 benchmark = suite.benchmark(eff=eff)
 

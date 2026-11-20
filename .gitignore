@@ -30,5 +30,8 @@ result
 report.sexp
 
 tags
+<<<<<<< HEAD
 
 .DS_Store
+=======
+>>>>>>> d982ae8 (removed unused files for suite expansion)

@@ -703,6 +703,1879 @@
     },
     {
       "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 0) -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 1) -> divide by zero"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 100
+            }
+          },
+          {
+            "index": 2,
+            "offset": 2,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 3,
+            "offset": 4,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 3,
+            "offset": 5,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 6,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 7,
+            "opr": "if",
+            "target": 13
+          },
+          {
+            "index": 2,
+            "offset": 10,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 11,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 12,
+            "operant": "div",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 13,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 3,
+            "offset": 14,
+            "opr": "incr"
+          },
+          {
+            "offset": 17,
+            "opr": "goto",
+            "target": 4
+          },
+          {
+            "index": 2,
+            "offset": 20,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 21,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 42,
+            "offset": 0
+          },
+          {
+            "line": 43,
+            "offset": 2
+          },
+          {
+            "line": 44,
+            "offset": 13
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 4,
+            "info": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 13,
+            "info": 1,
+            "type": "chop_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "forLoopDivision",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 0) -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 2) -> divide by zero"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 100
+            }
+          },
+          {
+            "index": 2,
+            "offset": 2,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 3,
+            "offset": 4,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 3,
+            "offset": 5,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 6,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 7,
+            "opr": "if",
+            "target": 13
+          },
+          {
+            "index": 2,
+            "offset": 10,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 11,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 12,
+            "operant": "div",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 13,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 3,
+            "offset": 14,
+            "opr": "incr"
+          },
+          {
+            "offset": 17,
+            "opr": "goto",
+            "target": 4
+          },
+          {
+            "index": 2,
+            "offset": 20,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 21,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 50,
+            "offset": 0
+          },
+          {
+            "line": 51,
+            "offset": 2
+          },
+          {
+            "line": 52,
+            "offset": 4
+          },
+          {
+            "line": 53,
+            "offset": 7
+          },
+          {
+            "line": 54,
+            "offset": 11
+          },
+          {
+            "line": 56,
+            "offset": 13
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 4,
+            "info": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 13,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "whileLoopDivision",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 0) -> divide by zero"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(2, 0) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 100
+            }
+          },
+          {
+            "index": 2,
+            "offset": 2,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 3,
+            "offset": 4,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 5,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 6,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 7,
+            "operant": "div",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 8,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 3,
+            "offset": 9,
+            "opr": "incr"
+          },
+          {
+            "index": 3,
+            "offset": 12,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 13,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "lt",
+            "offset": 14,
+            "opr": "if",
+            "target": 4
+          },
+          {
+            "index": 2,
+            "offset": 17,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 18,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 62,
+            "offset": 0
+          },
+          {
+            "line": 63,
+            "offset": 2
+          },
+          {
+            "line": 65,
+            "offset": 4
+          },
+          {
+            "line": 66,
+            "offset": 8
+          },
+          {
+            "line": 67,
+            "offset": 9
+          },
+          {
+            "line": 68,
+            "offset": 12
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 4,
+            "info": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "doWhileDivision",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 0) -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 1) -> divide by zero"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 100
+            }
+          },
+          {
+            "index": 2,
+            "offset": 2,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 3,
+            "offset": 4,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 3,
+            "offset": 5,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 6,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 7,
+            "opr": "if",
+            "target": 13
+          },
+          {
+            "index": 2,
+            "offset": 10,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 11,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 12,
+            "operant": "rem",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 13,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 3,
+            "offset": 14,
+            "opr": "incr"
+          },
+          {
+            "offset": 17,
+            "opr": "goto",
+            "target": 4
+          },
+          {
+            "index": 2,
+            "offset": 20,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 21,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 74,
+            "offset": 0
+          },
+          {
+            "line": 75,
+            "offset": 2
+          },
+          {
+            "line": 76,
+            "offset": 13
+          }
+        ],
+        "max_locals": 4,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 4,
+            "info": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 13,
+            "info": 1,
+            "type": "chop_frame"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "loopRemainder",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(0, 5, 0) -> ok"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(1, 21, 3) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "le",
+            "offset": 1,
+            "opr": "ifz",
+            "target": 10
+          },
+          {
+            "index": 2,
+            "offset": 4,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ne",
+            "offset": 5,
+            "opr": "ifz",
+            "target": 6
+          },
+          {
+            "index": 1,
+            "offset": 8,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 9,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 10,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 11,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 12,
+            "operant": "div",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "offset": 13,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 14,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ge",
+            "offset": 15,
+            "opr": "ifz",
+            "target": 21
+          },
+          {
+            "index": 2,
+            "offset": 18,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ne",
+            "offset": 19,
+            "opr": "ifz",
+            "target": 17
+          },
+          {
+            "index": 1,
+            "offset": 22,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 23,
+            "opr": "negate",
+            "type": "int"
+          },
+          {
+            "offset": 24,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 25,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 26,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 27,
+            "operant": "rem",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "offset": 28,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "offset": 29,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 30,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 85,
+            "offset": 0
+          },
+          {
+            "line": 86,
+            "offset": 2
+          },
+          {
+            "line": 87,
+            "offset": 6
+          },
+          {
+            "line": 89,
+            "offset": 10
+          },
+          {
+            "line": 90,
+            "offset": 12
+          },
+          {
+            "line": 91,
+            "offset": 17
+          },
+          {
+            "line": 93,
+            "offset": 21
+          }
+        ],
+        "max_locals": 3,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 6,
+            "type": "same"
+          },
+          {
+            "index": 10,
+            "type": "same"
+          },
+          {
+            "index": 17,
+            "type": "same"
+          },
+          {
+            "index": 21,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "safeNestedBranchDivision",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        },
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(10) -> assertion error"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(9) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 1,
+            "offset": 1,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 2,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "condition": "ge",
+            "offset": 4,
+            "opr": "if",
+            "target": 11
+          },
+          {
+            "index": 0,
+            "offset": 7,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 8,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          },
+          {
+            "offset": 9,
+            "operant": "mul",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "index": 0,
+            "offset": 10,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "amount": 1,
+            "index": 1,
+            "offset": 11,
+            "opr": "incr"
+          },
+          {
+            "offset": 14,
+            "opr": "goto",
+            "target": 2
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Loops",
+              "name": "$assertionsDisabled",
+              "type": "boolean"
+            },
+            "offset": 17,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "condition": "ne",
+            "offset": 20,
+            "opr": "ifz",
+            "target": 20
+          },
+          {
+            "index": 0,
+            "offset": 23,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 24,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 160
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 27,
+            "opr": "if",
+            "target": 20
+          },
+          {
+            "class": "java/lang/AssertionError",
+            "offset": 30,
+            "opr": "new"
+          },
+          {
+            "offset": 33,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/AssertionError"
+              },
+              "returns": null
+            },
+            "offset": 34,
+            "opr": "invoke"
+          },
+          {
+            "offset": 37,
+            "opr": "throw"
+          },
+          {
+            "offset": 38,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 99,
+            "offset": 0
+          },
+          {
+            "line": 100,
+            "offset": 5
+          },
+          {
+            "line": 99,
+            "offset": 9
+          },
+          {
+            "line": 102,
+            "offset": 11
+          },
+          {
+            "line": 103,
+            "offset": 20
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 2,
+            "info": [
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 11,
+            "info": 1,
+            "type": "chop_frame"
+          },
+          {
+            "index": 20,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "multiplicationLoop",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(8) -> assertion error"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(7) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 1,
+            "offset": 1,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 2,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 8
+            }
+          },
+          {
+            "condition": "ge",
+            "offset": 5,
+            "opr": "if",
+            "target": 8
+          },
+          {
+            "amount": -1,
+            "index": 0,
+            "offset": 8,
+            "opr": "incr"
+          },
+          {
+            "amount": 1,
+            "index": 1,
+            "offset": 11,
+            "opr": "incr"
+          },
+          {
+            "offset": 14,
+            "opr": "goto",
+            "target": 2
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Loops",
+              "name": "$assertionsDisabled",
+              "type": "boolean"
+            },
+            "offset": 17,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "condition": "ne",
+            "offset": 20,
+            "opr": "ifz",
+            "target": 16
+          },
+          {
+            "index": 0,
+            "offset": 23,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "condition": "ne",
+            "offset": 24,
+            "opr": "ifz",
+            "target": 16
+          },
+          {
+            "class": "java/lang/AssertionError",
+            "offset": 27,
+            "opr": "new"
+          },
+          {
+            "offset": 30,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/AssertionError"
+              },
+              "returns": null
+            },
+            "offset": 31,
+            "opr": "invoke"
+          },
+          {
+            "offset": 34,
+            "opr": "throw"
+          },
+          {
+            "offset": 35,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 108,
+            "offset": 0
+          },
+          {
+            "line": 109,
+            "offset": 5
+          },
+          {
+            "line": 108,
+            "offset": 6
+          },
+          {
+            "line": 111,
+            "offset": 8
+          },
+          {
+            "line": 112,
+            "offset": 16
+          }
+        ],
+        "max_locals": 2,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 2,
+            "info": [
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 8,
+            "info": 1,
+            "type": "chop_frame"
+          },
+          {
+            "index": 16,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "decrementLoop",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(10) -> assertion error"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "(9) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "offset": 0,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 1,
+            "offset": 1,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 1,
+            "offset": 2,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 3,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 3
+            }
+          },
+          {
+            "condition": "ge",
+            "offset": 4,
+            "opr": "if",
+            "target": 15
+          },
+          {
+            "offset": 7,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "index": 2,
+            "offset": 8,
+            "opr": "store",
+            "type": "int"
+          },
+          {
+            "index": 2,
+            "offset": 9,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 10,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          },
+          {
+            "condition": "ge",
+            "offset": 11,
+            "opr": "if",
+            "target": 13
+          },
+          {
+            "amount": 1,
+            "index": 0,
+            "offset": 14,
+            "opr": "incr"
+          },
+          {
+            "amount": 1,
+            "index": 2,
+            "offset": 17,
+            "opr": "incr"
+          },
+          {
+            "offset": 20,
+            "opr": "goto",
+            "target": 7
+          },
+          {
+            "amount": 1,
+            "index": 1,
+            "offset": 23,
+            "opr": "incr"
+          },
+          {
+            "offset": 26,
+            "opr": "goto",
+            "target": 2
+          },
+          {
+            "field": {
+              "class": "jpamb/cases/Loops",
+              "name": "$assertionsDisabled",
+              "type": "boolean"
+            },
+            "offset": 29,
+            "opr": "get",
+            "static": true
+          },
+          {
+            "condition": "ne",
+            "offset": 32,
+            "opr": "ifz",
+            "target": 24
+          },
+          {
+            "index": 0,
+            "offset": 35,
+            "opr": "load",
+            "type": "int"
+          },
+          {
+            "offset": 36,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 16
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 38,
+            "opr": "if",
+            "target": 24
+          },
+          {
+            "class": "java/lang/AssertionError",
+            "offset": 41,
+            "opr": "new"
+          },
+          {
+            "offset": 44,
+            "opr": "dup",
+            "words": 1
+          },
+          {
+            "access": "special",
+            "method": {
+              "args": [],
+              "is_interface": false,
+              "name": "<init>",
+              "ref": {
+                "kind": "class",
+                "name": "java/lang/AssertionError"
+              },
+              "returns": null
+            },
+            "offset": 45,
+            "opr": "invoke"
+          },
+          {
+            "offset": 48,
+            "opr": "throw"
+          },
+          {
+            "offset": 49,
+            "opr": "return",
+            "type": null
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 117,
+            "offset": 0
+          },
+          {
+            "line": 118,
+            "offset": 5
+          },
+          {
+            "line": 119,
+            "offset": 10
+          },
+          {
+            "line": 118,
+            "offset": 11
+          },
+          {
+            "line": 117,
+            "offset": 13
+          },
+          {
+            "line": 122,
+            "offset": 15
+          },
+          {
+            "line": 123,
+            "offset": 24
+          }
+        ],
+        "max_locals": 3,
+        "max_stack": 2,
+        "stack_map": [
+          {
+            "index": 2,
+            "info": [
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 7,
+            "info": [
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "append_frame"
+          },
+          {
+            "index": 13,
+            "info": 1,
+            "type": "chop_frame"
+          },
+          {
+            "index": 15,
+            "info": 1,
+            "type": "chop_frame"
+          },
+          {
+            "index": 24,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "nestedLoop",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": null
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
         "static"
       ],
       "annotations": [],

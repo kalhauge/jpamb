@@ -1,0 +1,74 @@
+{
+  "access": [
+    "public",
+    "interface",
+    "abstract"
+  ],
+  "annotations": [],
+  "bootstrapmethods": [],
+  "enclosingmethod": null,
+  "fields": [],
+  "innerclasses": [],
+  "interfaces": [],
+  "methods": [
+    {
+      "access": [
+        "public",
+        "abstract"
+      ],
+      "annotations": [],
+      "code": null,
+      "default": null,
+      "exceptions": [],
+      "name": "draw",
+      "params": [],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "boolean"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "abstract"
+      ],
+      "annotations": [],
+      "code": null,
+      "default": null,
+      "exceptions": [],
+      "name": "draw",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "base": "int"
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    }
+  ],
+  "name": "jpamb/utils/Smith",
+  "super": {
+    "annotations": [],
+    "args": [],
+    "inner": null,
+    "name": "java/lang/Object"
+  },
+  "typeparams": [],
+  "version": [
+    65,
+    0
+  ]
+}
