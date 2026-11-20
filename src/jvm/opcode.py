@@ -218,7 +218,7 @@ class Put(Opcode):
 
         try:
             field = classfile.AbsFieldID.from_json(field_data)
-        except Exception as e:
+        except NotImplementedError as e:
             raise NotImplementedError(f"Cannot parse field data {field_data!r}") from e
 
         return cls(

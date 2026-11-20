@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NoReturn, Optional
+from typing import NoReturn, Optional, Self
 
 import jvm
 import jvm.state
@@ -483,10 +483,18 @@ class Case(sexpr.AsSExpr):
         return sorted(cases_by_id.items())
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class Coverage(sexpr.AsSExpr):
-    reachable: set[int] | None = None
-    # unreachable: set[int] | None = None
+    reachable: frozenset[int] | None = None
+
+    def __or__(self: "Coverage", other: "Coverage") -> "Coverage":
+        if self.reachable is None:
+            return Coverage(other.reachable)
+
+        if other.reachable is None:
+            return Coverage(other.reachable)
+
+        return Coverage(self.reachable | other.reachable)
 
 
 @dataclass(frozen=True, slots=True)
@@ -509,6 +517,17 @@ class Control(sexpr.AsSExpr):
                 reachable.update(jvm.state.PC(m, o) for o in c.reachable)
         return reachable
 
+    def __ior__(self: "Control", other: "Control") -> Self:
+        methods = sorted(list(self.coverage.keys()) + list(other.coverage.keys()))
+        for m in methods:
+            self.coverage[m] = self.coverage.get(m, Coverage()) | other.coverage.get(
+                m, Coverage()
+            )
+
+        self.results.update(other.results)
+
+        return self
+
 
 type Entry = jvm.AbsMethodID
 
@@ -516,6 +535,29 @@ type Entry = jvm.AbsMethodID
 @dataclass(frozen=True, slots=True)
 class Benchmark:
     experiments: collections.OrderedDict[Experiment, Control]
+
+    @classmethod
+    def from_cases(cls, cases: Iterable[Case]):
+        benchmark = cls(collections.OrderedDict())
+
+        for case in cases:
+            benchmark[case.experiment] = Control(
+                collections.OrderedDict(), {case.result}
+            )
+
+        return benchmark
+
+    def __setitem__(self, experiment: Experiment, control: Control):
+        full = Experiment(experiment.entry, None)
+        if full not in self.experiments:
+            self.experiments[full] = Control(collections.OrderedDict(), set())
+
+        self.experiments[experiment] = control
+        full_control = self.experiments[full]
+        full_control |= control
+
+    def __getitem__(self, experiment: Experiment) -> Control:
+        return self.experiments[experiment]
 
     def __sexpr__(self) -> sexpr.SExpr:
         experiments = sexpr.sexpr(self.experiments)
