@@ -47,7 +47,7 @@ public class BitOperations {
 
   @Case("(4) -> assertion error")
   @Case("(32) -> ok")
-  public static void DrawInt(int count) {
+  public static void drawInt(int count) {
     String bits =
         "10010101010101010101010110110101010100110101010101111000001010101010101110100111011001110101001001001";
     int value = 0;
