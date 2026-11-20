@@ -21,7 +21,6 @@ public class Runtime {
           jpamb.cases.Strings.class,
           Dependent.class,
           Calls.class,
-          Fuzzing.class,
           Overflow.class);
 
   public static Case[] cases(Method m) {

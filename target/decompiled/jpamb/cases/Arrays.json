@@ -3095,6 +3095,400 @@
                     "values": {
                       "value": {
                         "type": "string",
+                        "value": "([C: 's', 'e', 'c', 'r', 'e', 't']) -> divide by zero"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
+                        "value": "([C: 's', 'e', 'c', 'r', 'e', 'x']) -> ok"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Tag",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "enum",
+                  "value": {
+                    "name": "ARRAY",
+                    "type": {
+                      "kind": "class",
+                      "name": "jpamb/utils/Tag$TagType"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "code": {
+        "annotations": [],
+        "bytecode": [
+          {
+            "index": 0,
+            "offset": 0,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 1,
+            "opr": "arraylength"
+          },
+          {
+            "offset": 2,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 6
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 4,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 7,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 8,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 9,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 10,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 115
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 12,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 15,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 16,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "offset": 17,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 18,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 101
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 20,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 23,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 24,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 2
+            }
+          },
+          {
+            "offset": 25,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 26,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 99
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 28,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 31,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 32,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 3
+            }
+          },
+          {
+            "offset": 33,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 34,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 114
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 36,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 39,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 40,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 4
+            }
+          },
+          {
+            "offset": 41,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 42,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 101
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 44,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "index": 0,
+            "offset": 47,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 48,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 5
+            }
+          },
+          {
+            "offset": 49,
+            "opr": "array_load",
+            "type": "char"
+          },
+          {
+            "offset": 50,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 116
+            }
+          },
+          {
+            "condition": "ne",
+            "offset": 52,
+            "opr": "if",
+            "target": 41
+          },
+          {
+            "offset": 55,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 1
+            }
+          },
+          {
+            "index": 0,
+            "offset": 56,
+            "opr": "load",
+            "type": "ref"
+          },
+          {
+            "offset": 57,
+            "opr": "arraylength"
+          },
+          {
+            "offset": 58,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 6
+            }
+          },
+          {
+            "offset": 60,
+            "operant": "sub",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "offset": 61,
+            "operant": "div",
+            "opr": "binary",
+            "type": "int"
+          },
+          {
+            "offset": 62,
+            "opr": "return",
+            "type": "int"
+          },
+          {
+            "offset": 63,
+            "opr": "push",
+            "value": {
+              "type": "integer",
+              "value": 0
+            }
+          },
+          {
+            "offset": 64,
+            "opr": "return",
+            "type": "int"
+          }
+        ],
+        "exceptions": [],
+        "lines": [
+          {
+            "line": 112,
+            "offset": 0
+          },
+          {
+            "line": 114,
+            "offset": 34
+          },
+          {
+            "line": 116,
+            "offset": 41
+          }
+        ],
+        "max_locals": 1,
+        "max_stack": 3,
+        "stack_map": [
+          {
+            "index": 41,
+            "type": "same"
+          }
+        ]
+      },
+      "default": null,
+      "exceptions": [],
+      "name": "secretThenDivide",
+      "params": [
+        {
+          "annotations": [],
+          "type": {
+            "annotations": [],
+            "kind": "array",
+            "type": {
+              "annotations": [],
+              "base": "char"
+            }
+          },
+          "visible": true
+        }
+      ],
+      "returns": {
+        "annotations": [],
+        "type": {
+          "base": "int"
+        }
+      },
+      "typeparams": []
+    },
+    {
+      "access": [
+        "public",
+        "static"
+      ],
+      "annotations": [
+        {
+          "is_runtime_visible": true,
+          "type": "jpamb/utils/Cases",
+          "values": {
+            "value": {
+              "type": "array",
+              "value": [
+                {
+                  "type": "annotation",
+                  "value": {
+                    "type": "jpamb/utils/Case",
+                    "values": {
+                      "value": {
+                        "type": "string",
                         "value": "([I: 50, 100, 200]) -> ok"
                       }
                     }
@@ -3311,27 +3705,27 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 111,
+            "line": 123,
             "offset": 0
           },
           {
-            "line": 112,
+            "line": 124,
             "offset": 2
           },
           {
-            "line": 113,
+            "line": 125,
             "offset": 8
           },
           {
-            "line": 112,
+            "line": 124,
             "offset": 14
           },
           {
-            "line": 115,
+            "line": 127,
             "offset": 16
           },
           {
-            "line": 116,
+            "line": 128,
             "offset": 25
           }
         ],
@@ -3532,23 +3926,23 @@
         "exceptions": [],
         "lines": [
           {
-            "line": 124,
+            "line": 136,
             "offset": 0
           },
           {
-            "line": 125,
+            "line": 137,
             "offset": 3
           },
           {
-            "line": 126,
+            "line": 138,
             "offset": 8
           },
           {
-            "line": 125,
+            "line": 137,
             "offset": 12
           },
           {
-            "line": 128,
+            "line": 140,
             "offset": 14
           }
         ],

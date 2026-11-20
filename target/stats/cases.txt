@@ -17,6 +17,8 @@ jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:50, 100, 200]) 
 jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:]) -> assertion error
 jpamb.cases.Arrays.binarySearch:(I)V                         (3) -> ok
 jpamb.cases.Arrays.binarySearch:(I)V                         (6) -> assertion error
+jpamb.cases.Arrays.secretThenDivide:([C)I                    ([C:'s', 'e', 'c', 'r', 'e', 't']) -> divide by zero
+jpamb.cases.Arrays.secretThenDivide:([C)I                    ([C:'s', 'e', 'c', 'r', 'e', 'x']) -> ok
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
@@ -36,8 +38,6 @@ jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion
 jpamb.cases.Dependent.doubleIsAlwaysEven:(I)V                (7) -> ok
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
-jpamb.cases.Fuzzing.secretThenDivide:([C)I                   ([C:'s', 'e', 'c', 'r', 'e', 't']) -> divide by zero
-jpamb.cases.Fuzzing.secretThenDivide:([C)I                   ([C:'s', 'e', 'c', 'r', 'e', 'x']) -> ok
 jpamb.cases.Loops.forever:()V                                () -> *
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *

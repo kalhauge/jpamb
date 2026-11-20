@@ -151,6 +151,22 @@
     )
     :results ("assertion error")
   )
+  :"jpamb.cases.Arrays.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 't'])I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39)
+      )
+    )
+    :results ("divide by zero")
+  )
+  :"jpamb.cases.Arrays.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 'x'])I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 41 42)
+      )
+    )
+    :results (ok)
+  )
   :"jpamb.cases.Calls.allPrimesArePositive!(-1)V" (control
     :coverage (
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
@@ -344,22 +360,6 @@
     :coverage (
       :"jpamb.cases.Dependent.safeDivByN:(I)I" (coverage
         :reachable (0 1 6 7)
-      )
-    )
-    :results (ok)
-  )
-  :"jpamb.cases.Fuzzing.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 't'])I" (control
-    :coverage (
-      :"jpamb.cases.Fuzzing.secretThenDivide:([C)I" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39)
-      )
-    )
-    :results ("divide by zero")
-  )
-  :"jpamb.cases.Fuzzing.secretThenDivide!([C:'s', 'e', 'c', 'r', 'e', 'x'])I" (control
-    :coverage (
-      :"jpamb.cases.Fuzzing.secretThenDivide:([C)I" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 41 42)
       )
     )
     :results (ok)
@@ -772,6 +772,14 @@
     )
     :results ("assertion error" ok)
   )
+  :"jpamb.cases.Arrays.secretThenDivide:([C)I" (control
+    :coverage (
+      :"jpamb.cases.Arrays.secretThenDivide:([C)I" (coverage
+        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 41 42)
+      )
+    )
+    :results ("divide by zero" ok)
+  )
   :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (control
     :coverage (
       :"jpamb.cases.Calls.allPrimesArePositive:(I)V" (coverage
@@ -897,14 +905,6 @@
       )
     )
     :results (ok)
-  )
-  :"jpamb.cases.Fuzzing.secretThenDivide:([C)I" (control
-    :coverage (
-      :"jpamb.cases.Fuzzing.secretThenDivide:([C)I" (coverage
-        :reachable (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 41 42)
-      )
-    )
-    :results ("divide by zero" ok)
   )
   :"jpamb.cases.Loops.forever:()V" (control
     :coverage (
