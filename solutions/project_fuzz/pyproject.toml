@@ -9,6 +9,8 @@ description = "Analysis-guided, coverage-based fuzzer for JVM methods"
 requires-python = ">=3.13"
 dependencies = [
   "jpamb",
+  "tree-sitter>=0.26.0",
+  "tree-sitter-java>=0.23.5",
 ]
 
 [project.scripts]
