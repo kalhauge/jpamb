@@ -1,3 +1,4 @@
+import syntaxAnalyser
 import random
 import sys
 
@@ -466,13 +467,16 @@ def interpret():
             break
 
 
-def fuzz_input(rand: random.Random, methodid: jvm.AbsMethodID) -> jpamb.case.Input:
+def fuzz_input(rand: random.Random, methodid: jvm.AbsMethodID, specialValues: list[int]) -> jpamb.case.Input:
     input = []
     # 1. come up with possible inputs
     for p in methodid.extension.params:
         match p:
             case jvm.Int():
-                input.append(jpamb.case.Int(rand.randint(-(1 << 31), 1 << 31)))
+                if rand.randint(0,1):
+                    input.append(jpamb.case.Int(rand.randint(-(1 << 31), 1 << 31)))
+                else:
+                    input.append(jpamb.case.Int(specialValues[rand.randint(0, len(specialValues)-1)]))
             case jvm.Boolean():
                 input.append(jpamb.case.Boolean(1 == rand.randint(0, 1)))
             case jvm.Array():
@@ -528,6 +532,9 @@ def analyse():
     suite, eff = jpamb.setup()
     bc = jpamb.Bytecode(suite, eff, {})
 
+    intConstants = syntaxAnalyser.getDictFromMethodIdTS(methodid)
+    intConstantsAndBoundaryValues = syntaxAnalyser.augmentWithBoundryValues(intConstants)
+
     MAX_STEPS = 200
 
     import random
@@ -538,7 +545,7 @@ def analyse():
     behaviors = set()
     # Try 10 random inputs
     for i in range(10):
-        input = fuzz_input(rand, methodid)
+        input = fuzz_input(rand, methodid, list(intConstantsAndBoundaryValues))
         state = initial(bc, methodid, input)
 
         for x in range(MAX_STEPS):
