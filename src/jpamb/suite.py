@@ -20,11 +20,8 @@ from jpamb.version import __version__
 class Suite:
     """The suite!"""
 
+    cachedir: Path
     workdir: Path
-
-    @classmethod
-    def from_workdir(cls, workdir: Path):
-        return cls(workdir)
 
     def __post_init__(self):
         assert self.workdir.is_absolute(), f"Assuming that {self.workdir} is absolute."
@@ -35,14 +32,12 @@ class Suite:
         return self.workdir / "target" / "stats"
 
     def cache_folder(self, *, eff: Effect) -> Path:
-        cache = self.workdir / ".cache" / "jpamb"
-        cache.mkdir(parents=True, exist_ok=True)
-
-        cache_gitignore = cache / ".gitignore"
+        self.cachedir.mkdir(parents=True, exist_ok=True)
+        cache_gitignore = self.cachedir / ".gitignore"
         if not cache_gitignore.exists():
-            (cache / ".gitignore").write_text("**/*\n")
+            (self.cachedir / ".gitignore").write_text("**/*\n")
 
-        return cache
+        return self.cachedir
 
     @property
     def classfiles_folder(self) -> Path:
