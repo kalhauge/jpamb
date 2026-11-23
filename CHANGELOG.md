@@ -1,5 +1,10 @@
 # The Change Log
 
+## Version 0.10.1
+
+- Make the cache dir separate from the workfolder
+- Update coverage with new more precise interpreter
+
 ## Version 0.10.0
 
 - Special thanks to the class of 2026, we have added a lot of extra cases.
