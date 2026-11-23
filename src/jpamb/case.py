@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
-from typing import NoReturn, Optional
+from typing import NoReturn, Optional, Self
 
 import jvm
 import jvm.state
@@ -43,12 +43,15 @@ class Value(ABC):
             #     return Reference(None if value == 0 else value - 1)
             case jvm.Object(cn) if cn.slashed() == "java/lang/String":
                 return String(sexpr.to_str(expr))
+            case jvm.Object(cn) if cn.slashed() == "jpamb/utils/Smith":
+                return Smith(sexpr.to_str(expr))
             case jvm.Array(contains=jvm.Int()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_int)
                 return Array(jvm.Int(), tuple(values))
             case jvm.Array(contains=jvm.Char()):
                 values = sexpr.to_list(expr, valuefn=sexpr.to_str)
                 return Array(jvm.Char(), tuple(values))
+
             case _:
                 raise sexpr.FromSExprError(f"{expr} is not a known value")
 
@@ -144,6 +147,21 @@ class String(Value):
 
 
 @dataclass(frozen=True)
+class Smith(Value):
+    value: str
+
+    @property
+    def type(self) -> jvm.Type:
+        return jvm.Object(jvm.ClassName("jpamb.utils.Smith"))
+
+    def encode(self) -> str:
+        return f"r'{self.value}'"
+
+    def __sexpr__(self) -> sexpr.SExpr:
+        return sexpr.sexpr([sexpr.sexpr(self.type), self.value])
+
+
+@dataclass(frozen=True)
 class Array(Value):
     contains: jvm.Type
     values: tuple[int | str | float | bool, ...]
@@ -188,6 +206,7 @@ class InputParser:
             ("INT", r"-?\d+"),
             ("BOOL", r"true|false"),
             ("CHAR", r"'[^']'"),
+            ("SMITH", r"r'[^']*'"),
             ("STRING", r"s'[^']*'"),
             ("COMMA", r","),
             ("SKIP", r"[ \t]+"),
@@ -234,6 +253,8 @@ class InputParser:
                 return Char(self.parse_char())
             case "BOOL":
                 return Boolean(self.parse_bool())
+            case "SMITH":
+                return self.parse_smith()
             case "STRING":
                 return String(self.parse_string())
             case "OPEN_ARRAY":
@@ -255,6 +276,10 @@ class InputParser:
     def parse_string(self):
         tok = self.expect("STRING")
         return tok.value[2:-1]
+
+    def parse_smith(self):
+        tok = self.expect("SMITH")
+        return Smith(tok.value[2:-1])
 
     def parse_array(self):
         key = self.expect("OPEN_ARRAY")
@@ -458,10 +483,18 @@ class Case(sexpr.AsSExpr):
         return sorted(cases_by_id.items())
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class Coverage(sexpr.AsSExpr):
-    reachable: set[int] | None = None
-    # unreachable: set[int] | None = None
+    reachable: frozenset[int] | None = None
+
+    def __or__(self: "Coverage", other: "Coverage") -> "Coverage":
+        if self.reachable is None:
+            return Coverage(other.reachable)
+
+        if other.reachable is None:
+            return Coverage(other.reachable)
+
+        return Coverage(self.reachable | other.reachable)
 
 
 @dataclass(frozen=True, slots=True)
@@ -484,6 +517,17 @@ class Control(sexpr.AsSExpr):
                 reachable.update(jvm.state.PC(m, o) for o in c.reachable)
         return reachable
 
+    def __ior__(self: "Control", other: "Control") -> Self:
+        methods = sorted(list(self.coverage.keys()) + list(other.coverage.keys()))
+        for m in methods:
+            self.coverage[m] = self.coverage.get(m, Coverage()) | other.coverage.get(
+                m, Coverage()
+            )
+
+        self.results.update(other.results)
+
+        return self
+
 
 type Entry = jvm.AbsMethodID
 
@@ -491,6 +535,29 @@ type Entry = jvm.AbsMethodID
 @dataclass(frozen=True, slots=True)
 class Benchmark:
     experiments: collections.OrderedDict[Experiment, Control]
+
+    @classmethod
+    def from_cases(cls, cases: Iterable[Case]):
+        benchmark = cls(collections.OrderedDict())
+
+        for case in cases:
+            benchmark[case.experiment] = Control(
+                collections.OrderedDict(), {case.result}
+            )
+
+        return benchmark
+
+    def __setitem__(self, experiment: Experiment, control: Control):
+        full = Experiment(experiment.entry, None)
+        if full not in self.experiments:
+            self.experiments[full] = Control(collections.OrderedDict(), set())
+
+        self.experiments[experiment] = control
+        full_control = self.experiments[full]
+        full_control |= control
+
+    def __getitem__(self, experiment: Experiment) -> Control:
+        return self.experiments[experiment]
 
     def __sexpr__(self) -> sexpr.SExpr:
         experiments = sexpr.sexpr(self.experiments)

@@ -1,9 +1,14 @@
 jpamb.cases.Arrays.arrayContent:()V                          () -> assertion error
 jpamb.cases.Arrays.arrayContentAboveMinus13:()V              () -> ok
+jpamb.cases.Arrays.arrayFillUntilEqual:()V                   () -> ok
 jpamb.cases.Arrays.arrayInBounds:()V                         () -> ok
+jpamb.cases.Arrays.arrayIndexValue:(I)V                      (4) -> ok
+jpamb.cases.Arrays.arrayIndexValue:(I)V                      (5) -> assertion error
 jpamb.cases.Arrays.arrayIsNull:()V                           () -> null pointer
 jpamb.cases.Arrays.arrayIsNullLength:()V                     () -> null pointer
 jpamb.cases.Arrays.arrayLength:()V                           () -> ok
+jpamb.cases.Arrays.arrayLoop:(I)V                            (5) -> ok
+jpamb.cases.Arrays.arrayLoop:(I)V                            (6) -> assertion error
 jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:1]) -> ok
 jpamb.cases.Arrays.arrayNotEmpty:([I)V                       ([I:]) -> assertion error
 jpamb.cases.Arrays.arrayOutOfBounds:()V                      () -> out of bounds
@@ -14,8 +19,28 @@ jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:'x']) -> assert
 jpamb.cases.Arrays.arraySpellsHello:([C)V                    ([C:]) -> out of bounds
 jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:50, 100, 200]) -> ok
 jpamb.cases.Arrays.arraySumIsLarge:([I)V                     ([I:]) -> assertion error
+jpamb.cases.Arrays.arraySumIsLargeInt:(I)V                   (0) -> ok
+jpamb.cases.Arrays.arraySumIsLargeInt:(I)V                   (1) -> assertion error
 jpamb.cases.Arrays.binarySearch:(I)V                         (3) -> ok
 jpamb.cases.Arrays.binarySearch:(I)V                         (6) -> assertion error
+jpamb.cases.Arrays.secretThenDivide:([C)I                    ([C:'s', 'e', 'c', 'r', 'e', 't']) -> divide by zero
+jpamb.cases.Arrays.secretThenDivide:([C)I                    ([C:'s', 'e', 'c', 'r', 'e', 'x']) -> ok
+jpamb.cases.BitOperations.bitshiftLeft:(I)V                  (1) -> assertion error
+jpamb.cases.BitOperations.bitshiftLeft:(I)V                  (4) -> ok
+jpamb.cases.BitOperations.bitshiftRight:(I)V                 (10000) -> assertion error
+jpamb.cases.BitOperations.bitshiftRight:(I)V                 (128) -> ok
+jpamb.cases.BitOperations.bitshiftUnsignedRight:(I)V         (-1) -> assertion error
+jpamb.cases.BitOperations.bitshiftUnsignedRight:(I)V         (128) -> ok
+jpamb.cases.BitOperations.bitwiseAnd:(II)V                   (10000, 4) -> assertion error
+jpamb.cases.BitOperations.bitwiseAnd:(II)V                   (128, 128) -> ok
+jpamb.cases.BitOperations.bitwiseNot:(I)V                    (10000) -> assertion error
+jpamb.cases.BitOperations.bitwiseNot:(I)V                    (128) -> ok
+jpamb.cases.BitOperations.bitwiseOr:(II)V                    (10000, 2) -> assertion error
+jpamb.cases.BitOperations.bitwiseOr:(II)V                    (128, 3) -> ok
+jpamb.cases.BitOperations.drawInt:(I)V                       (32) -> ok
+jpamb.cases.BitOperations.drawInt:(I)V                       (4) -> assertion error
+jpamb.cases.BitOperations.xor:(II)V                          (10, 10) -> assertion error
+jpamb.cases.BitOperations.xor:(II)V                          (4, 0) -> ok
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (-1) -> assertion error
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (0) -> out of bounds
 jpamb.cases.Calls.allPrimesArePositive:(I)V                  (100) -> ok
@@ -26,16 +51,146 @@ jpamb.cases.Calls.callsAssertIf:(Z)V                         (false) -> assertio
 jpamb.cases.Calls.callsAssertIf:(Z)V                         (true) -> ok
 jpamb.cases.Calls.callsAssertIfWithTrue:()V                  () -> ok
 jpamb.cases.Calls.callsAssertTrue:()V                        () -> ok
+jpamb.cases.Calls.callsBowtie:(II)I                          (-1, 3) -> assertion error
+jpamb.cases.Calls.callsBowtie:(II)I                          (1, 3) -> ok
+jpamb.cases.Calls.callsCallChain:(II)I                       (-1, 20) -> assertion error
+jpamb.cases.Calls.callsCallChain:(II)I                       (1, 20) -> ok
+jpamb.cases.Calls.callsCallCycle:(II)I                       (1, 20) -> ok
+jpamb.cases.Calls.callsCallCycleFork:(II)I                   (1, 20) -> ok
+jpamb.cases.Calls.callsCallCycleLoop:(II)I                   (0, 20) -> ok
+jpamb.cases.Calls.callsCallCycleNext:(II)I                   (1, 20) -> ok
+jpamb.cases.Calls.callsDiamond:(I)I                          (-1) -> assertion error
+jpamb.cases.Calls.callsDiamond:(I)I                          (1) -> ok
+jpamb.cases.Calls.callsDumbbell:(II)I                        (-1, 2) -> assertion error
+jpamb.cases.Calls.callsDumbbell:(II)I                        (1, 2) -> ok
+jpamb.cases.Calls.callsTadpole:(II)I                         (-1, 2) -> assertion error
+jpamb.cases.Calls.callsTadpole:(II)I                         (1, 2) -> ok
+jpamb.cases.Calls.callsWheel:(II)I                           (-1, 2) -> assertion error
+jpamb.cases.Calls.callsWheel:(II)I                           (1, 2) -> ok
+jpamb.cases.Calls.divideViaHelper:(I)I                       (0) -> ok
+jpamb.cases.Calls.divideViaHelper:(I)I                       (3) -> divide by zero
+jpamb.cases.Calls.divisionThroughHelper:(II)I                (0, 0) -> divide by zero
+jpamb.cases.Calls.divisionThroughHelper:(II)I                (10, 2) -> ok
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (0, 0) -> divide by zero
 jpamb.cases.Dependent.badNormalizedDistance:(II)I            (1, 1) -> ok
+jpamb.cases.Dependent.combinedGuidance:(III)V                (24691, 400, 12013) -> ok
+jpamb.cases.Dependent.combinedGuidance:(III)V                (24691, 400, 12014) -> assertion error
+jpamb.cases.Dependent.compareEquality:(II)V                  (100, 0) -> ok
+jpamb.cases.Dependent.compareEquality:(II)V                  (100, 3017) -> assertion error
 jpamb.cases.Dependent.divisionLoop:(I)V                      (0) -> ok
 jpamb.cases.Dependent.divisionLoop:(I)V                      (1024) -> assertion error
+jpamb.cases.Dependent.doubleIsAlwaysEven:(I)V                (7) -> ok
 jpamb.cases.Dependent.normalizedDistance:(II)I               (0, 0) -> ok
 jpamb.cases.Dependent.safeDivByN:(I)I                        (0) -> ok
+jpamb.cases.Extended.safeDifferenceChain:(III)I              (100, 9, 4) -> ok
+jpamb.cases.Extended.safeDifferenceChain:(III)I              (50, 5, 5) -> ok
+jpamb.cases.Extended.safeLoopAccumulation:(III)I             (0, 3, 10) -> ok
+jpamb.cases.Extended.safeLoopAccumulation:(III)I             (2, 4, 0) -> ok
+jpamb.cases.Extended.safeNestedLoopDivision:(III)I           (0, 3, 3) -> ok
+jpamb.cases.Extended.safeNestedLoopDivision:(III)I           (2, 3, 3) -> ok
+jpamb.cases.Extended.safeSelectedDivisor:(ZIII)I             (false, -4, 2, 12) -> ok
+jpamb.cases.Extended.safeSelectedDivisor:(ZIII)I             (true, 0, 5, 20) -> ok
+jpamb.cases.Extended.unsafeComputedRemainder:(IIIII)I        (0, 3, 4, -11, 20) -> ok
+jpamb.cases.Extended.unsafeComputedRemainder:(IIIII)I        (1, 3, 4, -12, 20) -> divide by zero
+jpamb.cases.Extended.unsafeLoopOffsetDivisor:(IIII)I         (0, 5, 0, 10) -> divide by zero
+jpamb.cases.Extended.unsafeLoopOffsetDivisor:(IIII)I         (4, 1, 2, 20) -> ok
+jpamb.cases.Extended.unsafeModeDerivedDivisor:(IIII)I        (-1, 0, 4, 10) -> divide by zero
+jpamb.cases.Extended.unsafeModeDerivedDivisor:(IIII)I        (1, 5, 2, 9) -> ok
+jpamb.cases.Extended.unsafeNestedAffineDivisor:(IIIII)I      (1, 4, 4, 1, 20) -> divide by zero
+jpamb.cases.Extended.unsafeNestedAffineDivisor:(IIIII)I      (1, 5, 3, 1, 20) -> ok
+jpamb.cases.Extended.unsafeNestedLoopDivisor:(IIIII)I        (0, 4, 0, 0, 10) -> divide by zero
+jpamb.cases.Extended.unsafeNestedLoopDivisor:(IIIII)I        (10, 2, 2, 2, 20) -> ok
+jpamb.cases.Loops.decrementLoop:(I)V                         (7) -> ok
+jpamb.cases.Loops.decrementLoop:(I)V                         (8) -> assertion error
+jpamb.cases.Loops.doWhileDivision:(II)I                      (0, 0) -> divide by zero
+jpamb.cases.Loops.doWhileDivision:(II)I                      (2, 0) -> ok
+jpamb.cases.Loops.forLoopDivision:(II)I                      (0, 0) -> ok
+jpamb.cases.Loops.forLoopDivision:(II)I                      (0, 1) -> divide by zero
 jpamb.cases.Loops.forever:()V                                () -> *
+jpamb.cases.Loops.loopRemainder:(II)I                        (0, 0) -> ok
+jpamb.cases.Loops.loopRemainder:(II)I                        (0, 1) -> divide by zero
+jpamb.cases.Loops.multiplicationLoop:(I)V                    (10) -> assertion error
+jpamb.cases.Loops.multiplicationLoop:(I)V                    (9) -> ok
+jpamb.cases.Loops.nestedLoop:(I)V                            (10) -> assertion error
+jpamb.cases.Loops.nestedLoop:(I)V                            (9) -> ok
 jpamb.cases.Loops.neverAsserts:()V                           () -> *
 jpamb.cases.Loops.neverDivides:()I                           () -> *
+jpamb.cases.Loops.safeNestedBranchDivision:(III)I            (0, 5, 0) -> ok
+jpamb.cases.Loops.safeNestedBranchDivision:(III)I            (1, 21, 3) -> ok
 jpamb.cases.Loops.terminates:()V                             () -> assertion error
+jpamb.cases.Loops.whileLoopDivision:(II)I                    (0, 0) -> ok
+jpamb.cases.Loops.whileLoopDivision:(II)I                    (0, 2) -> divide by zero
+jpamb.cases.MagicConstants.computedIndex:(I)I                (0) -> ok
+jpamb.cases.MagicConstants.computedIndex:(I)I                (5) -> out of bounds
+jpamb.cases.MagicConstants.derivedNull:(I)I                  (0) -> ok
+jpamb.cases.MagicConstants.derivedNull:(I)I                  (50) -> null pointer
+jpamb.cases.MagicConstants.loopAndEquality:(I)V              (39) -> ok
+jpamb.cases.MagicConstants.loopAndEquality:(I)V              (40) -> assertion error
+jpamb.cases.MagicConstants.loopDoubling:(I)V                 (0) -> ok
+jpamb.cases.MagicConstants.loopDoubling:(I)V                 (24) -> assertion error
+jpamb.cases.MagicConstants.loopDoublingSafe:(I)V             (24) -> ok
+jpamb.cases.MagicConstants.narrowEquality:(I)V               (123456788) -> ok
+jpamb.cases.MagicConstants.narrowEquality:(I)V               (123456789) -> assertion error
+jpamb.cases.MagicConstants.rangeCondition:(I)V               (1004) -> ok
+jpamb.cases.MagicConstants.rangeCondition:(I)V               (1005) -> assertion error
+jpamb.cases.MagicConstants.squareThreshold:(I)V              (25) -> assertion error
+jpamb.cases.MagicConstants.squareThreshold:(I)V              (4) -> ok
+jpamb.cases.MagicConstants.squaredDivisor:(I)I               (10) -> divide by zero
+jpamb.cases.MagicConstants.squaredDivisor:(I)I               (3) -> ok
+jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (1) -> ok
+jpamb.cases.MagicConstants.sumReachesTarget:(I)V             (42) -> assertion error
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (0) -> out of bounds
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (999990) -> ok
+jpamb.cases.MagicConstants.tableLookup:(I)I                  (999993) -> divide by zero
+jpamb.cases.MagicConstants.tableLookupSafe:(I)I              (999993) -> ok
+jpamb.cases.MagicConstants.twoParams:(II)I                   (50, 50) -> ok
+jpamb.cases.MagicConstants.twoParams:(II)I                   (71, 29) -> divide by zero
+jpamb.cases.MagicConstants.twoParamsSafe:(II)I               (71, 29) -> ok
+jpamb.cases.MagicConstants.unreachableRange:(I)V             (101) -> ok
+jpamb.cases.Operators.branchRemainder:(ZI)I                  (false, 0) -> ok
+jpamb.cases.Operators.branchRemainder:(ZI)I                  (true, 0) -> divide by zero
+jpamb.cases.Operators.directRemainder:(II)I                  (2, 0) -> divide by zero
+jpamb.cases.Operators.directRemainder:(II)I                  (8, 3) -> ok
+jpamb.cases.Operators.divisionChain:(IIII)I                  (20, 0, 1, 1) -> divide by zero
+jpamb.cases.Operators.divisionChain:(IIII)I                  (20, 2, 1, 1) -> ok
+jpamb.cases.Operators.multiplyForDivisor:(II)I               (-2, 3) -> ok
+jpamb.cases.Operators.multiplyForDivisor:(II)I               (3, 0) -> divide by zero
+jpamb.cases.Operators.negatedDivisor:(I)I                    (0) -> divide by zero
+jpamb.cases.Operators.negatedDivisor:(I)I                    (1) -> ok
+jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I            (0) -> ok
+jpamb.cases.Overflow.arrayIndexAfterOverflow:(I)I            (2147483647) -> out of bounds
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'0000') -> assertion error
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'0101') -> divide by zero
+jpamb.cases.Randomness.branchOverlap:(Ljpamb/utils/Smith;)V  (r'010110000000001') -> ok
+jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'1') -> assertion error
+jpamb.cases.Randomness.compareInts:(Ljpamb/utils/Smith;)V    (r'100000000000000000000000000000001') -> ok
+jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'') -> assertion error
+jpamb.cases.Randomness.draw34Bits:(Ljpamb/utils/Smith;)V     (r'10000000000000000000000000000000011') -> ok
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'0') -> ok
+jpamb.cases.Randomness.drawDependsOnArg:(ILjpamb/utils/Smith;)I (0, r'1') -> divide by zero
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'0') -> assertion error
+jpamb.cases.Randomness.drawInCallee:(Ljpamb/utils/Smith;)V   (r'1') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'0000100000000000000000000000000000001') -> assertion error
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'010110000000001') -> ok
+jpamb.cases.Randomness.drawInt:(Ljpamb/utils/Smith;)V        (r'1') -> divide by zero
+jpamb.cases.Randomness.drawIntOverflow:(Ljpamb/utils/Smith;)V (r'') -> ok
+jpamb.cases.Randomness.drawIntOverflow:(Ljpamb/utils/Smith;)V (r'1111111111111111111111111111111') -> assertion error
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0000') -> *
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'00001') -> assertion error
+jpamb.cases.Randomness.loopUntilHeads:(Ljpamb/utils/Smith;)V (r'0001') -> ok
+jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'01010101') -> assertion error
+jpamb.cases.Randomness.randomBranch:(Ljpamb/utils/Smith;)V   (r'100000') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'0') -> ok
+jpamb.cases.Randomness.randomIndex:(Ljpamb/utils/Smith;)V    (r'1') -> out of bounds
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'0') -> null pointer
+jpamb.cases.Randomness.randomNull:(Ljpamb/utils/Smith;)V     (r'1') -> ok
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'0') -> *
+jpamb.cases.Randomness.spinOnTails:(Ljpamb/utils/Smith;)V    (r'1') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'10') -> ok
+jpamb.cases.Randomness.twoDraws:(Ljpamb/utils/Smith;)V       (r'11') -> assertion error
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (0, s'fuzz') -> assertion error
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (0, s'other') -> ok
+jpamb.cases.Simple.ConstantExtractionCheck:(ILjava/lang/String;)V (1339, s'other') -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (false) -> assertion error
 jpamb.cases.Simple.assertBoolean:(Z)V                        (true) -> ok
 jpamb.cases.Simple.assertFalse:()V                           () -> assertion error
@@ -44,11 +199,15 @@ jpamb.cases.Simple.assertInteger:(I)V                        (1) -> ok
 jpamb.cases.Simple.assertPositive:(I)V                       (-1) -> assertion error
 jpamb.cases.Simple.assertPositive:(I)V                       (1) -> ok
 jpamb.cases.Simple.assertTrue:()V                            () -> ok
+jpamb.cases.Simple.branchDivision:(ZI)I                      (false, 0) -> ok
+jpamb.cases.Simple.branchDivision:(ZI)I                      (true, 0) -> divide by zero
 jpamb.cases.Simple.checkBeforeAssert:(I)V                    (-1) -> assertion error
 jpamb.cases.Simple.checkBeforeAssert:(I)V                    (0) -> ok
 jpamb.cases.Simple.checkBeforeDivideByN2:(I)I                (0) -> ok
 jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (0) -> assertion error
 jpamb.cases.Simple.checkBeforeDivideByN:(I)I                 (1) -> ok
+jpamb.cases.Simple.directDivision:(II)I                      (0, 0) -> divide by zero
+jpamb.cases.Simple.directDivision:(II)I                      (12, 3) -> ok
 jpamb.cases.Simple.divideByN:(I)I                            (0) -> divide by zero
 jpamb.cases.Simple.divideByN:(I)I                            (1) -> ok
 jpamb.cases.Simple.divideByNMinus10054203:(I)I               (0) -> ok
@@ -58,13 +217,50 @@ jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 0) -> divide by
 jpamb.cases.Simple.divideZeroByZero:(II)I                    (0, 1) -> ok
 jpamb.cases.Simple.doNothing:()V                             () -> ok
 jpamb.cases.Simple.earlyReturn:()I                           () -> ok
+jpamb.cases.Simple.guardedDivision:(I)I                      (0) -> ok
+jpamb.cases.Simple.guardedDivision:(I)I                      (1) -> ok
+jpamb.cases.Simple.integerRangeBoundary:(I)V                 (4096) -> ok
+jpamb.cases.Simple.integerRangeBoundary:(I)V                 (4097) -> assertion error
 jpamb.cases.Simple.justAdd:(II)I                             (1, 2) -> ok
 jpamb.cases.Simple.justMulitply:(II)I                        (1, 2) -> ok
 jpamb.cases.Simple.justReturn:()I                            () -> ok
 jpamb.cases.Simple.justReturnNothing:()V                     () -> ok
 jpamb.cases.Simple.multiError:(Z)I                           (false) -> assertion error
 jpamb.cases.Simple.multiError:(Z)I                           (true) -> divide by zero
+jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 0) -> divide by zero
+jpamb.cases.Simple.nestedBranchDivision:(II)I                (1, 2) -> ok
+jpamb.cases.Simple.nestedConstantCoverage:(III)V             (31337, -27183, 0) -> ok
+jpamb.cases.Simple.nestedConstantCoverage:(III)V             (31337, -27183, 65521) -> assertion error
+jpamb.cases.Simple.selectedDivisor:(ZII)I                    (false, 2, 0) -> divide by zero
+jpamb.cases.Simple.selectedDivisor:(ZII)I                    (true, 7, 0) -> ok
+jpamb.cases.Simple.subtractForDivisor:(II)I                  (5, 4) -> ok
+jpamb.cases.Simple.subtractForDivisor:(II)I                  (5, 5) -> divide by zero
+jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A------Z') -> assertion error
+jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A---B---X') -> assertion error
+jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'A---B---Z') -> ok
+jpamb.cases.Strings.checkComplexSequence:(Ljava/lang/String;)V (s'B------Z') -> assertion error
+jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V     (s'.pdf') -> assertion error
+jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V     (s'document.doc') -> assertion error
+jpamb.cases.Strings.checkExtension:(Ljava/lang/String;)V     (s'document.pdf') -> ok
+jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V          (s'good morning') -> ok
+jpamb.cases.Strings.sayHello2:(Ljava/lang/String;)V          (s'morning') -> assertion error
+jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V          (s'bad night') -> ok
+jpamb.cases.Strings.sayHello3:(Ljava/lang/String;)V          (s'good morning') -> assertion error
 jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V           (s'hello') -> ok
 jpamb.cases.Strings.sayHello:(Ljava/lang/String;)V           (s'not hello') -> assertion error
 jpamb.cases.Tricky.collatz:(I)V                              (0) -> assertion error
 jpamb.cases.Tricky.collatz:(I)V                              (24) -> ok
+jpamb.cases.advanced.CWE470.strict_safe_dispatcher:(Ljava/lang/String;)V (s'Any') -> ok
+jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
+jpamb.cases.advanced.CWE470.unsafe_dispatcher:(Ljava/lang/String;)V (s'__CANARY__') -> assertion error
+jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V (s'Safe') -> ok
+jpamb.cases.advanced.CWE470.weak_dispatcher:(Ljava/lang/String;)V (s'SafeWrapper') -> assertion error
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|UpdatedLibrary|') -> assertion error
+jpamb.cases.advanced.CWE502.blacklist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|DummyButton|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|SafeCommand|') -> ok
+jpamb.cases.advanced.CWE502.insecure_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> assertion error
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|0') -> ok
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|DownGradableLibrary|1') -> assertion error
+jpamb.cases.advanced.CWE502.whitelist_deserialization:(Ljava/lang/String;)V (s'SER|__CANARY__Command|') -> ok

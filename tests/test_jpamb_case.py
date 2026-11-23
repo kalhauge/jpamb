@@ -12,6 +12,7 @@ from jpamb.case import (
     Input,
     InputParser,
     Int,
+    Smith,
     String,
     Value,
 )
@@ -26,6 +27,7 @@ from jpamb.case import (
         (Float(1.5), "1.5"),
         (Char("a"), "'a'"),
         (String("hello"), "s'hello'"),
+        (Smith("101"), "r'101'"),
         (Array(jvm.Int(), (10, 32)), "[I:10, 32]"),
         (Array(jvm.Char(), ("a", "b")), "[C:'a', 'b']"),
     ],
@@ -46,6 +48,8 @@ def test_encode(value, expected):
         Char("a"),
         String("hello world"),
         String(""),
+        Smith(""),
+        Smith("101"),
         Array(jvm.Int(), (10, 32)),
         Array(jvm.Int(), ()),
         Array(jvm.Char(), ("a", "b")),
@@ -105,6 +109,7 @@ def st_values():
         st_boolean_values(),
         st_char_values(),
         st_string_values(),
+        st.text(alphabet="01").map(Smith),
         st_int_array_values(),
         st_char_array_values(),
     )
