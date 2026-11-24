@@ -1,10 +1,17 @@
 import syntaxAnalyser
+import os
 import random
 import sys
+import time
+from dataclasses import dataclass
 
 import jpamb
 import jvm
 import jvm.state as jvmc
+
+# Print every interpreted instruction to stderr. Only useful for debugging the
+# interpreter; the fuzzer runs thousands of executions, so it is off by default.
+TRACE = os.environ.get("FUZZ_TRACE") == "1"
 
 
 def binary(op, v1: int, v2: int) -> int | str:
@@ -54,7 +61,8 @@ def step(bc: jpamb.Bytecode, state: jvmc.State) -> tuple[jvmc.PC, jvmc.State | s
     pc = frame.pc
     opr = bc[pc]
     output = state
-    print(f"Stepping {pc}:\n > {opr}", file=sys.stderr)
+    if TRACE:
+        print(f"Stepping {pc}:\n > {opr}", file=sys.stderr)
     match opr:
         case jvm.Push(type=t, value=v):
             match t:
@@ -443,6 +451,8 @@ def initial(bc: jpamb.Bytecode, methodid: jvm.AbsMethodID, input: jpamb.Input):
 
 def interpret():
     """The entry point for the interpreter"""
+    global TRACE
+    TRACE = True
 
     methodid, input, max_steps = jpamb.getcase(
         "dynamic",
@@ -467,102 +477,342 @@ def interpret():
             break
 
 
-def fuzz_input(rand: random.Random, methodid: jvm.AbsMethodID, specialValues: list[int]) -> jpamb.case.Input:
-    input = []
-    # 1. come up with possible inputs
-    for p in methodid.extension.params:
+# Coverage guided fuzzing (similar to AFL)
+# - coverage = edges (prev pc -> pc) + bucketed hit count per edge
+# - inputs that hit new coverage go into the corpus, the rest is dropped
+# - new inputs = mutated corpus entries, ints can also come from the
+#   constant dictionary (syntaxAnalyser)
+#
+# FUZZ_MODE:
+#   random   - no feedback, fresh random input every time
+#   coverage - coverage guided, no dictionary
+#   full     - coverage guided + dictionary (default)
+
+INT_MIN, INT_MAX = -(1 << 31), (1 << 31) - 1
+MAX_STEPS = 3000
+
+Coverage = frozenset  # frozenset of coverage features
+
+
+def to_int32(v: int) -> int:
+    """Wrap an arbitrary python int into a signed 32 bit integer."""
+    return (v - INT_MIN) % (1 << 32) + INT_MIN
+
+
+def hit_bucket(count: int) -> int:
+    """AFL style hit count buckets: 1, 2, 3, 4-7, 8-15, 16-31, 32-127, 128+."""
+    if count <= 3:
+        return count
+    for bucket, limit in enumerate((8, 16, 32, 128), start=4):
+        if count < limit:
+            return bucket
+    return 8
+
+
+def execute(
+    bc: jpamb.Bytecode, state: jvmc.State, max_steps: int
+) -> tuple[str | None, Coverage]:
+    """Runs one input and returns (outcome, coverage).
+    outcome is "*" if max_steps ran out, None if the interpreter crashed."""
+    hits: dict[tuple, int] = {}
+    prev = None
+    outcome: str | None = "*"
+    try:
+        for _ in range(max_steps):
+            pc, state = step(bc, state)
+            edge = (prev, pc)
+            hits[edge] = hits.get(edge, 0) + 1
+            prev = pc
+            if isinstance(state, str):
+                outcome = state
+                break
+    except Exception as e:  # interpreter does not support everything yet
+        if TRACE:
+            print(f"interpreter failed: {e!r}", file=sys.stderr)
+        outcome = None
+
+    features = {(edge, hit_bucket(n)) for edge, n in hits.items()}
+    # new outcome also counts as new coverage
+    features.add(("outcome", outcome))
+    return outcome, frozenset(features)
+
+
+@dataclass
+class Seed:
+    values: tuple
+    coverage: Coverage
+    picks: int = 0
+
+
+class CoverageFuzzer:
+    """Coverage-guided mutational fuzzer for a single JVM method."""
+
+    def __init__(
+        self,
+        bc: jpamb.Bytecode,
+        methodid: jvm.AbsMethodID,
+        rand: random.Random,
+        int_dict: list[int] | None = None,
+        str_dict: list[str] | None = None,
+        use_coverage: bool = True,
+        max_steps: int = MAX_STEPS,
+    ):
+        self.bc = bc
+        self.methodid = methodid
+        self.params = list(methodid.extension.params)
+        self.rand = rand
+        self.int_dict = sorted(int_dict or [])
+        self.str_dict = sorted(str_dict or [])
+        self.use_coverage = use_coverage
+        self.max_steps = max_steps
+
+        self.corpus: list[Seed] = []
+        self.global_coverage: set = set()
+        # outcome -> first input that caused it (for test synthesis)
+        self.witnesses: dict[str, tuple] = {}
+        self.execs = 0
+        self.crashes = 0
+
+    # input generation
+
+    def random_int(self) -> int:
+        r = self.rand.random()
+        if self.int_dict and r < 0.3:
+            return self.rand.choice(self.int_dict)
+        if r < 0.65:
+            return self.rand.randint(-128, 128)
+        return self.rand.randint(INT_MIN, INT_MAX)
+
+    def random_char(self) -> str:
+        if self.rand.random() < 0.8:
+            return chr(self.rand.randint(32, 126))  # printable ascii
+        return chr(self.rand.randint(0, 255))
+
+    def random_string(self) -> str:
+        if self.str_dict and self.rand.random() < 0.3:
+            return self.rand.choice(self.str_dict)
+        return "".join(self.random_char() for _ in range(self.rand.randint(0, 10)))
+
+    def random_value(self, p: jvm.Type):
         match p:
             case jvm.Int():
-                if rand.randint(0,1):
-                    input.append(jpamb.case.Int(rand.randint(-(1 << 31), 1 << 31)))
-                else:
-                    input.append(jpamb.case.Int(specialValues[rand.randint(0, len(specialValues)-1)]))
+                return self.random_int()
             case jvm.Boolean():
-                input.append(jpamb.case.Boolean(1 == rand.randint(0, 1)))
-            case jvm.Array():
-                match p.contains:
-                    case jvm.Int():
-                        input.append(
-                            jpamb.case.Array(
-                                contains=jvm.Int(),
-                                values=[
-                                    rand.randint(-(1 << 31), 1 << 31)
-                                    for _ in range(rand.randint(0, 10))
-                                ],
-                            )
-                        )
-                    case jvm.Char():
-                        input.append(
-                            jpamb.case.Array(
-                                contains=jvm.Char(),
-                                values=[
-                                    chr(rand.randint(0, 255))
-                                    for _ in range(rand.randint(0, 10))
-                                ],
-                            )
-                        )
+                return self.rand.random() < 0.5
+            case jvm.Array(contains=jvm.Int()):
+                return tuple(self.random_int() for _ in range(self.rand.randint(0, 10)))
+            case jvm.Array(contains=jvm.Char()):
+                if self.str_dict and self.rand.random() < 0.3:
+                    return tuple(self.rand.choice(self.str_dict))
+                return tuple(self.random_char() for _ in range(self.rand.randint(0, 10)))
             case jvm.Object(name=jvm.ClassName("java.lang.String")):
-                input.append(
-                    jpamb.case.String(
-                        value="".join(
-                            chr(rand.randint(0, 255)) for _ in range(rand.randint(0, 10))
-                        )
-                    )
-                )
-                
-            case a:
-                raise NotImplementedError(
-                    "Don't know how to create random values for {input}"
-                )
+                return self.random_string()
+            case _:
+                raise NotImplementedError(f"Don't know how to fuzz values of {p!r}")
 
-    return jpamb.case.Input(input)
+    def random_input(self) -> tuple:
+        return tuple(self.random_value(p) for p in self.params)
+
+    # mutation
+
+    def mutate_int(self, v: int) -> int:
+        choice = self.rand.randrange(6 if self.int_dict else 5)
+        match choice:
+            case 0:  # small arithmetic step
+                return to_int32(v + self.rand.choice((-1, 1)) * self.rand.randint(1, 35))
+            case 1:  # flip one bit
+                return to_int32(v ^ (1 << self.rand.randrange(32)))
+            case 2:  # negate
+                return to_int32(-v)
+            case 3:  # scale
+                return to_int32(v * 2 if self.rand.random() < 0.5 else v // 2)
+            case 4:  # fresh value
+                return self.random_int()
+            case _:  # value from the constant dictionary
+                return self.rand.choice(self.int_dict)
+
+    def mutate_seq(self, seq: tuple, new_elem, mutate_elem) -> tuple:
+        seq = list(seq)
+        choice = self.rand.randrange(5)
+        if choice == 0 or not seq:  # insert
+            seq.insert(self.rand.randint(0, len(seq)), new_elem())
+        elif choice == 1:  # delete
+            del seq[self.rand.randrange(len(seq))]
+        elif choice == 2:  # mutate one element
+            i = self.rand.randrange(len(seq))
+            seq[i] = mutate_elem(seq[i])
+        elif choice == 3:  # truncate
+            seq = seq[: self.rand.randint(0, len(seq))]
+        else:  # duplicate a slice
+            i = self.rand.randrange(len(seq))
+            seq[i:i] = seq[i : self.rand.randint(i, len(seq))]
+        return tuple(seq[:64])
+
+    def mutate_char(self, c: str) -> str:
+        if self.rand.random() < 0.5:
+            return chr(max(0, min(0xFFFF, ord(c) + self.rand.choice((-1, 1)))))
+        return self.random_char()
+
+    def mutate_value(self, p: jvm.Type, v):
+        match p:
+            case jvm.Int():
+                return self.mutate_int(v)
+            case jvm.Boolean():
+                return not v
+            case jvm.Array(contains=jvm.Int()):
+                return self.mutate_seq(v, self.random_int, self.mutate_int)
+            case jvm.Array(contains=jvm.Char()):
+                if self.str_dict and self.rand.random() < 0.2:
+                    return tuple(self.rand.choice(self.str_dict))
+                return self.mutate_seq(v, self.random_char, self.mutate_char)
+            case jvm.Object(name=jvm.ClassName("java.lang.String")):
+                if self.str_dict and self.rand.random() < 0.2:
+                    return self.rand.choice(self.str_dict)
+                return "".join(self.mutate_seq(tuple(v), self.random_char, self.mutate_char))
+            case _:
+                return self.random_value(p)
+
+    def mutate(self, values: tuple) -> tuple:
+        values = list(values)
+        # apply 1, 2 or 4 mutations to random parameters
+        for _ in range(1 << self.rand.randrange(3)):
+            i = self.rand.randrange(len(values))
+            values[i] = self.mutate_value(self.params[i], values[i])
+        return tuple(values)
+
+    # execution
+
+    def to_input(self, values: tuple) -> jpamb.case.Input:
+        out = []
+        for p, v in zip(self.params, values):
+            match p:
+                case jvm.Int():
+                    out.append(jpamb.case.Int(v))
+                case jvm.Boolean():
+                    out.append(jpamb.case.Boolean(v))
+                case jvm.Array(contains=t):
+                    out.append(jpamb.case.Array(contains=t, values=tuple(v)))
+                case jvm.Object(name=jvm.ClassName("java.lang.String")):
+                    out.append(jpamb.case.String(v))
+        return jpamb.case.Input(tuple(out))
+
+    def run_one(self, values: tuple) -> tuple[str | None, Coverage]:
+        self.execs += 1
+        try:
+            state = initial(self.bc, self.methodid, self.to_input(values))
+        except Exception:
+            self.crashes += 1
+            return None, frozenset()
+        outcome, cov = execute(self.bc, state, self.max_steps)
+        if outcome is None:
+            self.crashes += 1
+        elif outcome not in self.witnesses:
+            self.witnesses[outcome] = values
+        return outcome, cov
+
+    def consider(self, values: tuple) -> bool:
+        """Execute values and keep them in the corpus if they add coverage."""
+        outcome, cov = self.run_one(values)
+        if not self.use_coverage or outcome is None:
+            return False
+        if cov - self.global_coverage:
+            self.global_coverage |= cov
+            self.corpus.append(Seed(values, cov))
+            return True
+        return False
+
+    def choose_seed(self) -> Seed:
+        # prefer seeds that were picked less often
+        weights = [1.0 / (1 + s.picks) for s in self.corpus]
+        seed = self.rand.choices(self.corpus, weights=weights)[0]
+        seed.picks += 1
+        return seed
+
+    def run(self, time_budget: float, max_execs: int) -> set[str]:
+        """Fuzz until the time or execution budget is used up."""
+        deadline = time.monotonic() + time_budget
+
+        if not self.params:
+            # no parameters, so one run is enough
+            self.run_one(())
+            return set(self.witnesses)
+
+        for _ in range(8):  # initial random seeds
+            self.consider(self.random_input())
+
+        while self.execs < max_execs and time.monotonic() < deadline:
+            if not self.use_coverage or not self.corpus or self.rand.random() < 0.05:
+                self.consider(self.random_input())
+                continue
+            seed = self.choose_seed()
+            for _ in range(16):
+                self.consider(self.mutate(seed.values))
+
+        return set(self.witnesses)
 
 
 def analyse():
-    """The dynamic analysis, e.g. in this case a (dumb) fuzzer."""
+    """Coverage-guided fuzzer used as a JPAMB analysis."""
 
     methodid = jpamb.getmethodid(
-        "dynamic",
+        "project_fuzz",
         "1.0",
-        "Stephen Walking",
-        ["dynamic", "python"],
+        "Group 16",
+        ["dynamic", "fuzzing", "coverage", "python"],
         for_science=True,
     )
 
     suite, eff = jpamb.setup()
     bc = jpamb.Bytecode(suite, eff, {})
 
-    intConstants = syntaxAnalyser.getDictFromMethodIdTS(methodid)
-    intConstantsAndBoundaryValues = syntaxAnalyser.augmentWithBoundryValues(intConstants)
+    mode = os.environ.get("FUZZ_MODE", "full")
+    seed = int(os.environ.get("FUZZ_SEED", "0"))
+    budget = float(os.environ.get("FUZZ_BUDGET", "2.0"))
+    max_execs = int(os.environ.get("FUZZ_MAX_EXECS", "100000"))
 
-    MAX_STEPS = 200
+    int_dict: list[int] = []
+    if mode == "full":
+        try:
+            constants = syntaxAnalyser.getDictFromMethodIdTS(methodid)
+            int_dict = sorted(syntaxAnalyser.augmentWithBoundryValues(constants))
+        except BaseException as e:  # syntaxAnalyser calls sys.exit on failure
+            print(f"constant extraction failed: {e!r}", file=sys.stderr)
 
-    import random
+    fuzzer = CoverageFuzzer(
+        bc,
+        methodid,
+        random.Random(seed),
+        int_dict=int_dict,
+        use_coverage=mode != "random",
+    )
 
-    # Make the randomness deterministic
-    rand = random.Random(0)
+    try:
+        behaviors = fuzzer.run(budget, max_execs)
+    except NotImplementedError as e:
+        print(f"cannot fuzz {methodid}: {e}", file=sys.stderr)
+        behaviors = set()
 
-    behaviors = set()
-    # Try 10 random inputs
-    for i in range(10):
-        input = fuzz_input(rand, methodid, list(intConstantsAndBoundaryValues))
-        state = initial(bc, methodid, input)
+    print(
+        f"mode={mode} execs={fuzzer.execs} corpus={len(fuzzer.corpus)} "
+        f"coverage={len(fuzzer.global_coverage)} crashes={fuzzer.crashes} "
+        f"found={sorted(behaviors)}",
+        file=sys.stderr,
+    )
+    for outcome, values in fuzzer.witnesses.items():
+        print(f"witness {outcome!r}: {fuzzer.to_input(values)}", file=sys.stderr)
 
-        for x in range(MAX_STEPS):
-            _, state = step(bc, state)
-            if isinstance(state, str):
-                behaviors.add(state)
-                break
-
+    deterministic = not fuzzer.params and fuzzer.crashes == 0
     for query in jpamb.QUERIES:
-        if not input.values:
+        if query == "*" and query in behaviors:
+            # hitting MAX_STEPS does not prove an infinite loop
+            # (e.g. fib(21) or collatz also hit it), so own category
+            print(f"{query};timeout")
+        elif query in behaviors:
+            print(f"{query};found")
+        elif deterministic:
+            # no parameters -> the single run is the only behaviour
             print(f"{query};no")
         else:
             print(f"{query};not-found")
-        if query in behaviors:
-            if query == "*":
-                print(f"{query};timeout")
-            else:
-                print(f"{query};found")
-        else:
-            print(f"{query};not-found")
+
+
