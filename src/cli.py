@@ -53,12 +53,23 @@ def re_parser(ctx_, parms_, expr):
     show_default=True,
     help="the base of the jpamb folder.",
 )
+@click.option(
+    "--cachedir",
+    type=click.Path(
+        file_okay=False,
+        path_type=Path,
+        resolve_path=True,
+    ),
+    default=Path.cwd() / ".cache" / "jpamb",
+    show_default=True,
+    help="the folder to cache in.",
+)
 @click.pass_context
-def cli(ctx, workdir: Path, verbose, docker_image):
+def cli(ctx, cachedir: Path, workdir: Path, verbose, docker_image):
     """This is the jpamb main entry point."""
     eff = Effect(sys.stderr)
     eff.level = 25 - verbose * 10
-    suite = jpamb.Suite.from_workdir(workdir)
+    suite = jpamb.Suite(cachedir=cachedir, workdir=workdir)
     ctx.obj = Context(
         eff=eff,
         docker_image=docker_image,

@@ -49,7 +49,7 @@ def setup() -> tuple[Suite, Effect]:
     """Get a suite in the current working directory"""
 
     eff = Effect(None)
-    return (Suite.from_workdir(Path.cwd()), eff)
+    return (Suite(Path.cwd() / ".cache" / "jpamb", Path.cwd()), eff)
 
 
 def getmethodid(
